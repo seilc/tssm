@@ -2,270 +2,64 @@ name: Build
 
 on:
   push:
-  pull_request_target:
+  pull_request:
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
   build:
-    # This is a *private* build container.
-    # See docs/github_actions.md for more information.
-    container: ghcr.io/bfbbdecomp/tssm-build:main
+    # Private build container with the original DOL and the compilers (seilc/tssm-build).
+    container:
+      image: ghcr.io/seilc/tssm-build:main
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # Add game versions here
         version: [GGVE78]
 
     steps:
-      # Checkout the repository (Push)
       - name: Checkout
-        if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           submodules: recursive
-          ref: ${{ github.event.push.head.sha }}
 
-      # Checkout the repository (PR from forked repo)
-      - name: Checkout
-        if: ${{ github.event_name == 'pull_request_target'}}
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
-
-      # Set Git config
       - name: Git config
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      # Copy the original files to the workspace
-      - name: Prepare
-        run: cp -R /orig .
+      - name: Restore timestamps
+        run: |
+          uv run https://raw.githubusercontent.com/MestreLion/git-tools/refs/tags/v2022.12/git-restore-mtime \
+              --merge --commit-time
 
-      # Build the project
+      - name: Prepare
+        run: cp -a /orig .
+
+      - name: Cache build
+        uses: actions/cache@v4
+        with:
+          path: |
+            build
+            .ninja_deps
+            .ninja_log
+          key: ${{ runner.os }}-${{ matrix.version }}-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-${{ matrix.version }}-
+
+      # The default target (progress) depends on the SHA-1 check of the DOL.
       - name: Build
         run: |
           python configure.py --map --version ${{ matrix.version }} \
               --binutils /binutils --compilers /compilers
-          ninja all_source build/${{ matrix.version }}/progress.json \
-              build/${{ matrix.version }}/report.json
-          git log -1 --pretty='{"id": "%H", "email": "%ae", "time": "%ad", "message": "%s"}' \
-              --date=format:"%Y-%m-%dT%H:%M:%S" > build/${{ matrix.version }}/progress-commit.json
+          ninja all_source progress build/${{ matrix.version }}/report.json
 
-      # Upload map files
-      - name: Upload map
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.version }}_maps
-          path: build/${{ matrix.version }}/**/*.MAP
-
-      # Upload progress report
       - name: Upload report
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.version }}_report
-          path: |
-            build/${{ matrix.version }}/report.json
-            build/${{ matrix.version }}/progress-commit.json
-
-  build-non-matching:
-    # This is a *private* build container.
-    # See docs/github_actions.md for more information.
-    container: ghcr.io/bfbbdecomp/tssm-build:main
-
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # Add game versions here
-        version: [GGVE78]
-
-    steps:
-      # Checkout the repository (Push)
-      - name: Checkout
-        if: ${{ github.event_name == 'push' }}
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          ref: ${{ github.event.push.head.sha }}
-
-      # Checkout the repository (PR from forked repo)
-      - name: Checkout
-        if: ${{ github.event_name == 'pull_request_target'}}
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
-
-      # Set Git config
-      - name: Git config
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      # Copy the original files to the workspace
-      - name: Prepare
-        run: cp -R /orig .
-
-      # Build and link non-matching files to verify lack of errors
-      - name: Build non-matching
-        run: |
-          python configure.py --non-matching \
-              --version ${{ matrix.version }} \
-              --binutils /binutils --compilers /compilers
-          ninja
-
-  build-previous:
-    # This is a *private* build container.
-    # See docs/github_actions.md for more information.
-    container: ghcr.io/bfbbdecomp/tssm-build:main
-
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # Add game versions here
-        version: [GGVE78]
-
-    steps:
-      # Checkout the repository
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-          submodules: recursive
-
-      # Set Git config
-      - name: Git config
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      # Copy the original files to the workspace
-      - name: Prepare
-        run: cp -R /orig .
-
-      # Checkout the commit to generate OK bot report used for website build
-      - name: Checkout previous report repo state
-        if: ${{ github.event_name == 'push' }}
-        run: |
-          git checkout HEAD^
-
-      # Checkout the commit to generate CI progress report for PR comment report
-      - name: Checkout previous report repo state
-        if: ${{ github.event_name == 'pull_request_target' }}
-        run: |
-          git checkout main
-
-      # Generate report for previous repo state
-      - name: Generate previous report
-        run: |
-          python configure.py --version ${{ matrix.version }} \
-                --binutils /binutils --compilers /compilers
-          ninja build/${{ matrix.version }}/report.json
-
-      # Upload previous report
-      - name: Upload previous report
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.version }}_previous
           path: build/${{ matrix.version }}/report.json
-
-  # website:
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: write
-  #   needs:
-  #     - build
-  #     - build-previous
-  #   if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'pull_request_target'
-  #   steps:
-  #     - name: Checkout website code
-  #       uses: actions/checkout@v4
-  #       with:
-  #         repository: bfbbdecomp/website
-
-  #     - name: Download Progress Artifacts
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         path: ./artifacts
-
-  #     - name: Rename Artifacts
-  #       run: |
-  #         mv artifacts/GQPE78_report/report.json artifacts/progress.json
-  #         mv artifacts/GQPE78_report/progress-commit.json artifacts/progress-commit.json
-  #         mv artifacts/GQPE78_previous/report.json artifacts/previous.json
-
-  #     - uses: actions/setup-dotnet@v4
-  #       with:
-  #         dotnet-version: "8.x.x"
-
-  #     - name: Build Website
-  #       env:
-  #         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-  #         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-  #       run: |
-  #         python build.py
-
-  #     - name: Deploy Website
-  #       uses: JamesIves/github-pages-deploy-action@v4
-  #       with:
-  #         branch: gh-pages
-  #         folder: dist # The folder the action should deploy.
-  #         clean: true
-  #         single-commit: true
-
-  #     - name: Commit Changes
-  #       continue-on-error: true
-  #       run: |
-  #         git status
-  #         git pull origin main
-  #         git config --global user.name "BFBB Actions Bot"
-  #         git config --global user.email "actions@github.com"
-  #         git add .
-  #         git commit -m "automated commit cache update"
-
-  #     - name: Push changes
-  #       uses: ad-m/github-push-action@master
-  #       with:
-  #         github_token: ${{ secrets.WEBSITE_TOKEN }}
-  #         repository: bfbbdecomp/website
-  #         branch: ${{ github.ref }}
-  pr-comment:
-    runs-on: ubuntu-latest
-    needs:
-      - build
-      - build-previous
-    if: github.event_name == 'pull_request_target'
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download Progress Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-
-      - name: Rename Artifacts
-        run: |
-          mv artifacts/GGVE78_report/report.json artifacts/progress.json
-          mv artifacts/GGVE78_report/progress-commit.json artifacts/progress-commit.json
-          mv artifacts/GGVE78_previous/report.json artifacts/previous.json
-
-      - name: Download OK bot
-        id: download-ok
-        run: |
-          python ./tools/download_tool.py objdiff-cli objdiff --tag v3.3.1
-          python ./tools/download_tool.py OK ok --tag v0.2.0
-
-      - name: Run OK command
-        id: ok-command
-        run: |
-          ./objdiff report changes artifacts/previous.json artifacts/progress.json -o artifacts/changes.json
-          ./ok --changes artifacts/changes.json pr > pr.txt
-          cat pr.txt
-      - name: PR comment with file
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          file-path: pr.txt
