@@ -1,21 +1,38 @@
-The Spongebob Squarepants Movie Game
-[![Build Status]][actions] [![Code Progress]][progress] [![Discord Badge]][discord]
+The SpongeBob SquarePants Movie (GameCube)  
+[![Build Status]][actions] <!--[![Code Progress]][progress] [![Data Progress]][progress]--> [![Discord Badge]][discord]
 =============
 
-[Build Status]: https://github.com/bfbbdecomp/tssm/actions/workflows/build.yml/badge.svg
-[actions]: https://github.com/bfbbdecomp/tssm/actions/workflows/build.yml
-[Code Progress]: https://decomp.dev/bfbbdecomp/tssm.svg?mode=shield&category=all&measure=code&label=Code
-[progress]: https://decomp.dev/bfbbdecomp/tssm
-[Discord Badge]: https://img.shields.io/discord/688807550715560050?color=%237289DA&logo=discord&logoColor=%23FFFFFF
-[discord]: https://discord.com/invite/dVbGFdYU6A
+[Build Status]: https://github.com/seilc/tssm/actions/workflows/build.yml/badge.svg
+[actions]: https://github.com/seilc/tssm/actions/workflows/build.yml
+<!--
+decomp.dev progress badges (hidden until the project is registered on decomp.dev)
+See https://decomp.dev/api for an API overview.
+-->
+[Code Progress]: https://decomp.dev/seilc/tssm.svg?mode=shield&measure=code&label=Code
+[Data Progress]: https://decomp.dev/seilc/tssm.svg?mode=shield&measure=data&label=Data
+[progress]: https://decomp.dev/seilc/tssm
+[Discord Badge]: https://img.shields.io/discord/829152115322257436?color=%237289DA&logo=discord&logoColor=%23FFFFFF
+[discord]: https://discord.gg/dVbGFdYU6A
 
-A work-in-progress decompilation of TSSM.
+A work-in-progress matching decompilation of *The SpongeBob SquarePants Movie* for the GameCube (USA, `GGVE78`),
+built on Heavy Iron's EvilEngine. Much of the engine is shared with the
+[Ratatouille prototype decomp](https://github.com/seilc/rat), [Rise of the Underminer](https://github.com/seilc/rotu)
+and [The Incredibles](https://github.com/seilc/incredibles), which this project ports matched code from.
+
+Based on the community decompilation [bfbbdecomp/tssm](https://github.com/bfbbdecomp/tssm) at
+[`50ea0176`](https://github.com/bfbbdecomp/tssm/commit/50ea0176), whose history this repository keeps; thanks to
+its contributors. Upstream changes after that commit are not merged.
 
 This repository does **not** contain any game assets or assembly whatsoever. An existing copy of the game is required.
 
+Full disclosure: work in this repository after `50ea0176` is AI-assisted. New code is decompiled with the help of an
+LLM, then reviewed and checked against the original binary. Matching code is byte-identical to the original, but
+names, types and source structure beyond what the binary and its debug info prove may be guesses. The code inherited
+from bfbbdecomp/tssm was written by its contributors.
+
 Supported versions:
 
-- `GGVE78`: (NTSC)
+- `GGVE78` - The SpongeBob SquarePants Movie (USA), retail Rev 1 `main.dol`
 
 Dependencies
 ============
