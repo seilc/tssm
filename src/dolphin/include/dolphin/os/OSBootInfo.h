@@ -1,6 +1,8 @@
 #ifndef _DOLPHIN_OSBOOTINFO
 #define _DOLPHIN_OSBOOTINFO
 
+#include <dolphin/os/OSExec.h>
+
 #define OS_BOOTROM_ADDR 0x81300000
 
 typedef struct OSBootInfo {
@@ -14,17 +16,6 @@ typedef struct OSBootInfo {
   void* FSTLocation;
   u32 FSTMaxLength;
 } OSBootInfo;
-
-typedef struct {
-  BOOL valid;
-  u32 restartCode;
-  u32 bootDol;
-  void* regionStart;
-  void* regionEnd;
-  BOOL argsUseDefault;
-  void* argsAddr; // valid only when argsUseDefault = FALSE
-
-} OSExecParams;
 
 typedef struct BI2Debug {
   s32 debugMonSize;  // 0x0

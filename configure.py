@@ -243,7 +243,7 @@ cflags_sdk = [
     "-i include",
     "-i src/PowerPC_EABI_Support/include",
     "-i src/dolphin/include",
-    "-i src/dolphin/src",
+    "-ir src/dolphin/src",
     "-i src",
     f"-i build/{config.version}/include",
     "-DRELEASE",

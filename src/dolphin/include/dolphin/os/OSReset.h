@@ -41,6 +41,11 @@ struct OSResetFunctionInfo {
   OSResetFunctionInfo* prev;
 };
 
+typedef struct OSResetFunctionQueue {
+  OSResetFunctionInfo* head;
+  OSResetFunctionInfo* tail;
+} OSResetFunctionQueue;
+
 void OSResetSystem(BOOL reset, u32 resetCode, BOOL forceMenu);
 void OSRegisterResetFunction(OSResetFunctionInfo *func);
 

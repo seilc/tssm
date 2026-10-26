@@ -13,12 +13,13 @@ extern "C"
     typedef float Mtx23[2][3];
     typedef float Mtx33[3][3];
     typedef float Mtx44[4][4];
+    typedef float (*Mtx44Ptr)[4];
     typedef float PSQuaternion[4];
 
     typedef struct
     {
         f32 x, y, z;
-    } Vec, *VecPtr;
+    } Vec, *VecPtr, Point3d, *Point3dPtr;
 
     typedef struct
     {
@@ -72,6 +73,30 @@ extern "C"
     void PSMTX44MultVecArray(const Mtx44 m, const Vec *srcBase, Vec *dstBase, u32 count);
     void PSMTX44MultVecSR(const Mtx44 m, const Vec *src, Vec *dst);
     void PSMTX44MultVecArraySR(const Mtx44 m, const Vec *srcBase, Vec *dstBase, u32 count);
+
+    void PSMTX44Identity(Mtx44 m);
+    void PSMTX44Copy(const Mtx44 src, Mtx44 dst);
+    void PSMTX44Concat(const Mtx44 a, const Mtx44 b, Mtx44 ab);
+    void PSMTX44Transpose(const Mtx44 src, Mtx44 xPose);
+    void PSMTX44Trans(Mtx44 m, f32 xT, f32 yT, f32 zT);
+    void PSMTX44TransApply(const Mtx44 src, Mtx44 dst, f32 xT, f32 yT, f32 zT);
+    void PSMTX44Scale(Mtx44 m, f32 xS, f32 yS, f32 zS);
+    void PSMTX44ScaleApply(const Mtx44 src, Mtx44 dst, f32 xS, f32 yS, f32 zS);
+    void PSMTX44RotRad(Mtx44 m, char axis, f32 rad);
+    void PSMTX44RotTrig(Mtx44 m, char axis, f32 sinA, f32 cosA);
+    void PSMTX44RotAxisRad(Mtx44 m, const Vec* axis, f32 rad);
+
+    void C_MTX44Identity(Mtx44 m);
+    void C_MTX44Copy(const Mtx44 src, Mtx44 dst);
+    void C_MTX44Concat(const Mtx44 a, const Mtx44 b, Mtx44 ab);
+    void C_MTX44Transpose(const Mtx44 src, Mtx44 xPose);
+    void C_MTX44Trans(Mtx44 m, f32 xT, f32 yT, f32 zT);
+    void C_MTX44TransApply(const Mtx44 src, Mtx44 dst, f32 xT, f32 yT, f32 zT);
+    void C_MTX44Scale(Mtx44 m, f32 xS, f32 yS, f32 zS);
+    void C_MTX44ScaleApply(const Mtx44 src, Mtx44 dst, f32 xS, f32 yS, f32 zS);
+    void C_MTX44RotRad(Mtx44 m, char axis, f32 rad);
+    void C_MTX44RotTrig(Mtx44 m, char axis, f32 sinA, f32 cosA);
+    void C_MTX44RotAxisRad(Mtx44 m, const Vec* axis, f32 rad);
 
     // C Versions
 

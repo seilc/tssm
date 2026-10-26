@@ -95,6 +95,21 @@ typedef struct CARDControl {
   const DVDDiskID* diskID;
 } CARDControl;
 
+typedef struct CARDDecParam {
+  u8* inputAddr;
+  u32 inputLength;
+  u32 aramAddr;
+  u8* outputAddr;
+} CARDDecParam;
+
+extern u32 __CARDFreq;
+
+#if DEBUG
+#define CARDFreq __CARDFreq
+#else
+#define CARDFreq EXI_FREQ_16M
+#endif
+
 typedef struct CARDID {
   u8 serial[32]; // flashID[12] + timebase[8] + counterBias[4] + language[4] + XXX[4]
   u16 deviceID;

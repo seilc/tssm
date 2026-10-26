@@ -264,4 +264,29 @@ extern BOOL __OSInIPL;
 #include <dolphin/os/OSSerial.h>
 #include <dolphin/os/OSThread.h>
 #include <dolphin/os/OSTime.h>
+#include <dolphin/os/OSRtc.h>
+#include <dolphin/os/OSDC.h>
+#include <dolphin/os/OSIC.h>
+#include <dolphin/os/OSLC.h>
+#include <dolphin/os/OSL2.h>
+#include <dolphin/os/OSReboot.h>
+#include <dolphin/os/OSExec.h>
+#include <dolphin/os/OSSemaphore.h>
+#include <dolphin/os/OSUtf.h>
+#include <dolphin/os/OSTimer.h>
+
+#define DOLPHIN_ALIGNMENT 32
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+OSThreadQueue __OSActiveThreadQueue AT_ADDRESS(OS_BASE_CACHED | 0x00DC);
+extern OSExecParams __OSRebootParams;
+void __OSFPRInit(void);
+extern volatile OSTime __OSLastInterruptTime;
+
+#ifdef __cplusplus
+}
+#endif
 #endif // _DOLPHIN_OS
