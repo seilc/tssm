@@ -236,36 +236,19 @@ cflags_sdk = [
     "-Cpp_exceptions off",
     "-enum int",
     "-warn pragmas",
-    # "-requireprotos",  # off until the tree has its missing prototypes (~240)
+    "-requireprotos",
     '-pragma "cats off"',
     "-D__GEKKO__",
     "-nosyspath",
-    "-i include",
-    "-i src/PowerPC_EABI_Support/include",
     "-i src/dolphin/include",
+    "-i src/dolphin/include/libc",
     "-ir src/dolphin/src",
-    "-i src",
-    f"-i build/{config.version}/include",
     "-DRELEASE",
 ]
 sdk_char_signed = ["-char signed"]
 
-# SDK_REVISION: each library's build date (YYYYMMDD) from its version string; libraries without one get the date
-# most libraries carry.
-sdk_dates = {
-    "ar": 20031126,
-    "ax": 20031202,
-    "dvd": 20040212,
-    "exi": 20030311,
-    "gx": 20031126,
-    "os": 20040520,
-    "pad": 20030806,
-}
-sdk_date_default = 20020905
-
-
-def sdk_revision(lib_name: str) -> str:
-    return f"-DSDK_REVISION={sdk_dates.get(lib_name, sdk_date_default)}"
+# EXIBios.c is built at -O3,p instead of -O4,p in the release library
+cflags_sdk_exibios = [("-O3,p" if f == "-O4,p" else f) for f in cflags_sdk]
 
 
 # Renderware library flags
@@ -316,7 +299,7 @@ def DolphinLib(lib_name: str, objects: List[Object]) -> Dict[str, Any]:
         "lib": lib_name,
         "src_dir": "src/",
         "mw_version": "GC/1.2.5n",
-        "cflags": [*cflags_sdk, sdk_revision(lib_name)],
+        "cflags": cflags_sdk,
         "progress_category": "sdk",
         "host": True,
         "objects": objects,
@@ -599,21 +582,21 @@ config.libs = [
             Object(Matching, "dolphin/src/dvd/dvderror.c", extra_cflags=sdk_char_signed),
             Object(Matching, "dolphin/src/dvd/dvdidutils.c", extra_cflags=sdk_char_signed),
             Object(Matching, "dolphin/src/dvd/dvdFatal.c", extra_cflags=sdk_char_signed),
-            Object(Matching, "dolphin/src/dvd/emu_level2/fstload.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/dvd/fstload.c", extra_cflags=sdk_char_signed),
         ],
     ),
     DolphinLib(
         "exi",
         [
-            Object(Matching, "dolphin/src/exi/EXIBios.c"),
-            Object(Matching, "dolphin/src/exi/EXIUart.c", extra_cflags=sdk_char_signed)
+            Object(Matching, "dolphin/src/exi/EXIBios.c", cflags=cflags_sdk_exibios),
+            Object(Matching, "dolphin/src/exi/EXIUart.c")
         ]
     ),
     DolphinLib(
         "gx",
         [
             Object(NonMatching, "dolphin/src/gx/GXInit.c"),
-            Object(NonMatching, "dolphin/src/gx/GXFifo.c"), # Code Match
+            Object(NonMatching, "dolphin/src/gx/GXFifo.c"),
             Object(NonMatching, "dolphin/src/gx/GXAttr.c"),
             Object(Matching, "dolphin/src/gx/GXMisc.c"),
             Object(NonMatching, "dolphin/src/gx/GXGeometry.c"),
@@ -679,8 +662,8 @@ config.libs = [
             Object(Matching, "dolphin/src/os/OSTime.c"),
             Object(Matching, "dolphin/src/os/OSSemaphore.c"),
             Object(Matching, "dolphin/src/os/OSSync.c"),
-            Object(NonMatching, "dolphin/src/os/init/__start.c"),
-            Object(NonMatching, "dolphin/src/os/init/__ppc_eabi_init.cpp")
+            Object(NonMatching, "dolphin/src/os/__start.c"),
+            Object(NonMatching, "dolphin/src/os/__ppc_eabi_init.cpp")
         ]
     ),
     DolphinLib(

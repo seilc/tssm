@@ -1,32 +1,20 @@
-#ifndef _DOLPHIN_DB
-#define _DOLPHIN_DB
+#ifndef _DOLPHIN_DB_H_
+#define _DOLPHIN_DB_H_
 
-#include "types.h"
+#include <dolphin/types.h>
+#include <dolphin/db/DBInterface.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #define OS_DBINTERFACE_ADDR 0x00000040
 
-typedef struct DBInterface
-{
-    u32 bPresent;
-    u32 exceptionMask;
-    void (*ExceptionDestination)(void);
-    void *exceptionReturn;
-} DBInterface;
-
-extern DBInterface *__DBInterface;
-
-void DBInit(void);
-void DBInitComm(int *inputFlagPtr, int *mtrCallback);
-static void __DBExceptionDestination(void);
-void DBPrintf(char *format, ...);
+BOOL DBIsDebuggerPresent(void);
+void DBPrintf(char* str, ...);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // _DOLPHIN_DB
+#endif // _DOLPHIN_DB_H_

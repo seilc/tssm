@@ -1,13 +1,13 @@
 #include <dolphin.h>
 #include <dolphin/ax.h>
 
-#include "ax/__ax.h"
+#include "__ax.h"
 
 static s32 __AXBufferAuxA[3][480] ATTRIBUTE_ALIGN(32);
 static s32 __AXBufferAuxB[3][480] ATTRIBUTE_ALIGN(32);
 
-static void (*__AXCallbackAuxA)(void*, void*);
-static void (*__AXCallbackAuxB)(void*, void*);
+static void (* __AXCallbackAuxA)(void*, void*);
+static void (* __AXCallbackAuxB)(void*, void*);
 static void* __AXContextAuxA;
 static void* __AXContextAuxB;
 static s32* __AXAuxADspWrite;
@@ -20,8 +20,7 @@ static u32 __AXAuxDspWritePositionDpl2;
 static u32 __AXAuxDspReadPositionDpl2;
 static u32 __AXAuxCpuReadWritePosition;
 
-void __AXAuxInit(void)
-{
+void __AXAuxInit(void) {
     int i;
     s32* pA;
     s32* pB;
@@ -42,17 +41,13 @@ void __AXAuxInit(void)
     pA = (s32*)&__AXBufferAuxA;
     pB = (s32*)&__AXBufferAuxB;
 
-    for (i = 0; i < 480; i++)
-    {
-        *(pA) = 0;
-        pA++;
-        *(pB) = 0;
-        pB++;
+    for (i = 0; i < 480; i++) {
+        *(pA) = 0; pA++;
+        *(pB) = 0; pB++;
     }
 }
 
-void __AXAuxQuit(void)
-{
+void __AXAuxQuit(void) {
 #ifdef DEBUG
     OSReport("Shutting down AXAux code module\n");
 #endif
@@ -60,81 +55,62 @@ void __AXAuxQuit(void)
     __AXCallbackAuxB = NULL;
 }
 
-void __AXGetAuxAInput(u32* p)
-{
-    if (__AXCallbackAuxA)
-    {
+void __AXGetAuxAInput(u32* p) {
+    if (__AXCallbackAuxA) {
         *p = (u32)&__AXBufferAuxA[__AXAuxDspWritePosition][0];
-    }
-    else
-    {
+    } else {
         *p = 0;
     }
 }
 
-void __AXGetAuxAInputDpl2(u32* p)
-{
+void __AXGetAuxAInputDpl2(u32* p) {
     *p = (u32)&__AXBufferAuxB[__AXAuxDspWritePosition][320];
 }
 
-void __AXGetAuxAOutput(u32* p)
-{
+void __AXGetAuxAOutput(u32* p) {
     *p = (u32)&__AXBufferAuxA[__AXAuxDspReadPosition][0];
 }
 
-void __AXGetAuxAOutputDpl2R(u32* p)
-{
+void __AXGetAuxAOutputDpl2R(u32* p) {
     *p = (u32)&__AXBufferAuxA[__AXAuxDspReadPosition][160];
 }
 
-void __AXGetAuxAOutputDpl2Ls(u32* p)
-{
+void __AXGetAuxAOutputDpl2Ls(u32* p) {
     *p = (u32)&__AXBufferAuxA[__AXAuxDspReadPosition][320];
 }
 
-void __AXGetAuxAOutputDpl2Rs(u32* p)
-{
+void __AXGetAuxAOutputDpl2Rs(u32* p) {
     *p = (u32)&__AXBufferAuxB[__AXAuxDspReadPosition][320];
 }
 
-void __AXGetAuxBInput(u32* p)
-{
-    if (__AXCallbackAuxB)
-    {
+void __AXGetAuxBInput(u32* p) {
+    if (__AXCallbackAuxB) {
         *p = (u32)&__AXBufferAuxB[__AXAuxDspWritePosition][0];
-    }
-    else
-    {
+    } else {
         *p = 0;
     }
 }
 
-void __AXGetAuxBOutput(u32* p)
-{
+void __AXGetAuxBOutput(u32* p) {
     *p = (u32)&__AXBufferAuxB[__AXAuxDspReadPosition][0];
 }
 
-void __AXGetAuxBForDPL2(u32* p)
-{
+void __AXGetAuxBForDPL2(u32* p) {
     *p = (u32)&__AXBufferAuxB[__AXAuxDspWritePositionDpl2][0];
 }
 
-void __AXGetAuxBOutputDPL2(u32* p)
-{
+void __AXGetAuxBOutputDPL2(u32* p) {
     *p = (u32)&__AXBufferAuxB[__AXAuxDspReadPositionDpl2][0];
 }
 
-void __AXProcessAux(void)
-{
+void __AXProcessAux(void) {
     __AXAuxADspWrite = &__AXBufferAuxA[__AXAuxDspWritePosition][0];
     __AXAuxADspRead = &__AXBufferAuxA[__AXAuxDspReadPosition][0];
     __AXAuxBDspWrite = &__AXBufferAuxB[__AXAuxDspWritePosition][0];
     __AXAuxBDspRead = &__AXBufferAuxB[__AXAuxDspReadPosition][0];
 
-    if (__AXCallbackAuxA)
-    {
-        if (__AXClMode == 2)
-        {
+    if (__AXCallbackAuxA) {
+        if (__AXClMode == 2) {
             AX_AUX_DATA_DPL2 auxData;
             auxData.l = &__AXBufferAuxA[__AXAuxCpuReadWritePosition][0];
             auxData.r = &__AXBufferAuxA[__AXAuxCpuReadWritePosition][160];
@@ -145,9 +121,7 @@ void __AXProcessAux(void)
             __AXCallbackAuxA(&auxData.l, __AXContextAuxA);
             DCFlushRangeNoSync(auxData.l, 0x780);
             DCFlushRangeNoSync(auxData.rs, 0x280);
-        }
-        else
-        {
+        } else {
             AX_AUX_DATA auxData;
             auxData.l = &__AXBufferAuxA[__AXAuxCpuReadWritePosition][0];
             auxData.r = &__AXBufferAuxA[__AXAuxCpuReadWritePosition][160];
@@ -155,11 +129,10 @@ void __AXProcessAux(void)
             DCInvalidateRange(auxData.l, 0x780);
             __AXCallbackAuxA(&auxData.l, __AXContextAuxA);
             DCFlushRangeNoSync(auxData.l, 0x780);
-        }
+        }        
     }
 
-    if (__AXCallbackAuxB && __AXClMode != 2)
-    {
+    if (__AXCallbackAuxB && __AXClMode != 2) {
         AX_AUX_DATA auxData;
         auxData.l = &__AXBufferAuxB[__AXAuxCpuReadWritePosition][0];
         auxData.r = &__AXBufferAuxB[__AXAuxCpuReadWritePosition][160];
@@ -183,14 +156,12 @@ void __AXProcessAux(void)
     __AXAuxCpuReadWritePosition %= 3;
 }
 
-void AXRegisterAuxACallback(void (*callback)(void*, void*), void* context)
-{
+void AXRegisterAuxACallback(void (*callback)(void*, void*), void* context) {
     __AXCallbackAuxA = callback;
-    __AXContextAuxA = context;
+    __AXContextAuxA = context;    
 }
 
-void AXRegisterAuxBCallback(void (*callback)(void*, void*), void* context)
-{
+void AXRegisterAuxBCallback(void (*callback)(void*, void*), void* context) {
     __AXCallbackAuxB = callback;
-    __AXContextAuxB = context;
+    __AXContextAuxB = context;    
 }

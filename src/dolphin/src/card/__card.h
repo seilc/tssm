@@ -3,7 +3,6 @@
 
 #include <dolphin/card.h>
 #include <dolphin/exi.h>
-#include <dolphin/CARDPriv.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,8 +35,6 @@ s32 __CARDAccess(CARDControl* card, CARDDir* ent);
 s32 __CARDIsPublic(CARDDir* ent);
 s32 __CARDGetFileNo(CARDControl* card, const char* fileName, s32* pfileNo);
 BOOL __CARDIsOpened(CARDControl* card, s32 fileNo);
-s32 __CARDIsWritable(CARDControl* card, CARDDir* ent);
-s32 __CARDIsReadable(CARDControl* card, CARDDir* ent);
 
 // CARDNet
 extern u16 __CARDVendorID;
@@ -63,7 +60,7 @@ void __CARDCheckSum(void* ptr, int length, u16* checksum, u16* checksumInv);
 s32 __CARDVerify(CARDControl* card);
 
 // CARDBlock
-//void* __CARDGetFatBlock(CARDControl* card);
+void* __CARDGetFatBlock(CARDControl* card);
 s32 __CARDAllocBlock(s32 chan, u32 cBlock, CARDCallback callback);
 s32 __CARDFreeBlock(s32 chan, u16 nBlock, CARDCallback callback);
 s32 __CARDUpdateFatBlock(s32 chan, u16* fat, CARDCallback callback);
@@ -83,7 +80,6 @@ void __CARDUnlockedHandler(s32 chan, OSContext* context);
 int __CARDReadNintendoID(s32 chan, u32* id);
 s32 __CARDEnableInterrupt(s32 chan, BOOL enable);
 s32 __CARDReadStatus(s32 chan, u8* status);
-int __CARDReadVendorID(s32 chan, u16* id);
 s32 __CARDClearStatus(s32 chan);
 s32 __CARDSleep(s32 chan);
 s32 __CARDWakeup(s32 chan);
@@ -92,7 +88,7 @@ s32 __CARDWritePage(s32 chan, CARDCallback callback);
 s32 __CARDErase(s32 chan, CARDCallback callback);
 s32 __CARDEraseSector(s32 chan, u32 addr, CARDCallback callback);
 void __CARDSetDiskID(const DVDDiskID* id);
-s32 __CARDGetControlBlock(s32 chan, CARDControl** pcard);
+s32 __CARDGetControlBlock(s32 chan, CARDControl **pcard);
 s32 __CARDPutControlBlock(CARDControl* card, s32 result);
 s32 __CARDSync(s32 chan);
 u16 __CARDGetFontEncode(void);

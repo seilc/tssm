@@ -3809,7 +3809,7 @@ void iAsyncStart(void (*func)(void*))
     asyncDirtyFrameList = (S64)&asyncDirtyFrameList;
     threadParams.status = (S64)&asyncDirtyFrameList;
     asyncThreadDone = 0;
-    OSCreateThread((OSThread*)-0x7fb57520, (OSThreadStartFunction)func, 0, (void*)0x80442278,
+    OSCreateThread((OSThread*)-0x7fb57520, (void* (*)(void*))func, 0, (void*)0x80442278,
                    0x2000, 10, 1);
     OSResumeThread((OSThread*)-0x7fb57520);
 }

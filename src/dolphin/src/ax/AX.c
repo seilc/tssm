@@ -1,21 +1,15 @@
 #include <dolphin.h>
 #include <dolphin/ax.h>
 
-#include "ax/__ax.h"
+#include "__ax.h"
 
-#ifdef DEBUG
-const char* __AXVersion = "<< Dolphin SDK - AX\tdebug build: Apr  5 2004 03:56:21 (0x2301) >>";
-#else
 const char* __AXVersion = "<< Dolphin SDK - AX\trelease build: Dec  2 2003 05:10:55 (0x2301) >>";
-#endif
 
-void AXInit(void)
-{
+void AXInit(void) {
     AXInitEx(0);
 }
 
-void AXInitEx(u32 outputBufferMode)
-{
+void AXInitEx(u32 outputBufferMode) {
 #ifdef DEBUG
     OSReport("Initializing AX\n");
 #endif
@@ -29,8 +23,7 @@ void AXInitEx(u32 outputBufferMode)
     __AXOutInit(outputBufferMode);
 }
 
-void AXQuit(void)
-{
+void AXQuit(void) {
 #ifdef DEBUG
     OSReport("Shutting down AX\n");
 #endif
