@@ -36,7 +36,7 @@ typedef double F64;
 #endif
 #define FALSE 0
 
-#ifdef __MWERKS__
+#ifndef __MWERKS__
 #define __declspec(x)
 // #define asm
 #endif
