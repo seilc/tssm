@@ -524,7 +524,7 @@ config.libs = [
         "ax",
         [
             Object(Matching, "dolphin/src/axfx/reverb_hi.c"),
-            Object(NonMatching, "dolphin/src/axfx/reverb_std.c"),
+            Object(Matching, "dolphin/src/axfx/reverb_std.c"),
             Object(Matching, "dolphin/src/axfx/chorus.c"),
             Object(Matching, "dolphin/src/axfx/delay.c"),
             Object(Matching, "dolphin/src/axfx/axfx.c"),

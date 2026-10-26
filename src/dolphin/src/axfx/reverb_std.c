@@ -7,7 +7,7 @@
 
 // prototypes
 static void DLsetdelay(AXFX_REVSTD_DELAYLINE* dl, s32 lag);
-static int DLcreate(AXFX_REVSTD_DELAYLINE* dl, s32 max_length);
+static void DLcreate(AXFX_REVSTD_DELAYLINE* dl, s32 max_length);
 static void DLdelete(AXFX_REVSTD_DELAYLINE* dl);
 static int ReverbSTDCreate(AXFX_REVSTD_WORK* rv, f32 coloration, f32 time, f32 mix, f32 damping, f32 predelay);
 static int ReverbSTDModify(AXFX_REVSTD_WORK* rv, f32 coloration, f32 time, f32 mix, f32 damping, f32 predelay);
@@ -22,20 +22,14 @@ static void DLsetdelay(AXFX_REVSTD_DELAYLINE* dl, s32 lag) {
     }
 }
 
-static int DLcreate(AXFX_REVSTD_DELAYLINE* dl, s32 max_length) {
+static void DLcreate(AXFX_REVSTD_DELAYLINE* dl, s32 max_length) {
     dl->length = (max_length * 4);
     dl->inputs = __AXFXAlloc(max_length * 4);
-	ASSERTMSGLINE(49, dl->inputs, "Can't allocate the memory.");
-	if (dl->inputs == NULL) {
-		return 0;
-	}
-
     memset(dl->inputs, 0, max_length * 4);
     dl->lastOutput = 0.0f;
     DLsetdelay(dl, max_length >> 1);
     dl->inPoint = 0;
     dl->outPoint = 0;
-	return 1;
 }
 
 static void DLdelete(AXFX_REVSTD_DELAYLINE* dl) {
@@ -72,19 +66,13 @@ static int ReverbSTDCreate(AXFX_REVSTD_WORK* rv, f32 coloration, f32 time, f32 m
 
     for (k = 0; k < 3; k++) {
         for (i = 0; i < 2; i++) {
-            if (DLcreate(&rv->C[i + (k * 2)], lens[i] + 2) == 0) {
-				ReverbSTDFree(rv);
-				return 0;
-			}
+            DLcreate(&rv->C[i + (k * 2)], lens[i] + 2);
             DLsetdelay(&rv->C[i + (k * 2)], lens[i]);
             rv->combCoef[i + (k * 2)] = powf(10.0f, (lens[i] * -3) / (32000.0f * time));
         }
 
         for (i = 0; i < 2; i++) {
-            if (DLcreate(&rv->AP[i + (k * 2)], lens[i + 2] + 2) == 0) {
-				ReverbSTDFree(rv);
-				return 0;
-			}
+            DLcreate(&rv->AP[i + (k * 2)], lens[i + 2] + 2);
             DLsetdelay(&rv->AP[i + (k * 2)], lens[i + 2]);
         }
         rv->lpLastout[k] = 0.0f;
@@ -102,13 +90,7 @@ static int ReverbSTDCreate(AXFX_REVSTD_WORK* rv, f32 coloration, f32 time, f32 m
         rv->preDelayTime = (32000.0f * predelay);
         for (i = 0; i < 3; i++) {
             rv->preDelayLine[i] = __AXFXAlloc(rv->preDelayTime * 4);
-            ASSERTMSGLINE(162, rv->preDelayLine[i], "Can't allocate the memory.");
-			if (rv->preDelayLine[i] == NULL) {
-				ReverbSTDFree(rv);
-				return 0;
-			}
-			
-			memset(rv->preDelayLine[i], 0, rv->preDelayTime * 4);
+            memset(rv->preDelayLine[i], 0, rv->preDelayTime * 4);
             rv->preDelayPtr[i] = rv->preDelayLine[i];
         }
     } else {
@@ -439,25 +421,16 @@ static void ReverbSTDFree(AXFX_REVSTD_WORK* rv) {
     u8 i;
 
     for (i = 0; i < 6; i++) {
-		if (rv->AP[i].inputs != 0) {
-			DLdelete(&rv->AP[i]);
-			rv->AP[i].inputs = NULL;
-		}
+        DLdelete(&rv->AP[i]);
     }
 
     for (i = 0; i < 6; i++) {
-        if (rv->C[i].inputs != 0) {
-			DLdelete(&rv->C[i]);
-			rv->C[i].inputs = NULL;
-		}
+        DLdelete(&rv->C[i]);
     }
 
     if (rv->preDelayTime) {
         for (i = 0; i < 3; i++) {
-            if (rv->preDelayLine[i] != 0) {
-				__AXFXFree(rv->preDelayLine[i]);
-				rv->preDelayLine[i] = NULL;
-			}
+            __AXFXFree(rv->preDelayLine[i]);
         }
     }
 }
