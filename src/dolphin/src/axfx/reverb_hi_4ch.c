@@ -5,8 +5,6 @@
 
 #include "__axfx.h"
 
-static void ReverbHIDpl2Free(AXFX_REVHI_WORK_DPL2* rv);
-
 static void DLsetdelayDpl2(AXFX_REVHI_DELAYLINE* dl, s32 lag) {
     dl->outPoint = dl->inPoint - (lag * 4);
     while (dl->outPoint < 0) {
@@ -14,20 +12,14 @@ static void DLsetdelayDpl2(AXFX_REVHI_DELAYLINE* dl, s32 lag) {
     }
 }
 
-static int DLcreateDpl2(AXFX_REVHI_DELAYLINE* dl, s32 max_length) {
+static void DLcreateDpl2(AXFX_REVHI_DELAYLINE* dl, s32 max_length) {
     dl->length = (max_length * 4);
     dl->inputs = __AXFXAlloc(max_length << 2);
-    ASSERTMSGLINE(62, dl->inputs, "Can't allocate the memory.");
-    if (dl->inputs == NULL) {
-        return 0;
-    }
-
     memset(dl->inputs, 0, max_length << 2);
     dl->lastOutput = 0.0f;
     DLsetdelayDpl2(dl, max_length >> 1);
     dl->inPoint = 0;
     dl->outPoint = 0;
-    return 1;
 }
 
 static void DLdeleteDpl2(AXFX_REVHI_DELAYLINE* dl) {
@@ -69,29 +61,17 @@ static int ReverbHICreateDpl2(AXFX_REVHI_WORK_DPL2* rv, f32 coloration, f32 time
 
     for (k = 0; k < 4; k++) {
         for (i = 0; i < 3; i++) {
-            if (DLcreateDpl2(&rv->C[i + (k * 3)], lens[i] + 2) == 0) {
-                ReverbHIDpl2Free(rv);
-                return 0;
-            }
-
+            DLcreateDpl2(&rv->C[i + (k * 3)], lens[i] + 2);
             DLsetdelayDpl2(&rv->C[i + (k * 3)], lens[i]);
             rv->combCoef[i + (k * 3)] = powf(10.0f, (lens[i] * -3) / (32000.0f * time));
         }
 
         for (i = 0; i < 2; i++) {
-            if (DLcreateDpl2(&rv->AP[i + (k * 3)], lens[i + 3] + 2) == 0) {
-                ReverbHIDpl2Free(rv);
-                return 0;
-            }
-
+            DLcreateDpl2(&rv->AP[i + (k * 3)], lens[i + 3] + 2);
             DLsetdelayDpl2(&rv->AP[i + (k * 3)], lens[i + 3]);
         }
 
-        if (DLcreateDpl2(&rv->AP[2 + (k * 3)], lens[k + 5] + 2) == 0) {
-            ReverbHIDpl2Free(rv);
-            return 0;
-        }
-
+        DLcreateDpl2(&rv->AP[2 + (k * 3)], lens[k + 5] + 2);
         DLsetdelayDpl2(&rv->AP[2 + (k * 3)], lens[k + 5]);
         rv->lpLastout[k] = 0.0f;
     }
@@ -108,12 +88,6 @@ static int ReverbHICreateDpl2(AXFX_REVHI_WORK_DPL2* rv, f32 coloration, f32 time
         rv->preDelayTime = (32000.0f * preDelay);
         for (i = 0; i < 4; i++) {
             rv->preDelayLine[i] = __AXFXAlloc(rv->preDelayTime * 4);
-            ASSERTMSGLINE(188, rv->preDelayLine[i], "Can't allocate the memory.");
-            if (rv->preDelayLine[i] == NULL) {
-                ReverbHIDpl2Free(rv);
-                return 0;
-            }
-
             memset(rv->preDelayLine[i], 0, rv->preDelayTime * 4);
             rv->preDelayPtr[i] = rv->preDelayLine[i];
         }
@@ -540,33 +514,6 @@ static void ReverbHICallbackDpl2(s32* l, s32* r, s32* ls, s32* rs, AXFX_REVHI_WO
     HandleReverbDpl2(rs, rv, 3);
 }
 
-static void ReverbHIDpl2Free(AXFX_REVHI_WORK_DPL2* rv) {
-    u8 i;
-
-    for (i = 0; i < 12; i++) {
-        if (rv->AP[i].inputs != 0) {
-            DLdeleteDpl2(&rv->AP[i]);
-            rv->AP[i].inputs = 0;
-        }
-    }
-
-    for (i = 0; i < 12; i++) {
-        if (rv->C[i].inputs != 0) {
-            DLdeleteDpl2(&rv->C[i]);
-            rv->C[i].inputs = 0;
-        }
-    }
-
-    if (rv->preDelayTime) {
-        for (i = 0; i < 4; i++) {
-            if (rv->preDelayLine[i] != 0) {
-                __AXFXFree(rv->preDelayLine[i]);
-                rv->preDelayLine[i] = 0;
-            }
-        }
-    }
-}
-
 int AXFXReverbHiInitDpl2(AXFX_REVERBHI_DPL2* reverb) {
     int ret;
     BOOL old;
@@ -582,7 +529,38 @@ int AXFXReverbHiShutdownDpl2(AXFX_REVERBHI_DPL2* reverb) {
     BOOL old;
 
     old = OSDisableInterrupts();
-    ReverbHIDpl2Free(&reverb->rv);
+    DLdeleteDpl2(&reverb->rv.AP[0]);
+    DLdeleteDpl2(&reverb->rv.AP[1]);
+    DLdeleteDpl2(&reverb->rv.AP[2]);
+    DLdeleteDpl2(&reverb->rv.AP[3]);
+    DLdeleteDpl2(&reverb->rv.AP[4]);
+    DLdeleteDpl2(&reverb->rv.AP[5]);
+    DLdeleteDpl2(&reverb->rv.AP[6]);
+    DLdeleteDpl2(&reverb->rv.AP[7]);
+    DLdeleteDpl2(&reverb->rv.AP[8]);
+    DLdeleteDpl2(&reverb->rv.AP[9]);
+    DLdeleteDpl2(&reverb->rv.AP[10]);
+    DLdeleteDpl2(&reverb->rv.AP[11]);
+    DLdeleteDpl2(&reverb->rv.C[0]);
+    DLdeleteDpl2(&reverb->rv.C[1]);
+    DLdeleteDpl2(&reverb->rv.C[2]);
+    DLdeleteDpl2(&reverb->rv.C[3]);
+    DLdeleteDpl2(&reverb->rv.C[4]);
+    DLdeleteDpl2(&reverb->rv.C[5]);
+    DLdeleteDpl2(&reverb->rv.C[6]);
+    DLdeleteDpl2(&reverb->rv.C[7]);
+    DLdeleteDpl2(&reverb->rv.C[8]);
+    DLdeleteDpl2(&reverb->rv.C[9]);
+    DLdeleteDpl2(&reverb->rv.C[10]);
+    DLdeleteDpl2(&reverb->rv.C[11]);
+
+    if (reverb->rv.preDelayTime) {
+        __AXFXFree(reverb->rv.preDelayLine[0]);
+        __AXFXFree(reverb->rv.preDelayLine[1]);
+        __AXFXFree(reverb->rv.preDelayLine[2]);
+        __AXFXFree(reverb->rv.preDelayLine[3]);
+    }
+
     OSRestoreInterrupts(old);
     return 1;
 }
