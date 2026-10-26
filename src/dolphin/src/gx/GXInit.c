@@ -8,7 +8,7 @@
 #include <gx/__gx.h>
 #include <dolphin/gx/GXEnum.h>
 
-#if SDK_REVISION < 2
+#if SDK_REVISION < 20041110
 #define BUILD_DATE "Apr  5 2004"
 #define DBUILD_TIME "03:55:13"
 #define RBUILD_TIME "04:13:58"

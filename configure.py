@@ -224,18 +224,49 @@ cflags_runtime = [
     "-inline auto",
 ]
 
-# dolphin library flags
-cflags_dolphin = [
-    *cflags_base,
-    "-lang=c",
-    "-fp fmadd",
-    "-fp_contract off",
-    "-char signed",
-    "-str reuse",
-    "-common off",
+# Dolphin SDK flags (dolsdk2004's Makefile, release libraries)
+cflags_sdk = [
     "-O4,p",
-    #"-requireprotos"
+    "-inline auto",
+    "-sym on",
+    "-char unsigned",
+    "-nodefaults",
+    "-proc gekko",
+    "-fp hard",
+    "-Cpp_exceptions off",
+    "-enum int",
+    "-warn pragmas",
+    # "-requireprotos",  # off until the tree has its missing prototypes (~240)
+    '-pragma "cats off"',
+    "-D__GEKKO__",
+    "-nosyspath",
+    "-i include",
+    "-i src/PowerPC_EABI_Support/include",
+    "-i src/dolphin/include",
+    "-i src/dolphin/src",
+    "-i src",
+    f"-i build/{config.version}/include",
+    "-DRELEASE",
 ]
+sdk_char_signed = ["-char signed"]
+
+# SDK_REVISION: each library's build date (YYYYMMDD) from its version string; libraries without one get the date
+# most libraries carry.
+sdk_dates = {
+    "ar": 20031126,
+    "ax": 20031202,
+    "dvd": 20040212,
+    "exi": 20030311,
+    "gx": 20031126,
+    "os": 20040520,
+    "pad": 20030806,
+}
+sdk_date_default = 20020905
+
+
+def sdk_revision(lib_name: str) -> str:
+    return f"-DSDK_REVISION={sdk_dates.get(lib_name, sdk_date_default)}"
+
 
 # Renderware library flags
 cflags_renderware = [
@@ -285,7 +316,7 @@ def DolphinLib(lib_name: str, objects: List[Object]) -> Dict[str, Any]:
         "lib": lib_name,
         "src_dir": "src/",
         "mw_version": "GC/1.2.5n",
-        "cflags": cflags_dolphin,
+        "cflags": [*cflags_sdk, sdk_revision(lib_name)],
         "progress_category": "sdk",
         "host": True,
         "objects": objects,
@@ -534,7 +565,7 @@ config.libs = [
             Object(Matching, "dolphin/src/card/CARDCheck.c"),
             Object(Matching, "dolphin/src/card/CARDMount.c"),
             Object(Matching, "dolphin/src/card/CARDFormat.c"),
-            Object(NonMatching, "dolphin/src/card/CARDOpen.c"),
+            Object(NonMatching, "dolphin/src/card/CARDOpen.c", extra_cflags=sdk_char_signed),
             Object(Matching, "dolphin/src/card/CARDCreate.c"),
             Object(Matching, "dolphin/src/card/CARDRead.c"),
             Object(Matching, "dolphin/src/card/CARDWrite.c"),
@@ -561,21 +592,21 @@ config.libs = [
     DolphinLib(
         "dvd",
         [
-            Object(Matching, "dolphin/src/dvd/dvdlow.c"),
-            Object(Matching, "dolphin/src/dvd/dvdfs.c"),
-            Object(Matching, "dolphin/src/dvd/dvd.c"),
-            Object(Matching, "dolphin/src/dvd/dvdqueue.c"),
-            Object(Matching, "dolphin/src/dvd/dvderror.c"),
-            Object(Matching, "dolphin/src/dvd/dvdidutils.c"),
-            Object(Matching, "dolphin/src/dvd/dvdFatal.c"),
-            Object(Matching, "dolphin/src/dvd/emu_level2/fstload.c"),
+            Object(Matching, "dolphin/src/dvd/dvdlow.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/dvd/dvdfs.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/dvd/dvd.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/dvd/dvdqueue.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/dvd/dvderror.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/dvd/dvdidutils.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/dvd/dvdFatal.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/dvd/emu_level2/fstload.c", extra_cflags=sdk_char_signed),
         ],
     ),
     DolphinLib(
         "exi",
         [
             Object(Matching, "dolphin/src/exi/EXIBios.c"),
-            Object(Matching, "dolphin/src/exi/EXIUart.c")
+            Object(Matching, "dolphin/src/exi/EXIUart.c", extra_cflags=sdk_char_signed)
         ]
     ),
     DolphinLib(
@@ -607,8 +638,8 @@ config.libs = [
     DolphinLib(
         "mtx",
         [
-            Object(NonMatching, "dolphin/src/mtx/mtx.c"),
-            Object(NonMatching, "dolphin/src/mtx/mtx44.c"),
+            Object(NonMatching, "dolphin/src/mtx/mtx.c", extra_cflags=sdk_char_signed),
+            Object(NonMatching, "dolphin/src/mtx/mtx44.c", extra_cflags=sdk_char_signed),
         ]
     ),
     DolphinLib(

@@ -196,7 +196,7 @@ void GXSetGPFifo(GXFifoObj* fifo)
 {
     __GXFifoObj* realFifo = (__GXFifoObj*)fifo;
     BOOL enabled = OSDisableInterrupts();
-#if SDK_REVISION >= 2
+#if SDK_REVISION >= 20041110
     u32 stbtmp;
 #endif
 
@@ -234,7 +234,7 @@ void GXSetGPFifo(GXFifoObj* fifo)
         __GXFifoLink(0);
     }
 
-#if SDK_REVISION >= 2
+#if SDK_REVISION >= 20041110
     stbtmp = __GXData->cpEnable;
     SET_REG_FIELD(0, stbtmp, 1, 1, 0);
     SET_REG_FIELD(0, stbtmp, 1, 5, 0);
@@ -262,7 +262,7 @@ void GXSetGPFifo(GXFifoObj* fifo)
         fifo->count = temp;                                                                        \
     } while (0)
 
-#if SDK_REVISION >= 2
+#if SDK_REVISION >= 20041110
 static void __GXSaveFifoCPStat(__GXFifoObj* realFifo)
 {
     u32 cpStatus;
@@ -335,7 +335,7 @@ void GXEnableBreakPt(void* break_pt)
     __GXFifoReadDisable();
     GX_SET_CP_REG(30, (u32)break_pt);
     GX_SET_CP_REG(31, ((u32)break_pt >> 16) & 0x3FFF);
-#if SDK_REVISION >= 2
+#if SDK_REVISION >= 20041110
     SOME_SET_REG_MACRO(__GXData->cpEnable, 1, 1, 0);
     SOME_SET_REG_MACRO(__GXData->cpEnable, 1, 5, 0);
     GX_SET_CP_REG(1, __GXData->cpEnable);
