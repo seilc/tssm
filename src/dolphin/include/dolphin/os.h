@@ -202,6 +202,29 @@ BOOL OSRestoreInterrupts(BOOL level);
 
 #endif // _DEBUG
 
+#ifdef DEBUG
+#define ASSERTLINE(line, cond) \
+    ((cond) || (OSPanic(__FILE__, line, "Failed assertion " #cond), 0))
+
+#define ASSERTMSGLINE(line, cond, msg) \
+    ((cond) || (OSPanic(__FILE__, line, msg), 0))
+
+#define ASSERTMSG1LINE(line, cond, msg, arg1) \
+    ((cond) || (OSPanic(__FILE__, line, msg, arg1), 0))
+
+#define ASSERTMSG2LINE(line, cond, msg, arg1, arg2) \
+    ((cond) || (OSPanic(__FILE__, line, msg, arg1, arg2), 0))
+
+#define ASSERTMSGLINEV(line, cond, ...) \
+    ((cond) || (OSPanic(__FILE__, line, __VA_ARGS__), 0))
+#else
+#define ASSERTLINE(line, cond) (void)0
+#define ASSERTMSGLINE(line, cond, msg) (void)0
+#define ASSERTMSG1LINE(line, cond, msg, arg1) (void)0
+#define ASSERTMSG2LINE(line, cond, msg, arg1, arg2) (void)0
+#define ASSERTMSGLINEV(line, cond, ...) (void)0
+#endif
+
 void OSReport(const char* msg, ...);
 void OSPanic(const char* file, int line, const char* msg, ...);
 void OSFatal(GXColor fg, GXColor bg, const char* msg);
