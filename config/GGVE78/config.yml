@@ -7,7 +7,7 @@ symbols_known: true
 fill_gaps: false
 ldscript_template: config/GGVE78/ldscript.tpl
 add_relocations:
-# Hardcoded linker-symbol and TRK addresses dtk leaves as numbers (shiftability, 2026-10-25).
+# Hardcoded linker-symbol and TRK addresses dtk leaves as numbers.
 - source: .text:0x802B8138
   type: hi
   target: _db_stack_addr
