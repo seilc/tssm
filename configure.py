@@ -548,7 +548,7 @@ config.libs = [
             Object(Matching, "dolphin/src/card/CARDCheck.c"),
             Object(Matching, "dolphin/src/card/CARDMount.c"),
             Object(Matching, "dolphin/src/card/CARDFormat.c"),
-            Object(NonMatching, "dolphin/src/card/CARDOpen.c", extra_cflags=sdk_char_signed),
+            Object(Matching, "dolphin/src/card/CARDOpen.c", extra_cflags=sdk_char_signed),
             Object(Matching, "dolphin/src/card/CARDCreate.c"),
             Object(Matching, "dolphin/src/card/CARDRead.c"),
             Object(Matching, "dolphin/src/card/CARDWrite.c"),
