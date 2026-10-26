@@ -1,4 +1,4 @@
-#define MATH_INLINE
+#define MATH_INLINE __declspec(weak)
 #include "PowerPC_EABI_Support/MSL_C/MSL_Common/math_api.h"
 #include "fdlibm.h"
 
