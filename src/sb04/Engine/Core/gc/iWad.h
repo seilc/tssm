@@ -1,7 +1,7 @@
 #ifndef IWAD_H
 #define IWAD_H
 
-#include "../src/sb/game/zGlobals.h"
+#include "zGlobals.h"
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common/printf.h>
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\cmath>
 
@@ -37,7 +37,7 @@
 #include "xPad.h"
 #include "xTRC.h"
 #include "stdlib.h"
-#include "../include/dolphin/dvd.h"
+#include <dolphin/dvd.h>
 #include "xstransvc.h"
 #include <limits.h>
 #include <rwcore.h>

@@ -12,9 +12,9 @@
                 "${workspaceFolder}/src/dolphin/include",
                 "${workspaceFolder}/src/dolphin/src",
                 "${workspaceFolder}/include/rwsdk",
-                "${workspaceFolder}/src/SB/Core/gc",
-                "${workspaceFolder}/src/SB/Core/x",
-                "${workspaceFolder}/src/SB/Game"
+                "${workspaceFolder}/src/sb04/Engine/Core/gc",
+                "${workspaceFolder}/src/sb04/Engine/Core/x",
+                "${workspaceFolder}/src/sb04/Engine/Game"
             ],
             "defines": [
                 "__MWERKS__",

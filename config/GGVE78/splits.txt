@@ -13,7 +13,7 @@ Sections:
 	.sdata2     type:rodata align:32
 	.sbss2      type:bss align:32
 
-SB/Game/zWadNME.cpp:
+sb04/Engine/Game/zWadNME.cpp:
 	.text       start:0x800057E0 end:0x8000585C
 	.text       start:0x8000585C end:0x800079F4
 	.text       start:0x800079F4 end:0x80007A24
@@ -128,7 +128,7 @@ SB/Game/zWadNME.cpp:
 	.sdata2     start:0x804B2440 end:0x804B28F8
 	.sbss2      start:0x804B5000 end:0x804B5030
 
-SB/Game/zWad1.cpp:
+sb04/Engine/Game/zWad1.cpp:
 	.text       start:0x800B8B64 end:0x800B8B64
 	.text       start:0x800B8B64 end:0x800B90D0
 	.text       start:0x800B90D0 end:0x800B90D0
@@ -170,7 +170,7 @@ SB/Game/zWad1.cpp:
 	.sdata2     start:0x804B28F8 end:0x804B2AF8
 	.sbss2      start:0x804B5030 end:0x804B5038
 
-SB/Game/zWad2.cpp:
+sb04/Engine/Game/zWad2.cpp:
 	.text       start:0x800D390C end:0x800D390C
 	.text       start:0x800D390C end:0x800D485C
 	.text       start:0x800D485C end:0x800D4860
@@ -212,7 +212,7 @@ SB/Game/zWad2.cpp:
 	.sdata2     start:0x804B2AF8 end:0x804B2CC0
 	.sbss2      start:0x804B5038 end:0x804B5048
 
-SB/Game/zWad3.cpp:
+sb04/Engine/Game/zWad3.cpp:
 	.text       start:0x800F3A4C end:0x800F3A4C
 	.text       start:0x800F3A4C end:0x800F3A4C
 	.text       start:0x800F3A4C end:0x800F3F10
@@ -263,7 +263,7 @@ SB/Game/zWad3.cpp:
 	.sdata2     start:0x804B2CC0 end:0x804B2E90
 	.sbss2      start:0x804B5048 end:0x804B5058
 
-SB/Game/zWadEnt.cpp:
+sb04/Engine/Game/zWadEnt.cpp:
 	.text       start:0x80123D38 end:0x80123D38
 	.text       start:0x80123D38 end:0x80124970
 	.text       start:0x80124970 end:0x80126450
@@ -306,7 +306,7 @@ SB/Game/zWadEnt.cpp:
 	.sdata2     start:0x804B2E90 end:0x804B3330
 	.sbss2      start:0x804B5058 end:0x804B5078
 
-SB/Game/zWadHud.cpp:
+sb04/Engine/Game/zWadHud.cpp:
 	.text       start:0x8017E4B0 end:0x8017E4B0
 	.text       start:0x8017E4B0 end:0x8017E4B8
 	.text       start:0x8017E4B8 end:0x8017EBEC
@@ -325,7 +325,7 @@ SB/Game/zWadHud.cpp:
 	.sbss       start:0x804B1400 end:0x804B1420
 	.sdata2     start:0x804B3330 end:0x804B33D0
 
-SB/Game/zWadUI.cpp:
+sb04/Engine/Game/zWadUI.cpp:
 	.text       start:0x80183DF4 end:0x80183DF4
 	.text       start:0x80183DF4 end:0x80184828
 	.text       start:0x80184828 end:0x80184CB0
@@ -352,7 +352,7 @@ SB/Game/zWadUI.cpp:
 	.sbss       start:0x804B1420 end:0x804B1458
 	.sdata2     start:0x804B33D0 end:0x804B3438
 
-SB/Core/x/xWad4.cpp:
+sb04/Engine/Core/x/xWad4.cpp:
 	.text       start:0x8018DA28 end:0x8018DA28
 	.text       start:0x8018DA28 end:0x8018DA3C
 	.text       start:0x8018DA3C end:0x801906F4
@@ -389,7 +389,7 @@ SB/Core/x/xWad4.cpp:
 	.sdata2     start:0x804B3438 end:0x804B34D0
 	.sbss2      start:0x804B5078 end:0x804B5080
 
-SB/Core/x/xWad2.cpp:
+sb04/Engine/Core/x/xWad2.cpp:
 	.text       start:0x801ABF64 end:0x801ABF64
 	.text       start:0x801ABF64 end:0x801AC0C4
 	.text       start:0x801AC0C4 end:0x801AC82C
@@ -436,7 +436,7 @@ SB/Core/x/xWad2.cpp:
 	.sdata2     start:0x804B34D0 end:0x804B3678
 	.sbss2      start:0x804B5080 end:0x804B50D8
 
-SB/Core/x/xWad3.cpp:
+sb04/Engine/Core/x/xWad3.cpp:
 	.text       start:0x801E1CA4 end:0x801E1CA4
 	.text       start:0x801E1CA4 end:0x801E228C
 	.text       start:0x801E228C end:0x801E228C
@@ -468,7 +468,7 @@ SB/Core/x/xWad3.cpp:
 	.sdata2     start:0x804B3678 end:0x804B3748
 	.sbss2      start:0x804B50D8 end:0x804B50E8
 
-SB/Core/x/xWad1.cpp:
+sb04/Engine/Core/x/xWad1.cpp:
 	.text       start:0x801F06D0 end:0x801F06D0
 	.text       start:0x801F06D0 end:0x801F06D0
 	.text       start:0x801F06D0 end:0x801F06D0
@@ -514,7 +514,7 @@ SB/Core/x/xWad1.cpp:
 	.sdata2     start:0x804B3748 end:0x804B3880
 	.sbss2      start:0x804B50E8 end:0x804B5130
 
-SB/Core/x/xWad5.cpp:
+sb04/Engine/Core/x/xWad5.cpp:
 	.text       start:0x8021C490 end:0x8021C490
 	.text       start:0x8021C490 end:0x8021C714
 	.text       start:0x8021C714 end:0x8021C7E4
@@ -555,7 +555,7 @@ SB/Core/x/xWad5.cpp:
 	.sdata2     start:0x804B3880 end:0x804B3A50
 	.sbss2      start:0x804B5130 end:0x804B5140
 
-SB/Core/gc/iWad.cpp:
+sb04/Engine/Core/gc/iWad.cpp:
 	.text       start:0x8023C95C end:0x8023C95C
 	.text       start:0x8023C95C end:0x8023CA50
 	.text       start:0x8023CA50 end:0x8023DE68
@@ -588,7 +588,7 @@ SB/Core/gc/iWad.cpp:
 	.sdata2     start:0x804B3A50 end:0x804B3B38
 	.sbss2      start:0x804B5140 end:0x804B5160
 
-SB/Game/zMain.cpp:
+sb04/Engine/Game/zMain.cpp:
 	.text       start:0x80255AA4 end:0x80259488
 	.ctors      start:0x8035F4D8 end:0x8035F4DC
 	.rodata     start:0x80378508 end:0x80379308
@@ -598,7 +598,7 @@ SB/Game/zMain.cpp:
 	.sdata2     start:0x804B3B38 end:0x804B3C20
 	.sbss2      start:0x804B5160 end:0x804B5170
 
-SB/Core/gc/iTRC.cpp:
+sb04/Engine/Core/gc/iTRC.cpp:
 	.text       start:0x80259488 end:0x8025A8F8
 	.rodata     start:0x80379308 end:0x80379558
 	.data       start:0x803A9E10 end:0x803A9E48
@@ -607,7 +607,7 @@ SB/Core/gc/iTRC.cpp:
 	.sdata2     start:0x804B3C20 end:0x804B3C40
 	.sbss2      start:0x804B5170 end:0x804B5178
 
-SB/Core/x/xFXHighDynamicRange.cpp:
+sb04/Engine/Core/x/xFXHighDynamicRange.cpp:
 	.text       start:0x8025A8F8 end:0x8025BA30
 	.rodata     start:0x80379558 end:0x80379578
 	.data       start:0x803A9E48 end:0x803A9E70
@@ -616,7 +616,7 @@ SB/Core/x/xFXHighDynamicRange.cpp:
 	.sbss       start:0x804B1A30 end:0x804B1A48
 	.sdata2     start:0x804B3C40 end:0x804B3C80
 
-SB/Game/zTalkBox.cpp:
+sb04/Engine/Game/zTalkBox.cpp:
 	.text       start:0x8025BA30 end:0x802605C0
 	.text       start:0x802605C0 end:0x802605CC
 	.ctors      start:0x8035F4DC end:0x8035F4E0
@@ -628,7 +628,7 @@ SB/Game/zTalkBox.cpp:
 	.sdata2     start:0x804B3C80 end:0x804B3C98
 	.sbss2      start:0x804B5178 end:0x804B5188
 
-SB/Game/zTaskBox.cpp:
+sb04/Engine/Game/zTaskBox.cpp:
 	.text       start:0x802605CC end:0x802615E4
 	.text       start:0x802615E4 end:0x802615E4
 	.text       start:0x802615E4 end:0x802615E8
@@ -636,7 +636,7 @@ SB/Game/zTaskBox.cpp:
 	.bss        start:0x804608F0 end:0x80460900
 	.sbss       start:0x804B1A68 end:0x804B1A78
 
-SB/Game/zSmoke.cpp:
+sb04/Engine/Game/zSmoke.cpp:
 	.text       start:0x802615E8 end:0x802626E4
 	.text       start:0x802626E4 end:0x802626E4
 	.text       start:0x802626E4 end:0x80262764
@@ -645,7 +645,7 @@ SB/Game/zSmoke.cpp:
 	.sbss       start:0x804B1A78 end:0x804B1A90
 	.sdata2     start:0x804B3C98 end:0x804B3CF0
 
-SB/Game/zSplash.cpp:
+sb04/Engine/Game/zSplash.cpp:
 	.text       start:0x80262764 end:0x80265980
 	.text       start:0x80265980 end:0x80265980
 	.bss        start:0x80460A10 end:0x80460A30
@@ -653,7 +653,7 @@ SB/Game/zSplash.cpp:
 	.sbss       start:0x804B1A90 end:0x804B1AD8
 	.sdata2     start:0x804B3CF0 end:0x804B3D60
 
-SB/Game/zExplosion.cpp:
+sb04/Engine/Game/zExplosion.cpp:
 	.text       start:0x80265980 end:0x8026C478
 	.text       start:0x8026C478 end:0x8026C478
 	.rodata     start:0x80379710 end:0x80379E40
@@ -663,21 +663,21 @@ SB/Game/zExplosion.cpp:
 	.sdata2     start:0x804B3D60 end:0x804B3E30
 	.sbss2      start:0x804B5188 end:0x804B5190
 
-SB/Game/zFMV.cpp:
+sb04/Engine/Game/zFMV.cpp:
 	.text       start:0x8026C478 end:0x8026C5F4
 	.rodata     start:0x80379E40 end:0x8037A098
 	.data       start:0x803AA130 end:0x803AA380
 	.sdata2     start:0x804B3E30 end:0x804B3E38
 
-SB/Core/gc/iException.cpp:
+sb04/Engine/Core/gc/iException.cpp:
 	.text       start:0x8026C5F4 end:0x8026C670
 	.rodata     start:0x8037A098 end:0x8037A0D8
 
-SB/Game/zJSPExtraData.cpp:
+sb04/Engine/Game/zJSPExtraData.cpp:
 	.text       start:0x8026C670 end:0x8026C92C
 	.sbss       start:0x804B1B28 end:0x804B1B30
 
-SB/Core/gc/iScrFX.cpp:
+sb04/Engine/Core/gc/iScrFX.cpp:
 	.text       start:0x8026C92C end:0x8026D77C
 	.data       start:0x803AA380 end:0x803AA400
 	.bss        start:0x804611E0 end:0x80461240
@@ -685,7 +685,7 @@ SB/Core/gc/iScrFX.cpp:
 	.sbss       start:0x804B1B30 end:0x804B1B38
 	.sdata2     start:0x804B3E38 end:0x804B3E60
 
-SB/Game/zTextBox.cpp:
+sb04/Engine/Game/zTextBox.cpp:
 	.text       start:0x8026D77C end:0x8026EB6C
 	.rodata     start:0x8037A0D8 end:0x8037A220
 	.data       start:0x803AA400 end:0x803AA428
@@ -693,7 +693,7 @@ SB/Game/zTextBox.cpp:
 	.sbss       start:0x804B1B38 end:0x804B1B40
 	.sdata2     start:0x804B3E60 end:0x804B3E80
 
-SB/Game/zDust.cpp:
+sb04/Engine/Game/zDust.cpp:
 	.text       start:0x8026EB6C end:0x80270130
 	.rodata     start:0x8037A220 end:0x8037A258
 	.bss        start:0x80461240 end:0x804612C0
@@ -701,11 +701,11 @@ SB/Game/zDust.cpp:
 	.sbss       start:0x804B1B40 end:0x804B1B60
 	.sdata2     start:0x804B3E80 end:0x804B3F00
 
-SB/Core/x/xFXCameraTexture.cpp:
+sb04/Engine/Core/x/xFXCameraTexture.cpp:
 	.text       start:0x80270130 end:0x80270C7C
 	.sdata2     start:0x804B3F00 end:0x804B3F28
 
-SB/Game/zReactiveAnimation.cpp:
+sb04/Engine/Game/zReactiveAnimation.cpp:
 	.text       start:0x80270C7C end:0x802726D8
 	.text       start:0x802726D8 end:0x802726D8
 	.text       start:0x802726D8 end:0x80272878
@@ -714,7 +714,7 @@ SB/Game/zReactiveAnimation.cpp:
 	.sbss       start:0x804B1B60 end:0x804B1B80
 	.sdata2     start:0x804B3F28 end:0x804B3F40
 
-SB/Game/zFire.cpp:
+sb04/Engine/Game/zFire.cpp:
 	.text       start:0x80272878 end:0x80275D38
 	.text       start:0x80275D38 end:0x80276A40
 	.text       start:0x80276A40 end:0x80276D8C
@@ -723,14 +723,14 @@ SB/Game/zFire.cpp:
 	.sbss       start:0x804B1B80 end:0x804B1BC0
 	.sdata2     start:0x804B3F40 end:0x804B4008
 
-SB/Game/zBossCam.cpp:
+sb04/Engine/Game/zBossCam.cpp:
 	.text       start:0x80276D8C end:0x80277AF8
 	.text       start:0x80277AF8 end:0x80277AF8
 	.rodata     start:0x8037A468 end:0x8037A5D0
 	.data       start:0x803AA428 end:0x803AA450
 	.sdata2     start:0x804B4008 end:0x804B4038
 
-SB/Game/zParticleGenerator.cpp:
+sb04/Engine/Game/zParticleGenerator.cpp:
 	.text       start:0x80277AF8 end:0x802784A0
 	.text       start:0x802784A0 end:0x802784C0
 	.rodata     start:0x8037A5D0 end:0x8037A5F8
@@ -739,38 +739,38 @@ SB/Game/zParticleGenerator.cpp:
 	.sbss       start:0x804B1BC0 end:0x804B1BD8
 	.sdata2     start:0x804B4038 end:0x804B4048
 
-SB/Game/zParticleLocator.cpp:
+sb04/Engine/Game/zParticleLocator.cpp:
 	.text       start:0x802784C0 end:0x80279F8C
 	.rodata     start:0x8037A5F8 end:0x8037A618
 	.sbss       start:0x804B1BD8 end:0x804B1BE0
 	.sdata2     start:0x804B4048 end:0x804B4088
 
-SB/Game/zParticleSystems.cpp:
+sb04/Engine/Game/zParticleSystems.cpp:
 	.text       start:0x80279F8C end:0x8027A0E4
 	.text       start:0x8027A0E4 end:0x8027A0F4
 	.data       start:0x803AA468 end:0x803AA4D0
 
-SB/Game/zParticleSystemWaterfall.cpp:
+sb04/Engine/Game/zParticleSystemWaterfall.cpp:
 	.text       start:0x8027A0F4 end:0x8027C324
 	.text       start:0x8027C324 end:0x8027C324
 	.text       start:0x8027C324 end:0x8027C324
 	.data       start:0x803AA4D0 end:0x803AA5A8
 	.sdata2     start:0x804B4088 end:0x804B40D8
 
-SB/Core/x/xModelBlur.cpp:
+sb04/Engine/Core/x/xModelBlur.cpp:
 	.text       start:0x8027C324 end:0x8027CD7C
 	.bss        start:0x80461408 end:0x80461450
 	.sdata      start:0x804B0510 end:0x804B0518
 	.sbss       start:0x804B1BE0 end:0x804B1BE8
 	.sdata2     start:0x804B40D8 end:0x804B40F8
 
-SB/Core/x/xCamera.cpp:
+sb04/Engine/Core/x/xCamera.cpp:
 	.text       start:0x8027CD7C end:0x8027FDD4
 	.sdata      start:0x804B0518 end:0x804B0528
 	.sbss       start:0x804B1BE8 end:0x804B1C00
 	.sdata2     start:0x804B40F8 end:0x804B4190
 
-SB/Game/zWadCine.cpp:
+sb04/Engine/Game/zWadCine.cpp:
 	.text       start:0x8027FDD4 end:0x8027FDD4
 	.text       start:0x8027FDD4 end:0x8027FEE0
 	.text       start:0x8027FEE0 end:0x8027FEE4
@@ -806,12 +806,12 @@ SB/Game/zWadCine.cpp:
 	.sbss       start:0x804B1C00 end:0x804B1C08
 	.sdata2     start:0x804B4190 end:0x804B4208
 
-SB/Core/gc/iARAMTmp.cpp:
+sb04/Engine/Core/gc/iARAMTmp.cpp:
 	.text       start:0x80286FE4 end:0x802873E4
 	.bss        start:0x804614B8 end:0x80461AB8
 	.sbss       start:0x804B1C08 end:0x804B1C10
 
-SB/Game/zParticleCustom.cpp:
+sb04/Engine/Game/zParticleCustom.cpp:
 	.text       start:0x802873E4 end:0x80288D10
 	.text       start:0x80288D10 end:0x80288D10
 	.text       start:0x80288D10 end:0x80288D10
