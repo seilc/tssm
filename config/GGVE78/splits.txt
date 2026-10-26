@@ -1515,13 +1515,13 @@ dolphin/src/ax/AXOut.c:
 
 dolphin/src/ax/AXSPB.c:
 	.text       start:0x802D78DC end:0x802D7DA4
-	.bss        start:0x80471500 end:0x80471540
+	.bss        start:0x80471500 end:0x80471540 align:32
 	.sbss       start:0x804B1E40 end:0x804B1E68
 
 dolphin/src/ax/AXVPB.c:
 	.text       start:0x802D7DA4 end:0x802D8E84
 	.data       start:0x803BBCD0 end:0x803BBDC0
-	.bss        start:0x80471540 end:0x80482D40
+	.bss        start:0x80471540 end:0x80482D40 align:32
 	.sbss       start:0x804B1E68 end:0x804B1E78
 	.sdata2     start:0x804B4988 end:0x804B4990
 

@@ -7649,7 +7649,6 @@ OSSetErrorHandler = .text:0x802F4FF0; // type:function size:0x218 scope:global
 __OSUnhandledException = .text:0x802F5208; // type:function size:0x2E8 scope:global
 PackArgs = .text:0x802F54F0; // type:function size:0x188 scope:local
 Run = .text:0x802F5678; // type:function size:0x3C scope:local
-fn_802F56A0 = .text:0x802F56A0; // type:function size:0x14
 ReadDisc = .text:0x802F56B4; // type:function size:0x6C scope:local
 Callback = .text:0x802F5720; // type:function size:0xC scope:local
 __OSGetExecParams = .text:0x802F572C; // type:function size:0x40 scope:global
