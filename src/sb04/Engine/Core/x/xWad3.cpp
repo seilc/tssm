@@ -1877,4 +1877,6 @@ xLightKit* xLightKit_Prepare(void* data)
     return (xLightKit*)data;
 }
 
+#include "xJSP.cpp"
+
 //                                      xMisc / Miscellaneous

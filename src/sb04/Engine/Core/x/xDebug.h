@@ -1,9 +1,40 @@
 #ifndef XDEBUG_H
 #define XDEBUG_H
 
+#include "iDebug.h"
 #include "xFont.h"
 
 #include <types.h>
+
+#if DEBUG || RELEASE
+#define _xSTR(x) #x
+
+#define _xFAIL(line, condstr, ...)                                                                \
+{                                                                                                 \
+    xDebug_assert2_info(__FUNCTION__, __FILE__, line, condstr);                                   \
+    xDebug_assert2(__VA_ARGS__);                                                                  \
+    xDebugStackTrace();                                                                           \
+    if (xDebugBoing()) iDebugBreak();                                                             \
+}
+
+#define _xASSERT(line, cond, condstr, ...)                                                        \
+do {                                                                                              \
+    if (!(cond)) {                                                                                \
+        _xFAIL(line, condstr, __VA_ARGS__);                                                       \
+    }                                                                                             \
+} while (0)
+
+#define xASSERT(cond) _xASSERT(__LINE__, cond, _xSTR(cond), "%s", #cond)
+#define xASSERT_L(line, cond) _xASSERT(line, cond, _xSTR(cond), "%s", #cond)
+#define xASSERT_FMT(cond, ...) _xASSERT(__LINE__, cond, #cond, __VA_ARGS__)
+#define xASSERT_FMT_L(line, cond, ...) _xASSERT(line, cond, #cond, __VA_ARGS__)
+#else
+#define _xFAIL(line, condstr, ...)
+#define xASSERT(cond)
+#define xASSERT_L(line, cond)
+#define xASSERT_FMT(cond, ...)
+#define xASSERT_FMT_L(line, cond, ...)
+#endif
 
 extern U32 gFrameCount;
 
@@ -94,6 +125,11 @@ void xDebugInit();
 void xDebugUpdate();
 void xDebugExit();
 void xDebugTimestampScreen();
+
+void xDebug_assert2_info(const char* func, const char* file, U32 line, const char* expr);
+void xDebug_assert2(const char* fmt, ...);
+U32 xDebugBoing();
+void xDebugStackTrace();
 
 void xDebugAddTweak(const char*, F32*, F32, F32, const tweak_callback*, void*, U32);
 void xDebugRemoveTweak(const char*);

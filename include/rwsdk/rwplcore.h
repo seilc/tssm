@@ -199,6 +199,18 @@ struct RwLine
 
 #define RwLineAssign(_target, _source) (*(_target) = *(_source))
 
+enum RwMemoryHintDuration
+{
+    rwMEMHINTDUR_NADURATION = 0x0,
+    rwMEMHINTDUR_FUNCTION = 0x10000,
+    rwMEMHINTDUR_FRAME = 0x20000,
+    rwMEMHINTDUR_EVENT = 0x30000,
+    rwMEMHINTDUR_GLOBAL = 0x40000,
+    rwMEMHINTDUR_MASK = 0xFF0000,
+    rwMEMHINTDURFORCEENUMSIZEINT = RWFORCEENUMSIZEINT
+};
+typedef enum RwMemoryHintDuration RwMemoryHintDuration;
+
 enum RwTextureCoordinateIndex
 {
     rwNARWTEXTURECOORDINATEINDEX = 0,
@@ -484,14 +496,17 @@ struct RwStringFunctions
     vecSscanfFunc vecSscanf;
 };
 
-#define RwMalloc(_s) ((RWSRCGLOBAL(memoryFuncs).rwmalloc)((_s)))
+#define RwMallocL(_s, _h, _l) ((RWSRCGLOBAL(memoryFuncs).rwmalloc)((_s), (_h)))
+#define RwMalloc(_s, _h) ((RWSRCGLOBAL(memoryFuncs).rwmalloc)((_s), (_h)))
 #define RwFree(_p) ((RWSRCGLOBAL(memoryFuncs).rwfree)((_p)))
 #define RwCalloc(_n, _s) ((RWSRCGLOBAL(memoryFuncs).rwcalloc)((_n), (_s)))
 #define RwRealloc(_p, _s) ((RWSRCGLOBAL(memoryFuncs).rwrealloc)((_p), (_s)))
 
+#define GETCOORD(vect,y) (*(RwReal *)(((RwUInt8 *)(&((vect).x)))+(RwInt32)(y)))
+
 struct RwMemoryFunctions
 {
-    void* (*rwmalloc)(size_t size);
+    void* (*rwmalloc)(size_t size, RwUInt32 hint);
     void (*rwfree)(void* mem);
     void* (*rwrealloc)(void* mem, size_t newSize);
     void* (*rwcalloc)(size_t numObj, size_t sizeObj);
@@ -529,6 +544,12 @@ enum RwStreamAccessType
     rwSTREAMWRITE,
     rwSTREAMAPPEND,
     rwSTREAMACCESSTYPEFORCEENUMSIZEINT = RWFORCEENUMSIZEINT
+};
+
+struct RwMemory
+{
+    RwUInt8* start;
+    RwUInt32 length;
 };
 
 struct RwStreamMemory
@@ -1188,7 +1209,6 @@ struct RwGlobals
     RwDevice dOpenDevice;
     RwStandardFunc stdFunc[29];
     RwLinkList dirtyFrameList;
-    RwFileFunctions fileFuncs;
     RwStringFunctions stringFuncs;
     RwMemoryFunctions memoryFuncs;
     RwMemoryAllocFn memoryAlloc;

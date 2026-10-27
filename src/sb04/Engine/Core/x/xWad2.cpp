@@ -97,7 +97,8 @@ xIniFile* xIniParse(char* buf, S32 len)
     S32 valueAlloc = ccr;
 
     xIniFile* ini = (xIniFile*)RwMalloc(sizeof(xIniFile) + (valueAlloc * sizeof(xIniValue)) +
-                                        (sectionAlloc * sizeof(xIniSection)) + (len - lastCRLF));
+                                        (sectionAlloc * sizeof(xIniSection)) + (len - lastCRLF),
+                                        rwMEMHINTDUR_NADURATION);
     ini->mem = NULL;
     ini->NumValues = 0;
     ini->NumSections = 0;

@@ -580,7 +580,7 @@ S32 iSGCheckForCorruptFiles(st_ISGSESSION* isgdata, char files[][64])
 
 S32 iSGCheckForWrongDevice()
 {
-    char* workarea = (char*)RwMalloc(0x10000 - 0x6000);
+    char* workarea = (char*)RwMalloc(0x10000 - 0x6000, rwMEMHINTDUR_NADURATION);
 
     S32 ret = -1;
     for (S32 i = 0; i < ISG_NUM_SLOTS; ++i)
@@ -2965,7 +2965,7 @@ void _MovieFree(void* mem)
 
 void* _MovieAlloc(U32 size)
 {
-    return RwMalloc(size);
+    return RwMalloc(size, rwMEMHINTDUR_NADURATION);
 }
 
 //                                                                      iFile
@@ -3269,7 +3269,7 @@ static RwCamera* sPipeCamera;
 static iEnv* lastEnv;
 
 // This is named JspPS2_ClumpRender on PS2
-static void Jsp_ClumpRender(RpClump* clump, xJSPNodeInfo* nodeInfo)
+static void Jsp_ClumpRender(RpClump* clump, xJSPNodeInfo* nodeInfo, S32)
 {
     S32 backcullon = 1;
     S32 zbufferon = 1;
@@ -3343,14 +3343,25 @@ void iEnvEndRenderFX(iEnv*)
 }
 
 // Inlining issue
-void iEnvRender(iEnv* env, bool)
+void iEnvRender(iEnv* env, bool alpha)
 {
+    if (alpha)
+    {
+        return;
+    }
+
     RwRenderStateSet(rwRENDERSTATESRCBLEND, (void*)rwBLENDSRCALPHA);
     RwRenderStateSet(rwRENDERSTATEDESTBLEND, (void*)rwBLENDINVSRCALPHA);
 
-    if (env->jsp)
+    if (env->jsp_count > 0)
     {
-        Jsp_ClumpRender(env->jsp->clump, env->jsp->jspNodeList);
+        for (S32 i = 0; i < env->jsp_count; i++)
+        {
+            if (env->jsp_visibilityCount[i] > 0)
+            {
+                Jsp_ClumpRender(env->jsp_list[i]->clump, env->jsp_list[i]->jspNodeList, alpha);
+            }
+        }
     }
     else
     {
@@ -3501,7 +3512,7 @@ S32 iCSLoadStep(xCutscene* csn)
                     if (csn->Data[csn->DataLoading].DataType == XCUTSCENEDATA_TYPE_6)
                     {
                         csn->Data[csn->DataLoading].DataPtr =
-                            RwMalloc(csn->Data[csn->DataLoading].ChunkSize);
+                            RwMalloc(csn->Data[csn->DataLoading].ChunkSize, rwMEMHINTDUR_NADURATION);
 
                         memcpy(csn->Data[csn->DataLoading].DataPtr, csn->AlignBuf,
                                csn->Data[csn->DataLoading].ChunkSize);

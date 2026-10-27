@@ -70,11 +70,17 @@ struct xGlobals
     xCamGroup* cam;
     xCamScreen* screen;
     xVec4 frustplane[12];
-    _tagxPad* pad0; // 0x3e4
-    _tagxPad* pad1;
-    _tagxPad* pad2;
-    _tagxPad* pad3; // 0x3f0
-    _tagxPad* pad[4];
+    union
+    {
+        struct
+        {
+            _tagxPad* pad0; // 0x3e4
+            _tagxPad* pad1;
+            _tagxPad* pad2;
+            _tagxPad* pad3; // 0x3f0
+        };
+        _tagxPad* pad[4];
+    };
     S32 profile;
     char profFunc[128][6];
     xUpdateCullMgr* updateMgr;
@@ -118,5 +124,7 @@ struct xGlobals
     U8 watermarkAlpha;
     F32 watermarkSize;
 };
+
+extern xGlobals* xglobals;
 
 #endif

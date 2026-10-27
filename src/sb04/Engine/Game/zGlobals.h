@@ -303,6 +303,5 @@ struct zGlobals : xGlobals
 };
 
 extern zGlobals globals;
-extern xGlobals* xglobals;
 
 #endif

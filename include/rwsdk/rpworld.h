@@ -354,14 +354,13 @@ struct RpPolygon
 struct RpWorldSector
 {
     RwInt32 type;
-    RpPolygon* polygons;
+    RpTriangle* triangles;
     RwV3d* vertices;
     RpVertexNormal* normals;
     RwTexCoords* texCoords[8];
     RwRGBA* preLitLum;
     RwResEntry* repEntry;
     RwLinkList collAtomicsInWorldSector;
-    RwLinkList noCollAtomicsInWorldSector;
     RwLinkList lightsInWorldSector;
     RwBBox boundingBox;
     RwBBox tightBoundingBox;
@@ -369,11 +368,19 @@ struct RpWorldSector
     RxPipeline* pipeline;
     RwUInt16 matListWindowBase;
     RwUInt16 numVertices;
-    RwUInt16 numPolygons;
+    RwUInt16 numTriangles;
     RwUInt16 pad;
 };
 
 typedef RpWorldSector* (*RpWorldSectorCallBack)(RpWorldSector* worldSector, void* data);
+
+struct RpTie
+{
+    RwLLLink lAtomicInWorldSector;
+    RpAtomic* apAtom;
+    RwLLLink lWorldSectorInAtomic;
+    RpWorldSector* worldSector;
+};
 
 struct RpSector
 {

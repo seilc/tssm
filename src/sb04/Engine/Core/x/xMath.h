@@ -7,6 +7,8 @@
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define xmin(a,b) ((a) < (b) ? (a) : (b))
+#define xmax(a,b) ((a) > (b) ? (a) : (b))
 #define xabs(x) iabs(x)
 
 #define CLAMP(x, a, b) (MAX((a), MIN((x), (b))))
@@ -22,6 +24,7 @@
 //     #define PI _771_1
 //     #define ONEEIGHTY _778_0
 #define PI 3.1415927f
+#define HUGE 1e38f
 #define PI_DOUBLE 3.141592653589793
 #define ONEEIGHTY 180.0f
 

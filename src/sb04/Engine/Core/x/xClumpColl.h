@@ -25,18 +25,19 @@ struct xClumpCollBSPTriangle
     union
     {
         xClumpCollBSPVertInfo i;
+        U32 rawIdx;
         RwV3d* p;
     } v;
     U8 flags;
-    U8 platData;
+    U8 detailed_info_cache_index;
     U16 matIndex;
 };
 
 struct xClumpCollBSPTree
 {
-    U32 numBranchNodes;
+    S32 numBranchNodes;
     xClumpCollBSPBranchNode* branchNodes;
-    U32 numTriangles;
+    S32 numTriangles;
     xClumpCollBSPTriangle* triangles;
 };
 
@@ -60,6 +61,6 @@ struct TempAtomicList
 };
 
 void xClumpColl_InstancePointers(xClumpCollBSPTree* tree, RpClump* clump);
-xClumpCollBSPTree* xClumpColl_StaticBufferInit(void* data, U32 param_2);
+xClumpCollBSPTree* xClumpColl_StaticBufferInit(void* data, U32);
 
 #endif
