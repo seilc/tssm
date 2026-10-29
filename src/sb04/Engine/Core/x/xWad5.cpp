@@ -1065,7 +1065,7 @@ void xSkyDome_Render()
     }
 }
 
-//                  xSerial
+#include "xserializer.cpp"
 
 //                  xScrFXLensFlare / xCamera / xScrFx
 
