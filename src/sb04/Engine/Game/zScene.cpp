@@ -509,13 +509,13 @@ void zSceneInit(U32 theSceneID, S32 reloadInProgress)
     }
 
     sMemDepthJustHIPStart = xMemPushBase();
-    s = (zScene*)xMemAllocSize(sizeof(zScene));
+    s = (zScene*)xMEMALLOC(sizeof(zScene), 0);
 
     globals.sceneCur = s;
 
     xSceneInit(s, 200, 2048, 2068, 250);
 
-    s->env = (xEnv*)xMemAllocSize(sizeof(xEnv));
+    s->env = (xEnv*)xMEMALLOC(sizeof(xEnv), 0);
     s->sceneID = theSceneID;
 
     iTime time;
@@ -595,7 +595,7 @@ void zSceneInit(U32 theSceneID, S32 reloadInProgress)
     if (xModelLookupCount)
     {
         xModelLookupList =
-            (xModelPipeLookup*)xMemAllocSize(xModelLookupCount * sizeof(xModelPipeLookup));
+            (xModelPipeLookup*)xMEMALLOC(xModelLookupCount * sizeof(xModelPipeLookup), 0);
 
         xModelLookupCount = 0;
 
@@ -662,7 +662,7 @@ void zSceneInit(U32 theSceneID, S32 reloadInProgress)
 
     if (s->num_base)
     {
-        s->base = (xBase**)xMemAllocSize(s->num_base * sizeof(xBase*));
+        s->base = (xBase**)xMEMALLOC(s->num_base * sizeof(xBase*), 0);
     }
     else
     {
@@ -704,7 +704,7 @@ void zSceneInit(U32 theSceneID, S32 reloadInProgress)
         // }
     }
 
-    s->update_base = (xBase**)xMemAllocSize(s->num_update_base * sizeof(xBase*));
+    s->update_base = (xBase**)xMEMALLOC(s->num_update_base * sizeof(xBase*), 0);
 
     base_idx = 0;
 
@@ -963,7 +963,7 @@ static U32 zSceneInitFunc_Camera(zScene* s, zSceneObjectInstanceDesc* desc, U32 
 
     if (count)
     {
-        camBlock = (zCamMarker*)xMemAllocSize(count * sizeof(zCamMarker));
+        camBlock = (zCamMarker*)xMEMALLOC(count * sizeof(zCamMarker), 0);
         s->baseList[desc->baseType] = camBlock;
 
         for (S32 idx = 0; idx < count; idx++)
@@ -1032,7 +1032,7 @@ static U32 zSceneInitFunc_Default(zScene* s, zSceneObjectInstanceDesc* desc, U32
 
     if (count)
     {
-        block = (U8*)xMemAllocSize(count * offset);
+        block = (U8*)xMEMALLOC(count * offset, 0);
 
         s->baseList[desc->baseType] = (xBase*)block;
     }
@@ -1071,7 +1071,7 @@ static U32 zSceneInitFunc_DefaultEnt(zScene* s, zSceneObjectInstanceDesc* desc, 
 
     if (count)
     {
-        block = (U8*)xMemAllocSize(count * offset);
+        block = (U8*)xMEMALLOC(count * offset, 0);
 
         s->baseList[desc->baseType] = (xBase*)block;
     }

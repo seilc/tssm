@@ -132,11 +132,11 @@ void xCutscene_Init(void* toc)
     for (int i = 0; i < 8; i++)
     {
         *(volatile int*)&sCutsceneFakeModel[i].Mat =
-            (volatile int)xMemAlloc(gActiveHeap, sizeof(RwMatrixTag) * 65, 0);
+            (volatile int)xMEMALLOC(sizeof(RwMatrixTag) * 65, 0);
         *(volatile int*)&sCutsceneFakeModel[i].Bucket =
-            (volatile int)xMemAlloc(gActiveHeap, sizeof(xModelBucket*) * 2, 0);
+            (volatile int)xMEMALLOC(sizeof(xModelBucket*) * 2, 0);
         *(volatile int*)sCutsceneFakeModel[i].Bucket =
-            (volatile int)xMemAlloc(gActiveHeap, sizeof(xModelBucket), 0);
+            (volatile int)xMEMALLOC(sizeof(xModelBucket), 0);
         *(volatile int*)&sCutsceneFakeModel[i].Bucket[1] =
             (volatile int)*sCutsceneFakeModel[i].Bucket;
         //*(volatile int*)&sCutsceneFakeModel[i].PipeFlags = (volatile int)0x6530;
@@ -1936,7 +1936,7 @@ void xAnimPoolInit(xMemPool* pool, U32 count, U32 singles, U32 blendFlags, U32 e
         sizeof(xAnimPlay);
 
     U32 i;
-    void* buffer = xMemAllocSize(count * size);
+    void* buffer = xMEMALLOC(count * size, 0);
 
     xAnimPlay* play = (xAnimPlay*)buffer;
     play->NumSingle = singles;
@@ -2949,12 +2949,12 @@ xAnimState* xAnimTableAddFileID(xAnimTable* table, xAnimFile* file, U32 stateID,
             if (!state->MultiFile)
             {
                 state->MultiFile =
-                    (gxAnimUseGrowAlloc ? (xAnimMultiFile*)xMemGrowAllocSize(
+                    (gxAnimUseGrowAlloc ? (xAnimMultiFile*)xMEMGROWALLOC(
                                               subStateCount * sizeof(xAnimMultiFileEntry) +
                                               sizeof(xAnimMultiFileBase)) :
-                                          (xAnimMultiFile*)xMemAllocSize(
+                                          (xAnimMultiFile*)xMEMALLOC(
                                               subStateCount * sizeof(xAnimMultiFileEntry) +
-                                              sizeof(xAnimMultiFileBase)));
+                                              sizeof(xAnimMultiFileBase), 0));
 
                 state->MultiFile->Count = 0;
             }
@@ -3500,13 +3500,13 @@ void _xAnimTableAddTransition(xAnimTable* table, xAnimTransition* tran, const ch
                         {
                             if (gxAnimUseGrowAlloc)
                             {
-                                duplicatedTransition = (xAnimTransition*)xMemGrowAlloc(
-                                    gActiveHeap, sizeof(xAnimTransition));
+                                duplicatedTransition =
+                                    (xAnimTransition*)xMEMGROWALLOC(sizeof(xAnimTransition));
                             }
                             else
                             {
-                                duplicatedTransition = (xAnimTransition*)xMemAlloc(
-                                    gActiveHeap, sizeof(xAnimTransition), 0);
+                                duplicatedTransition =
+                                    (xAnimTransition*)xMEMALLOC(sizeof(xAnimTransition), 0);
                             }
                             memcpy(duplicatedTransition, tran, sizeof(xAnimTransition));
                         }
@@ -3537,13 +3537,11 @@ void _xAnimTableAddTransition(xAnimTable* table, xAnimTransition* tran, const ch
     {
         if (gxAnimUseGrowAlloc)
         {
-            curr = (xAnimTransitionList*)xMemGrowAlloc(gActiveHeap,
-                                                       stateCount * sizeof(xAnimTransitionList));
+            curr = (xAnimTransitionList*)xMEMGROWALLOC(stateCount * sizeof(xAnimTransitionList));
         }
         else
         {
-            curr = (xAnimTransitionList*)xMemAlloc(gActiveHeap,
-                                                   stateCount * sizeof(xAnimTransitionList), 0);
+            curr = (xAnimTransitionList*)xMEMALLOC(stateCount * sizeof(xAnimTransitionList), 0);
         }
     }
     if (tran->Flags & 0x10)
@@ -3595,11 +3593,11 @@ xAnimTransition* xAnimTableNewTransition(xAnimTable* table, const char* source, 
     xAnimTransition* tran;
     if (gxAnimUseGrowAlloc)
     {
-        tran = (xAnimTransition*)xMemGrowAllocSize(sizeof(xAnimTransition));
+        tran = (xAnimTransition*)xMEMGROWALLOC(sizeof(xAnimTransition));
     }
     else
     {
-        tran = (xAnimTransition*)xMemAllocSize(sizeof(xAnimTransition));
+        tran = (xAnimTransition*)xMEMALLOC(sizeof(xAnimTransition), 0);
     }
 
     if (blendRecip != 0.0f)
@@ -3659,8 +3657,8 @@ xAnimState* xAnimTableNewState(xAnimTable* table, const char* name, U32 flags, U
 {
     xAnimState* state;
 
-    state = (gxAnimUseGrowAlloc ? (xAnimState*)xMemGrowAllocSize(sizeof(xAnimState)) :
-                                  (xAnimState*)xMemAllocSize(sizeof(xAnimState)));
+    state = (gxAnimUseGrowAlloc ? (xAnimState*)xMEMGROWALLOC(sizeof(xAnimState)) :
+                                  (xAnimState*)xMEMALLOC(sizeof(xAnimState), 0));
 
     if (!table->StateList)
     {
@@ -3711,7 +3709,7 @@ xAnimTable* xAnimTableNew(const char* name, xAnimTable** linkedList, U32 userFla
 {
     xAnimTable* table;
 
-    table = (xAnimTable*)xMemAllocSize(sizeof(xAnimTable));
+    table = (xAnimTable*)xMEMALLOC(sizeof(xAnimTable), 0);
 
     if (linkedList)
     {
@@ -3741,8 +3739,8 @@ xAnimEffect* xAnimStateNewEffect(xAnimState* state, U32 flags, F32 startTime, F3
     xAnimEffect* effect;
 
     effect =
-        (gxAnimUseGrowAlloc ? (xAnimEffect*)xMemGrowAllocSize(userDataSize + sizeof(xAnimEffect)) :
-                              (xAnimEffect*)xMemAllocSize(userDataSize + sizeof(xAnimEffect)));
+        (gxAnimUseGrowAlloc ? (xAnimEffect*)xMEMGROWALLOC(userDataSize + sizeof(xAnimEffect)) :
+                              (xAnimEffect*)xMEMALLOC(userDataSize + sizeof(xAnimEffect), 0));
 
     effect->Flags = flags;
     effect->StartTime = startTime;
@@ -3796,11 +3794,11 @@ xAnimFile* xAnimFileNewBilinear(void** rawData, const char* name, U32 flags, xAn
     xAnimFile* afile;
     if (gxAnimUseGrowAlloc)
     {
-        afile = (xAnimFile*)xMemGrowAlloc(gActiveHeap, numX * numY * 4 + sizeof(xAnimFile));
+        afile = (xAnimFile*)xMEMGROWALLOC(numX * numY * 4 + sizeof(xAnimFile));
     }
     else
     {
-        afile = (xAnimFile*)xMemAlloc(gActiveHeap, numX * numY * 4 + sizeof(xAnimFile), 0);
+        afile = (xAnimFile*)xMEMALLOC(numX * numY * 4 + sizeof(xAnimFile), 0);
     }
 
     if (numX > 1 || numY > 1)
@@ -3878,7 +3876,7 @@ void xAnimInit()
 
 void xAnimTempTransitionInit(U32 count)
 {
-    xMemPoolSetup(&sxAnimTempTranPool, xMemAllocSize(count * sizeof(xAnimTransition)), 0, 0, NULL,
+    xMemPoolSetup(&sxAnimTempTranPool, xMEMALLOC(count * sizeof(xAnimTransition), 0), 0, 0, NULL,
                   sizeof(xAnimTransition), count, count / 2);
 }
 

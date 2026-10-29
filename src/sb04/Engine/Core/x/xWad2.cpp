@@ -1279,7 +1279,7 @@ void xGridInit(xGrid* grid, const xBox* bounds, U16 nx, U16 nz, U8 ingrid_id)
     }
 
     grid->maxr = xGrid_float_one_quarter * MAX(grid->csizex, grid->csizez);
-    grid->cells = (xGridBound**)xMemAllocSize(nx * nz * sizeof(xGridBound*));
+    grid->cells = (xGridBound**)xMEMALLOC(nx * nz * sizeof(xGridBound*), 0);
     memset(grid->cells, 0, sizeof(xGridBound*) * (nz * nx));
 }
 
@@ -2617,7 +2617,7 @@ xFFXRotMatchState* xFFXRotMatchAlloc()
 void xFFXRotMatchPoolInit(U32 num)
 {
     rot_match_psize = num;
-    rot_match_pool = (xFFXRotMatchState*)xMemAllocSize(num * sizeof(xFFXRotMatchState));
+    rot_match_pool = (xFFXRotMatchState*)xMEMALLOC(num * sizeof(xFFXRotMatchState), 0);
     U32 i = 1;
     rot_match_pool->next = NULL;
     S32 ind = sizeof(xFFXRotMatchState);
@@ -2652,7 +2652,7 @@ xFFXShakeState* xFFXShakeAlloc()
 void xFFXShakePoolInit(U32 num)
 {
     rot_match_psize = num;
-    rot_match_pool = (xFFXRotMatchState*)xMemAllocSize(num * sizeof(xFFXRotMatchState));
+    rot_match_pool = (xFFXRotMatchState*)xMEMALLOC(num * sizeof(xFFXRotMatchState), 0);
     U32 i = 1;
     rot_match_pool->next = NULL;
     S32 ind = sizeof(xFFXRotMatchState);
@@ -2729,7 +2729,7 @@ xFFX* xFFXAlloc()
 void xFFXPoolInit(U32 num_ffx)
 {
     rot_match_psize = num_ffx;
-    rot_match_pool = (xFFXRotMatchState*)xMemAllocSize(num_ffx * sizeof(xFFXRotMatchState));
+    rot_match_pool = (xFFXRotMatchState*)xMEMALLOC(num_ffx * sizeof(xFFXRotMatchState), 0);
     U32 i = 1;
     rot_match_pool->next = NULL;
     S32 ind = sizeof(xFFXRotMatchState);
@@ -2979,7 +2979,7 @@ xFactory::~xFactory()
 xFactory::xFactory(S32 maxTypes)
 {
     U32 amt = maxTypes * sizeof(XGOFTypeInfo);
-    this->infopool = (XGOFTypeInfo*)xMemAllocSize(amt);
+    this->infopool = (XGOFTypeInfo*)xMEMALLOC(amt, 0);
     memset(this->infopool, 0, amt);
     XOrdInit(&this->infolist, maxTypes, 0);
 }

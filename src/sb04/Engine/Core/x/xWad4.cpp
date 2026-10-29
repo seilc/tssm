@@ -186,16 +186,16 @@ void xSceneInit(xScene* sc, U16 num_trigs, U16 num_stats, U16 num_dyns, U16 num_
 {
     sc->flags = 0;
     sc->num_trigs_allocd = num_trigs;
-    sc->trigs = (xEnt**)xMemAllocSize(num_trigs * sizeof(xEnt*));
+    sc->trigs = (xEnt**)xMEMALLOC(num_trigs * sizeof(xEnt*), 0);
     sc->num_stats_allocd = num_stats;
-    sc->stats = (xEnt**)xMemAllocSize(num_stats * sizeof(xEnt*));
+    sc->stats = (xEnt**)xMEMALLOC(num_stats * sizeof(xEnt*), 0);
     sc->num_dyns_allocd = num_dyns;
-    sc->dyns = (xEnt**)xMemAllocSize(num_dyns * sizeof(xEnt*));
+    sc->dyns = (xEnt**)xMEMALLOC(num_dyns * sizeof(xEnt*), 0);
     sc->num_npcs_allocd = num_npcs;
-    sc->npcs = (xEnt**)xMemAllocSize(num_npcs * sizeof(xEnt*));
+    sc->npcs = (xEnt**)xMEMALLOC(num_npcs * sizeof(xEnt*), 0);
     sc->num_ents_allocd = (U32)num_trigs + (U32)num_stats + (U32)num_dyns + (U32)num_npcs;
     sc->num_act_ents = 0;
-    sc->act_ents = (xEnt**)xMemAllocSize(sc->num_ents_allocd * sizeof(xEnt*));
+    sc->act_ents = (xEnt**)xMEMALLOC(sc->num_ents_allocd * sizeof(xEnt*), 0);
     sc->num_trigs = 0;
     sc->num_stats = 0;
     sc->num_dyns = 0;
@@ -1364,7 +1364,7 @@ RyzMemGrow* RyzMemGrow::Init(xBase* growuser)
     this->ptr_last = NULL;
     this->user_last = NULL;
     this->amt = 0x20;
-    dat = (char*)xMemAllocSize(this->amt);
+    dat = (char*)xMEMALLOC(this->amt, 0);
     this->ptr = dat;
     this->user = growuser;
     this->flg_grow = 1;
@@ -1505,7 +1505,7 @@ void* PKR_getmem(U32 id, S32 amount, U32, S32 align, S32 isTemp, char** memtrue)
     }
     else
     {
-        memptr = xMemAlloc(gActiveHeap, amount, align);
+        memptr = xMEMALLOC(amount, align);
     }
 
     if (memptr != NULL)

@@ -144,8 +144,7 @@ void xMemPoolSetup(xMemPool* pool, void* buffer, U32 nextOffset, U32 flags, xMem
 void* xMemPoolAlloc(xMemPool* pool);
 void xMemPoolFree(xMemPool* pool, void* data);
 
-#define xMemGrowAllocSize(size) xMemGrowAlloc(gActiveHeap, size)
-#define xMemAllocSize(size) xMemAlloc(gActiveHeap, size, 0)
-#define xMemAllocSizeAlign(size, align) xMemAlloc(gActiveHeap, size, align)
+#define xMEMALLOC(size, align) xMemAlloc(gActiveHeap, (size), (align))
+#define xMEMGROWALLOC(size) xMemGrowAlloc(gActiveHeap, (size))
 
 #endif

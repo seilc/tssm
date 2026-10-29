@@ -9,6 +9,6 @@ void zGooExit()
 
 void zGooInit(S32 nobj)
 {
-    zgoo_gps = (zGooParams*)xMemAlloc(gActiveHeap, nobj * 0xc, 0);
+    zgoo_gps = (zGooParams*)xMEMALLOC(nobj * 0xc, 0);
     zgoo_ngps = nobj;
 }

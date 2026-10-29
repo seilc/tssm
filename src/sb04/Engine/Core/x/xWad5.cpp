@@ -457,7 +457,7 @@ void xSurfaceInit(U16 num_surfs)
     nsurfs = num_surfs;
     if (num_surfs != 0)
     {
-        surfs = (xSurface*)xMemAllocSize(num_surfs * sizeof(xSurface));
+        surfs = (xSurface*)xMEMALLOC(num_surfs * sizeof(xSurface), 0);
         for (U16 i = 0; i < nsurfs; i++)
         {
             surfs[i].idx = i;

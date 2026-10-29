@@ -30,7 +30,7 @@ void zParticleLocator::scene_enter()
 {
     S32 tmpBlock;
 
-    tmpBlock = (S32)xMemAlloc(gActiveHeap, 0x8810, 0);
+    tmpBlock = (S32)xMEMALLOC(0x8810, 0);
     activities = (activity_data*)__construct_new_array((void*)tmpBlock, 0x0, 0x0, 0x110, 0x80);
     activities_used = 0;
 }

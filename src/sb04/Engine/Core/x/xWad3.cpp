@@ -170,7 +170,7 @@ void XOrdInit(st_XORDEREDARRAY* array, S32 size, S32 tempAlloc)
     }
     else
     {
-        array->list = (void**)xMemAlloc(gActiveHeap, cnt << 2, 0);
+        array->list = (void**)xMEMALLOC(cnt << 2, 0);
     }
     array->cnt = 0;
     array->max = cnt;
@@ -349,7 +349,7 @@ void xMovePointInit(xMovePoint* ent, xMovePointAsset* asset)
 
     if (asset->numPoints != 0)
     {
-        ent->nodes = (xMovePoint**)xMemAllocSize(asset->numPoints * sizeof(xMovePoint*));
+        ent->nodes = (xMovePoint**)xMEMALLOC(asset->numPoints * sizeof(xMovePoint*), 0);
     }
     else
     {
@@ -469,7 +469,7 @@ void xModelAnimCollStart(xModelInstance& model)
         U32 size = iModelVertCount(model.Data);
         if (size != 0)
         {
-            model.anim_coll.verts = (xVec3*)xMemAlloc(gActiveHeap, size * sizeof(xVec3), 0);
+            model.anim_coll.verts = (xVec3*)xMEMALLOC(size * sizeof(xVec3), 0);
         }
     }
 }
@@ -656,8 +656,7 @@ void* xMemPoolAlloc(xMemPool* pool)
 
     if (retval == NULL)
     {
-        xMemPoolAddElements(pool, xMemAlloc(gActiveHeap, pool->NumRealloc * pool->Size, 0),
-                            pool->NumRealloc);
+        xMemPoolAddElements(pool, xMEMALLOC(pool->NumRealloc * pool->Size, 0), pool->NumRealloc);
         retval = pool->FreeList;
     }
 
