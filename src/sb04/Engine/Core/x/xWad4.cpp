@@ -2582,11 +2582,7 @@ st_PACKER_READ_FUNCS* PKRGetReadFuncs(S32 apiver)
     }
 }
 
-//                                                  xPartition
-
-void xPartitionReset()
-{
-}
+#include "xPartition.cpp"
 
 //                                                  xParticle
 
