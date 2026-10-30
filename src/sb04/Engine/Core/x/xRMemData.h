@@ -1,12 +1,30 @@
 #ifndef XRMEMDATA_H
 #define XRMEMDATA_H
 
-#include "xBase.h"
+#include "types.h"
 
-#include <PowerPC_EABI_Support\MSL_C++\MSL_Common\Include\new>
+#include <stddef.h>
+
+#define RMEM_GROWSTUB_SIZE 32
+#define RMEM_GROW_ENABLED (1<<0)
+
+struct xBase;
+struct RyzMemGrow;
+
+struct RyzMemData
+{
+    static void* operator new(size_t amt, S32, RyzMemGrow* growCtxt);
+    static void operator delete(void*);
+};
 
 struct RyzMemGrow
 {
+    S32 IsEnabled() { return flg_grow & RMEM_GROW_ENABLED; }
+    RyzMemGrow* Init(xBase* growuser);
+    RyzMemGrow* Resume(xBase*);
+    void Done();
+
+protected:
     S32 flg_grow;
     S32 amt;
     char* ptr;
@@ -15,19 +33,7 @@ struct RyzMemGrow
     char* ptr_last;
     xBase* user_last;
 
-    RyzMemGrow* Init(xBase* growuser);
-    RyzMemGrow* Resume(xBase*);
-    void Done();
-    S32 IsEnabled()
-    {
-        return this->flg_grow & 1;
-    }
-};
-
-struct RyzMemData
-{
-    void* operator new(size_t amt, S32, RyzMemGrow* growCtxt);
-    void operator delete(void*);
+    friend struct RyzMemData;
 };
 
 #endif

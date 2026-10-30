@@ -2,7 +2,7 @@
 #define XDEBUG_H
 
 #include "iDebug.h"
-#include "xFont.h"
+#include "xString.h"
 
 #include <types.h>
 
@@ -78,12 +78,16 @@ do {                                                                            
 #define xASSERT_L(line, cond) _xASSERT(line, cond, _xSTR(cond), "%s", #cond)
 #define xASSERT_FMT(cond, ...) _xASSERT(__LINE__, cond, #cond, __VA_ARGS__)
 #define xASSERT_FMT_L(line, cond, ...) _xASSERT(line, cond, #cond, __VA_ARGS__)
+#define xASSERT_MSG(cond, msg) _xASSERT(__LINE__, cond, _xSTR(cond), "%s", msg)
+#define xASSERT_MSG_L(line, cond, msg) _xASSERT(line, cond, _xSTR(cond), "%s", msg)
 #else
 #define _xFAIL(line, condstr, ...)
 #define xASSERT(cond)
 #define xASSERT_L(line, cond)
 #define xASSERT_FMT(cond, ...)
 #define xASSERT_FMT_L(line, cond, ...)
+#define xASSERT_MSG(cond, msg)
+#define xASSERT_MSG_L(line, cond, msg)
 #endif
 
 extern U32 gFrameCount;

@@ -1331,45 +1331,7 @@ S32 xSGStartup()
 
 //                                              xRumble
 
-//                                              RyzMemGrow
-
-void RyzMemGrow::Done()
-{
-    this->amt_last = this->amt;
-    this->ptr_last = this->ptr;
-    this->user_last = this->user;
-    this->amt = 0;
-    this->ptr = NULL;
-    this->user = NULL;
-    this->flg_grow = 0;
-}
-
-RyzMemGrow* RyzMemGrow::Resume(xBase*)
-{
-    this->amt = this->amt_last;
-    this->ptr = this->ptr_last;
-    this->user = this->user_last;
-    this->flg_grow = 0b11;
-    return this;
-}
-
-RyzMemGrow* RyzMemGrow::Init(xBase* growuser)
-{
-    char* dat;
-    if (this->ptr != NULL)
-    {
-        return this;
-    }
-    this->amt_last = 0;
-    this->ptr_last = NULL;
-    this->user_last = NULL;
-    this->amt = 0x20;
-    dat = (char*)xMEMALLOC(this->amt, 0);
-    this->ptr = dat;
-    this->user = growuser;
-    this->flg_grow = 1;
-    return this;
-}
+#include "xRMemData.cpp"
 
 //                                                xRender
 
