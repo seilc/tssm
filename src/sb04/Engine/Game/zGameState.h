@@ -95,6 +95,7 @@ extern S32 gGameState;
 extern eGameMode gGameMode;
 extern _GameOstrich gGameOstrich;
 
+void zGameStatePauseUnpauseSnd(bool pause);
 S32 zGameStateGet();
 eGameMode zGameModeGet();
 _GameOstrich zGameGetOstrich();

@@ -23,6 +23,7 @@ extern RwCamera* globalCamera;
 
 RwCamera* iCameraCreate(S32 width, S32 height, S32 mainGameCamera);
 void iCameraDestroy(RwCamera* camera);
+RwCamera* RwCameraBeginUpdateWrapper(RwCamera* camera);
 void iCameraBegin(RwCamera* cam, S32 clear);
 void iCameraEnd(RwCamera* cam);
 void iCameraShowRaster(RwCamera* cam);

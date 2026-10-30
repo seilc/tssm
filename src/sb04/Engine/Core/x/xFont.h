@@ -1,11 +1,14 @@
 #ifndef XFONT_H
 #define XFONT_H
 
+#include "xColor.h"
+#include "xCommon.h"
 #include "xMath2.h"
-#include "iColor.h"
 #include "xString.h"
 
 #include <rwcore.h>
+
+static const basic_rect<F32> screen_bounds = { 0, 0, 1, 1 };
 
 struct xfont
 {
@@ -13,15 +16,39 @@ struct xfont
     F32 width;
     F32 height;
     F32 space;
-    iColor_tag color;
+    xColor color;
+    xColor shadowColor;
+    F32 shadowOffsetX;
+    F32 shadowOffsetY;
     basic_rect<F32> clip;
 
     static void init();
     static void set_render_state(RwRaster* raster);
     static void restore_render_state();
     static xfont create();
-    static xfont create(U32 id, F32 width, F32 height, F32 space, iColor_tag color,
-                        const basic_rect<F32>& clip);
+    static xfont create(
+        U32 id,
+        F32 width,
+        F32 height,
+        F32 space,
+        xColor color,
+        const basic_rect<F32>& clip = screen_bounds,
+        xColor shadowColor = g_BLACK,
+        F32 shadowOffsetX = 2.0f,
+        F32 shadowOffsetY = 2.0f)
+    {
+        xfont r;
+        r.id = id;
+        r.width = width;
+        r.height = height;
+        r.space = space;
+        r.color = color;
+        r.clip = clip;
+        r.shadowColor = shadowColor;
+        r.shadowOffsetX = shadowOffsetX;
+        r.shadowOffsetY = shadowOffsetY;
+        return r;
+    }
 
     basic_rect<F32> bounds(char c) const;
     basic_rect<F32> bounds(const char* text) const;
@@ -31,23 +58,6 @@ struct xfont
     void irender(const char* text, F32 x, F32 y) const;
     void irender(const char* text, size_t text_size, F32 x, F32 y) const;
     void render(const char* text, F32 x, F32 y) const;
-
-    xfont& operator=(const xfont& rhs)
-    {
-        id = rhs.id;
-        width = rhs.width;
-        height = rhs.height;
-        space = rhs.space;
-
-        *(U32*)(&color) = *(U32*)(&rhs.color);
-
-        *(U32*)(&clip.x) = *(U32*)(&rhs.clip.x);
-        *(U32*)(&clip.y) = *(U32*)(&rhs.clip.y);
-        *(U32*)(&clip.w) = *(U32*)(&rhs.clip.w);
-        *(U32*)(&clip.h) = *(U32*)(&rhs.clip.h);
-
-        return *this;
-    }
 };
 
 struct xtextbox
@@ -166,18 +176,46 @@ struct xtextbox
     static tag_type* find_format_tag(const substr& s);
     static tag_type* find_format_tag(const substr& s, S32& index);
     static xtextbox create();
-    static xtextbox create(const xfont& font, const basic_rect<F32>& bounds, U32 flags,
-                           F32 line_space, F32 tab_stop, F32 left_indent, F32 right_indent);
+
+    static xtextbox create(
+        const xfont& font,
+        const basic_rect<F32>& bounds = screen_bounds,
+        U32 flags = 0x2,
+        F32 line_space = 0.0f,
+        F32 tab_stop = 0.0f,
+        F32 left_indent = 0.0f,
+        F32 right_indent = 0.0f)
+    {
+        xtextbox r;
+        r.font = font;
+        r.bounds = bounds;
+        r.flags = flags;
+        r.line_space = line_space;
+        r.tab_stop = tab_stop;
+        r.left_indent = left_indent;
+        r.right_indent = right_indent;
+        r.texts_size = 0;
+        r.text_hash = 0;
+        r.cb = &text_cb;
+        return r;
+    }
 
     void set_text(const char* text);
     void set_text(const char* text, size_t text_size);
     void set_text(const char** texts, size_t size);
     void set_text(const char** texts, const size_t* text_sizes, size_t size);
     layout& temp_layout(bool cache) const;
-    void render(bool cache) const;
     void render(layout& l, S32 begin_jot, S32 end_jot) const;
     F32 yextent(F32 max, S32& size, bool cache) const;
     F32 yextent(F32 max, S32& size, const layout& l, S32 begin_jot, S32 end_jot) const;
+
+    F32 yextent(bool cache) const { return yextent(temp_layout(cache), 0, -1); }
+    F32 yextent(const layout& l, S32 begin_jot, S32 end_jot) const { S32 size; return yextent(HUGE, size, l, begin_jot, end_jot); }
+
+    void render(bool cache) const
+    {
+        render(temp_layout(cache), 0, -1);
+    }
 };
 
 struct xtextbox::layout
@@ -209,9 +247,16 @@ struct xtextbox::layout
     size_t jots_size() const;
 };
 
-void render_fill_rect(const basic_rect<F32>& bounds, iColor_tag color);
+void render_fill_rect(const basic_rect<F32>& bounds, xColor color);
 
-F32 NSCREENX(F32);
-F32 NSCREENY(F32);
+inline F32 NSCREENX(F32 v)
+{
+    return 1.0f / SCREEN_WIDTH * v;
+}
+
+inline F32 NSCREENY(F32 v)
+{
+    return 1.0f / SCREEN_HEIGHT * v;
+}
 
 #endif

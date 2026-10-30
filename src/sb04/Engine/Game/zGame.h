@@ -5,11 +5,11 @@
 #include "zGameState.h"
 
 //extern eSNDCurrentPlayer gPendingPlayer;
-F32 sTimeElapsed;
-U32 gLevelChanged;
-U32 startPressed = -1;
+extern F32 sTimeElapsed;
+extern U32 gLevelChanged;
+extern U32 startPressed;
 //extern U8 sHackSmoothedUpdate;
-//extern U32 gBusStopIsRunning;
+extern U32 gBusStopIsRunning;
 
 enum _tagGameVidMode
 {

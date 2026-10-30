@@ -21,13 +21,16 @@ struct iColor_tag
     };
 };
 
-struct xColor_tag
+typedef struct xColor_tag
 {
-    U8 r;
-    U8 g;
-    U8 b;
-    U8 a;
-    RwRGBA rgba;
-};
+    union
+    {
+        struct
+        {
+            U8 r, g, b, a;
+        };
+        RwRGBA rgba;
+    };
+} xColor;
 
 #endif

@@ -1570,8 +1570,6 @@ extern substr _1615;
 extern substr _1616;
 extern xtextbox::tag_entry_list _1642;
 
-static const basic_rect<F32> screen_bounds = { 0, 0, 1, 1 };
-
 extern substr text_delims;
 
 xModelInstance* load_model(U32 id);

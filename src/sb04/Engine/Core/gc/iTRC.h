@@ -10,11 +10,12 @@
 
 // Copied from bfbb repo
 
-//#include "xPad.h"
+#include "xPad.h"
 
-// struct _tagiTRCPadInfo {
-//   _tagPadInit pad_init;
-// };
+struct _tagiTRCPadInfo
+{
+    _tagPadInit pad_init;
+};
 
 namespace ROMFont
 {

@@ -7,4 +7,9 @@
 
 // Needs the dwarf info imported
 
+namespace oob_state
+{
+    bool IsPlayerInControl();
+} // namespace oob_state
+
 #endif

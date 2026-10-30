@@ -9,7 +9,6 @@ char buffer[16];
 // Why is there a duplicate in dwarf?
 //char buffer[16];
 F32 scale;
-basic_rect<F32> screen_bounds; // are these both correct?
 basic_rect<F32> default_adjust;
 xFXRing sPatrickStunRing[3];
 xFXRing sThunderRing[1];
@@ -313,7 +312,6 @@ xVec3 m_Null;
 _tagxPad mPad[4];
 U32 gFrameCount;
 xColor_tag g_CLEAR;
-xColor_tag g_BLACK;
 _zEnv* gCurEnv;
 xMat4x3 g_I3;
 //xEnt* (*AddToLODList)(xEnt*, xScene*, void*);

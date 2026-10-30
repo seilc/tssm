@@ -16,7 +16,7 @@ extern F32 _761_1;
 
 static RwIm2DVertex vert_701[6]; // todo: move to render_bk_tex_scale
 
-iColor_tag convert(const ztextbox::asset_type::color_type& color);
+xColor convert(const ztextbox::asset_type::color_type& color);
 
 namespace
 {
@@ -37,7 +37,7 @@ namespace
     xtextbox::tag_type new_tags[] = { SUBSTR("blahblah"), parse_tag_blahblah, NULL, NULL };
     U32 new_tags_size = sizeof(new_tags) / sizeof(new_tags[0]);
 
-    void set_vert(RwIm2DVertex& vert, F32 x, F32 y, F32 u, F32 v, iColor_tag c, F32 nsz, F32 rcz);
+    void set_vert(RwIm2DVertex& vert, F32 x, F32 y, F32 u, F32 v, xColor c, F32 nsz, F32 rcz);
 
     void render_bk_fill(const ztextbox& e)
     {
@@ -50,7 +50,7 @@ namespace
     {
         // non-matching: float instruction order
 
-        iColor_tag c = convert(e.asset->backdrop.color);
+        xColor c = convert(e.asset->backdrop.color);
 
         F32 rcz = _720_1 / RwCameraGetNearClipPlane(RwCameraGetCurrentCamera());
         F32 nsz = RwIm2DGetNearScreenZ();
@@ -74,7 +74,7 @@ namespace
         xfont::restore_render_state();
     }
 
-    void set_vert(RwIm2DVertex& vert, F32 x, F32 y, F32 u, F32 v, iColor_tag c, F32 nsz, F32 rcz)
+    void set_vert(RwIm2DVertex& vert, F32 x, F32 y, F32 u, F32 v, xColor c, F32 nsz, F32 rcz)
     {
         RwIm2DVertexSetScreenX(&vert, x);
         RwIm2DVertexSetScreenY(&vert, y);
@@ -455,9 +455,9 @@ void ztextbox::render_all()
     }
 }
 
-iColor_tag convert(const ztextbox::asset_type::color_type& color)
+xColor convert(const ztextbox::asset_type::color_type& color)
 {
-    iColor_tag c;
+    xColor c;
     c.r = color.r;
     c.g = color.g;
     c.b = color.b;

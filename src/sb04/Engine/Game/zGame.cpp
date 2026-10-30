@@ -1,5 +1,9 @@
 #include "zGame.h"
 
+F32 sTimeElapsed;
+U32 gLevelChanged;
+U32 startPressed = -1;
+
 void DoTheResetinator()
 {
 }

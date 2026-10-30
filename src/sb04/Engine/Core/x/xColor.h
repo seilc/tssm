@@ -8,6 +8,7 @@ extern const iColor_tag g_GREEN;
 extern const iColor_tag g_BLUE;
 extern const iColor_tag g_CYAN;
 extern const iColor_tag g_YELLOW;
+extern const xColor g_BLACK;
 extern const iColor_tag g_WHITE;
 extern const iColor_tag g_GRAY50;
 extern const iColor_tag g_NEON_RED;
