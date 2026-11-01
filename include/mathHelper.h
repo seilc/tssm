@@ -1,7 +1,7 @@
 #ifndef MATHHELPER_H
 #define MATHHELPER_H
 
-#include <dolphin/mtx.h>
+#include <dolphin.h>
 
 
 inline void QuaternionReset(Quaternion *pDest)

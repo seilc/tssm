@@ -1,14 +1,6 @@
 #include "iTRC.h"
 
-#include <dolphin/gx/GXCull.h>
-#include <dolphin/gx/GXFrameBuffer.h>
-#include <dolphin/gx/GXGeometry.h>
-#include <dolphin/gx/GXManage.h>
-#include <dolphin/gx/GXPixel.h>
-#include <dolphin/gx/GXTexture.h>
-#include <dolphin/gx/GXTransform.h>
-#include <dolphin/mtx.h>
-#include <dolphin/vi/vifuncs.h>
+#include <dolphin.h>
 #include <string.h>
 #include <PowerPC_EABI_Support/MSL_C/MSL_Common/strtoul.h>
 #include <types.h>

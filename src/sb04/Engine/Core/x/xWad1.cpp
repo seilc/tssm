@@ -1,5 +1,5 @@
 #include "xWad1.h"
-#include "dolphin/types.h"
+#include <dolphin.h>
 #include "types.h"
 #include <PowerPC_EABI_Support\include\math.h>
 

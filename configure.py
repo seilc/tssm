@@ -288,9 +288,23 @@ cflags_tssm = [
     "-i src/sb04/Engine/Core/x",
     "-i src/sb04/Engine/Game",
     "-DGAMECUBE",
+    "-prefix prefix.mch",
 ]
 
 config.linker_version = "GC/2.6"
+
+# Game code prefix: include/prefix.pch++, precompiled with the game flags into
+# build/<version>/include/prefix.mch (found through -i build/<version>/include) and passed to
+# every game unit with -prefix (cflags_tssm).
+config.precompiled_headers = [
+    {
+        "source": "prefix.pch++",
+        "mw_version": config.linker_version,
+        "cflags": ["-lang=c++", *(f for f in cflags_tssm if f != "-prefix prefix.mch")],
+    }
+]
+# decomp.me contexts read the prefix header itself (scratches can't use the .mch).
+config.context_prefixes = {"prefix.mch": Path("include/prefix.pch++")}
 
 
 # Helper function for Dolphin libraries

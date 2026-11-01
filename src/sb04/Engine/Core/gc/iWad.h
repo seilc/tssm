@@ -37,12 +37,11 @@
 #include "xPad.h"
 #include "xTRC.h"
 #include "stdlib.h"
-#include <dolphin/dvd.h>
+#include <dolphin.h>
 #include "xstransvc.h"
 #include <limits.h>
 #include <rwcore.h>
 #include <rtslerp.h>
-#include <dolphin/os.h>
 
 struct ThreadParam
 {

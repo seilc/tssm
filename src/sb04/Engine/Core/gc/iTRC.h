@@ -1,11 +1,7 @@
 #ifndef ITRC_H
 #define ITRC_H
 
-#include <dolphin/gx/GXStruct.h>
-#include <dolphin/os/OSAlloc.h>
-#include <dolphin/os/OSFont.h>
-#include <dolphin/types.h>
-#include <dolphin/dvd.h>
+#include <dolphin.h>
 #include <types.h>
 
 // Copied from bfbb repo
