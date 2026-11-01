@@ -6,10 +6,12 @@
 struct xScene;
 struct xEnt;
 
+typedef void(*xFFXEffectCallback)(xEnt*, xScene*, F32, void*);
+
 struct xFFX
 {
     U32 flags;
-    void (*doEffect)(xEnt*, xScene*, F32, void*);
+    xFFXEffectCallback doEffect;
     void* fdata;
     xFFX* next;
 };
@@ -46,7 +48,7 @@ void xFFXFree(xFFX* ffx);
 void xFFXTurnOn(xFFX* f);
 void xFFXTurnOff(xFFX* f);
 S16 xFFXAddEffect(xEnt* ent, xFFX* f);
-S16 xFFXAddEffect(xEnt* ent, void (*dof)(xEnt*, xScene*, F32, void*), void* fd);
+S16 xFFXAddEffect(xEnt* ent, xFFXEffectCallback dof, void* fd);
 U32 xFFXRemoveEffectByFData(xEnt* ent, void* fdata);
 void xFFXApplyOne(xFFX* ffx, xEnt* ent, xScene* sc, F32 dt);
 void xFFXApply(xEnt* ent, xScene* sc, F32 dt);

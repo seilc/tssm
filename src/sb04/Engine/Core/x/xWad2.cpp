@@ -1170,7 +1170,7 @@ void xGridIterClose(xGridIterator& it)
 
                     cell->next = NULL;
                     cell->head = NULL;
-                    cell->deleted = 0;
+                    cell->deleted = false;
                     cell->gx = 0xFFFF;
                     cell->gz = 0xFFFF;
 
@@ -1216,7 +1216,7 @@ S32 xGridRemove(xGridBound* bound)
     {
         if (gGridIterActive)
         {
-            bound->deleted = 1;
+            bound->deleted = true;
             return 0;
         }
         else
@@ -1232,7 +1232,7 @@ S32 xGridRemove(xGridBound* bound)
             *prev = curr->next;
             curr->next = NULL;
             curr->head = NULL;
-            curr->deleted = 0;
+            curr->deleted = false;
             curr->gx = -1;
             curr->gz = -1;
         }

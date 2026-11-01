@@ -2,6 +2,7 @@
 #define XPARCMD_H
 
 #include "xParGroup.h"
+#include "xParCmdAsset.h"
 
 #define XPARCMD_TYPE_MOVE 0
 #define XPARCMD_TYPE_MOVERANDOM 1
@@ -39,14 +40,6 @@
 #define XPARCMD_TYPE_DAMPENSPEED 33
 #define XPARCMD_TYPE_COLLIDEFALLSTICKY 34
 #define XPARCMD_TYPE_COUNT 35
-
-struct xParCmdAsset
-{
-    U32 type;
-    U8 enabled;
-    U8 mode;
-    U8 pad[2];
-};
 
 struct xParCmd
 {

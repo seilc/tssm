@@ -64,6 +64,9 @@ namespace xhud
 
     struct motive;
     struct motive_node;
+    struct widget;
+
+    typedef bool(*motive_update_callback)(widget&, motive&, F32);
 
     struct widget
     {
@@ -137,7 +140,7 @@ namespace xhud
         }
 
         void clear_motives();
-        void clear_motives(bool (*fp_update)(widget&, motive&, F32), void* context);
+        void clear_motives(motive_update_callback fp_update, void* context);
         void add_motive(const motive& m);
         void hide();
         void show();
@@ -163,12 +166,12 @@ namespace xhud
         F32 max_offset;
         F32 offset;
         F32 accel;
-        bool (*fp_update)(widget&, motive&, F32);
+        motive_update_callback fp_update;
         void* context;
         U8 inverse;
 
         motive(F32* value, F32 delta, F32 max_offset, F32 accel,
-               bool (*fp_update)(xhud::widget&, motive&, F32), void* context)
+               motive_update_callback fp_update, void* context)
         {
             this->value = value;
             this->delta = delta;
