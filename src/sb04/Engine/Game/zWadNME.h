@@ -3,6 +3,7 @@
 
 #include "zNMECommon.h"
 #include "xModelBlur.h"
+#include "xFX.h"
 #include "zStreamedSound.h"
 #include "zBossCam.h"
 

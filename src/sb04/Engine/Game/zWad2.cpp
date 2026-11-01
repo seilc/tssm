@@ -311,7 +311,6 @@ extern _tagTRCPadInfo gTrcPad[4];
 xVec3 m_Null;
 _tagxPad mPad[4];
 U32 gFrameCount;
-xColor_tag g_CLEAR;
 _zEnv* gCurEnv;
 xMat4x3 g_I3;
 //xEnt* (*AddToLODList)(xEnt*, xScene*, void*);

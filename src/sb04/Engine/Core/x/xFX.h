@@ -116,7 +116,13 @@ struct xFXCameraTexture
     void begin_render(S32 clear_flags, U32 fbmsk_write, U32 fbmsk_finish, F32 near_plane,
                       F32 far_plane);
     void destroy();
-    U8 create(S32 w, S32 h, U8 need_zwrite, S32 bpp, S32 zbpp);
+    bool create(S32 w, S32 h, bool need_zwrite, S32 bpp, S32 zbpp);
+
+    void set_background(xColor color)
+    {
+        bgraster = NULL;
+        bgcolor = color;
+    }
 };
 
 #define RING_COUNT 8

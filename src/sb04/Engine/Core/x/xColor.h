@@ -11,6 +11,7 @@ extern const iColor_tag g_YELLOW;
 extern const xColor g_BLACK;
 extern const iColor_tag g_WHITE;
 extern const iColor_tag g_GRAY50;
+extern const xColor g_CLEAR;
 extern const iColor_tag g_NEON_RED;
 extern const iColor_tag g_NEON_GREEN;
 extern const iColor_tag g_NEON_BLUE;
