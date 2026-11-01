@@ -1,12 +1,6 @@
 #ifndef MACROS_H
 #define MACROS_H
 
-#define MAX(x, y) ((x) > (y) ? (x) : (y))
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
-
-#define CLAMP(low, high, x) \
-    ((x) > (high) ? (high) : ((x) < (low) ? (low) : (x)))
-
 #define ROUND_UP(x, align) (((x) + (align)-1) & (-(align)))
 #define ROUND_UP_PTR(x, align) \
     ((void *)((((u32)(x)) + (align)-1) & (~((align)-1))))

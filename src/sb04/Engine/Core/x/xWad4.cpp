@@ -2693,7 +2693,7 @@ xPar* xParGroupAddPar(xParGroup* ps)
     return p;
 }
 
-#define clamp(x, a, b) (((x) < (a)) ? (a) : (((x) > (b)) ? (b) : (x)))
+#define CLAMP_COLOR(x,a,b) ((x) < (a) ? (a) : ((x) > (b) ? (b) : (x)))
 
 void xParGroupAnimate(xParGroup* ps, F32 dt)
 {
@@ -2724,10 +2724,10 @@ void xParGroupAnimate(xParGroup* ps, F32 dt)
         else
         {
             // non-matching: stack isn't resizing for each float-to-U8 conversion
-            i->m_c[0] = i->m_cfl[0] = clamp(i->m_cvel[0] * dt + i->m_cfl[0], _708, _709);
-            i->m_c[1] = i->m_cfl[1] = clamp(i->m_cvel[1] * dt + i->m_cfl[1], _708, _709);
-            i->m_c[2] = i->m_cfl[2] = clamp(i->m_cvel[2] * dt + i->m_cfl[2], _708, _709);
-            i->m_c[3] = i->m_cfl[3] = clamp(i->m_cvel[3] * dt + i->m_cfl[3], _708, _709);
+            i->m_c[0] = i->m_cfl[0] = CLAMP_COLOR(i->m_cvel[0] * dt + i->m_cfl[0], _708, _709);
+            i->m_c[1] = i->m_cfl[1] = CLAMP_COLOR(i->m_cvel[1] * dt + i->m_cfl[1], _708, _709);
+            i->m_c[2] = i->m_cfl[2] = CLAMP_COLOR(i->m_cvel[2] * dt + i->m_cfl[2], _708, _709);
+            i->m_c[3] = i->m_cfl[3] = CLAMP_COLOR(i->m_cvel[3] * dt + i->m_cfl[3], _708, _709);
             i->m_size += i->m_sizeVel * dt;
             i->m_lifetime -= age;
 

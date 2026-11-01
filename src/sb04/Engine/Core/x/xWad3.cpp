@@ -1813,7 +1813,7 @@ xLightKit* xLightKit_Prepare(void* data)
             currlight->color.blue > 1.0f)
         {
             F32 s;
-            s = MAX(MAX(currlight->color.red, currlight->color.green), currlight->color.blue);
+            s = MAX3(currlight->color.red, currlight->color.green, currlight->color.blue);
             s = MAX(s, 0.00001f);
             s = 1.0f / s;
             currlight->color.red *= s;

@@ -5,13 +5,11 @@
 
 #include "iMath.h"
 
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define xmin(a,b) ((a) < (b) ? (a) : (b))
-#define xmax(a,b) ((a) > (b) ? (a) : (b))
 #define xabs(x) iabs(x)
-
-#define CLAMP(x, a, b) (MAX((a), MIN((x), (b))))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MAX3(a,b,c) (MAX(MAX((a), (b)), (c)))
+#define CLAMP(x,a,b) MAX((a), MIN((x), (b)))
 
 #define SQR(x) ((x) * (x))
 
