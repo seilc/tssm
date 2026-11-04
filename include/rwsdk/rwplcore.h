@@ -1392,11 +1392,6 @@ extern RwBool RwEngineTerm(void);
 extern RwBool RwEngineInit(const RwMemoryFunctions* memFuncs, RwUInt32 initFlags,
                            RwUInt32 resArenaSize);
 
-extern void RwGameCubeSetAlphaCompare(RwInt32 comp0, RwUInt8 ref0, RwInt32 op, RwInt32 comp1,
-                                      RwUInt8 ref1);
-
-extern void _rwDlRenderStateSetZCompLoc(RwBool zBeforeTex);
-
 #ifdef __cplusplus
 }
 #endif
