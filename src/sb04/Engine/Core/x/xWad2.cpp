@@ -1190,6 +1190,39 @@ void xGridIterClose(xGridIterator& it)
     }
 }
 
+xGridBound* xGridIterFirstCell(xGridBound** head, xGridIterator& it)
+{
+    xGridBound* cell = *head;
+
+    if (!cell)
+    {
+        return NULL;
+    }
+
+    it.delfound = 0;
+    it.listhead = head;
+    it.curcell = cell;
+
+    gGridIterActive++;
+
+    return cell;
+}
+
+xGridBound* xGridIterFirstCell(xGrid* grid, S32 grx, S32 grz, xGridIterator& iter)
+{
+    if (grx < 0 || grx >= grid->nx)
+    {
+        return NULL;
+    }
+
+    if (grz < 0 || grz >= grid->nz)
+    {
+        return NULL;
+    }
+
+    return xGridIterFirstCell(grid->cells + grz * grid->nx + grx, iter);
+}
+
 xGridBound* xGridIterFirstCell(xGrid* grid, F32 posx, F32 posy, F32 posz, S32& grx, S32& grz,
                                xGridIterator& iter)
 {

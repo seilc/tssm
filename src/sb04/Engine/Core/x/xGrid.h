@@ -76,39 +76,6 @@ void xGridCheckPosition(xGrid* grid, xVec3* pos, xQCData* qcd, GridEntCallback h
 S32 xGridEntIsTooBig(xGrid* grid, const xEnt* ent);
 S32 xGridAdd(xGrid* grid, xEnt* ent);
 
-xGridBound* xGridIterFirstCell(xGridBound** head, xGridIterator& it)
-{
-    xGridBound* cell = *head;
-
-    if (!cell)
-    {
-        return NULL;
-    }
-
-    it.delfound = 0;
-    it.listhead = head;
-    it.curcell = cell;
-
-    gGridIterActive++;
-
-    return cell;
-}
-
-xGridBound* xGridIterFirstCell(xGrid* grid, S32 grx, S32 grz, xGridIterator& iter)
-{
-    if (grx < 0 || grx >= grid->nx)
-    {
-        return NULL;
-    }
-
-    if (grz < 0 || grz >= grid->nz)
-    {
-        return NULL;
-    }
-
-    return xGridIterFirstCell(grid->cells + grz * grid->nx + grx, iter);
-}
-
 inline xGridBound* xGridIterNextCell(xGridIterator& it)
 {
     if (it.curcell)

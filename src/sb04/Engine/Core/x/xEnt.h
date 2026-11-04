@@ -232,14 +232,12 @@ void xEntSceneExit();
 void xEntSceneInit();
 void xEntSetTimePassed(F32 sec);
 
-// Needs to be [gw] but not inline?
-void xEntHide(xEnt* ent)
+inline void xEntHide(xEnt* ent)
 {
     ent->flags &= ~0x1;
 }
 
-// Needs to be [gw] but not inline?
-void xEntShow(xEnt* ent)
+inline void xEntShow(xEnt* ent)
 {
     ent->flags |= 0x1;
 }

@@ -391,7 +391,7 @@ config.libs = [
             Object(NonMatching, "sb04/Engine/Core/x/xWad3.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Core/x/xWad1.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Core/x/xWad5.cpp", extra_cflags=["-sym on", "-inline deferred"]),
-            Object(NonMatching, "sb04/Engine/Core/x/xFXHighDynamicRange.cpp"),
+            Object(Matching, "sb04/Engine/Core/x/xFXHighDynamicRange.cpp", extra_cflags=["-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/x/xFXCameraTexture.cpp"),
             Object(Matching, "sb04/Engine/Core/x/xModelBlur.cpp", extra_cflags=["-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/x/xCamera.cpp"),
