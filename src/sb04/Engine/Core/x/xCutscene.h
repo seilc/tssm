@@ -79,7 +79,7 @@ struct xCutscene
     U32 ShutDownWait;
     F32 PlaybackSpeed;
     U32 Opened;
-    tag_xFile File;
+    xFile File;
     S32 AsyncID;
     void* MemBuf;
     void* MemCurr;

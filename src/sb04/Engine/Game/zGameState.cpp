@@ -62,12 +62,12 @@ void SB04FMVPauseSoundCB(bool doPause)
     }
 }
 
-void zGameSetOstrich(_GameOstrich o)
+void zGameSetOstrich(eGameOstrich o)
 {
     gGameOstrich = o;
 }
 
-_GameOstrich zGameGetOstrich()
+eGameOstrich zGameGetOstrich()
 {
     return gGameOstrich;
 }

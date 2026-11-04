@@ -1,8 +1,6 @@
 #ifndef XANIM_H
 #define XANIM_H
 
-#include <types.h>
-
 #include "xMath3.h"
 #include "xMemMgr.h"
 

@@ -7,8 +7,6 @@
 #include "zScene.h"
 #include "zTalkBox.h"
 
-#include <types.h>
-
 // CODE PORTED DIRECTLY FROM BFBB
 
 namespace

@@ -233,7 +233,7 @@ struct zPlayerGlobals
     S32 IsBubbleBashing;
     S32 IsBubbleBowling;
     S32 WasDJumping;
-    _zPlayerWallJumpState WallJumpState;
+    zPlayerWallJumpState WallJumpState;
     S32 cheat_mode;
     zRewardsMgr* rewardsMgr;
     U32 ManlinessPointsCurrentRange;

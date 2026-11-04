@@ -4,8 +4,6 @@
 #include "xEnt.h"
 #include "xBase.h"
 
-#include <types.h>
-
 struct xFogAsset : xBaseAsset
 {
     U8 bkgndColor[4];
@@ -18,17 +16,17 @@ struct xFogAsset : xBaseAsset
     U8 padFog[3];
 };
 
-struct _xFog : xBase
+typedef struct _xFog : xBase
 {
     xFogAsset* tasset;
-};
+} xFog;
 
 void xFogClearFog();
 void xFogInit(void* b, void* tasset);
 void xFogInit(xBase* ent, xFogAsset* tasset);
-void xFogReset(_xFog* ent);
-void xFogSave(_xFog* ent, xSerial* s);
-void xFogLoad(_xFog* ent, xSerial* s);
+void xFogReset(xFog* ent);
+void xFogSave(xFog* ent, xSerial* s);
+void xFogLoad(xFog* ent, xSerial* s);
 S32 xFogEventCB(xBase* to, xBase* from, U32 toEvent, const F32* toParam, xBase* b3);
 void xFogUpdate(xBase* ent, xScene* sc, F32 dt);
 

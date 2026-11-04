@@ -1,5 +1,4 @@
 #include "xLinkAsset.h"
-#include <types.h>
 
 #include "xBase.h"
 #include "xEvent.h"

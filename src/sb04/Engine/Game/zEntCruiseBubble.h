@@ -6,7 +6,6 @@
 
 #include "zNPCHazard.h"
 #include "zShrapnel.h"
-#include <types.h>
 
 #include "zRumble.h"
 
@@ -525,7 +524,7 @@ namespace cruise_bubble
             U8 streamed; // might be bool, not sure
             U8 looping; // might be bool, not sure
             // offset 0x14
-            _tagSDRumbleType rumble;
+            SDRumbleType rumble;
             // offset 0x18
             S32 first;
             // offset 0x1c
@@ -615,7 +614,7 @@ namespace cruise_bubble
     void update_gizmo(hud_gizmo& gizmo, F32 dt);
     void flash_hud();
     void render_timer(F32 alpha, F32 glow);
-    void lerp(iColor_tag& c, F32 t, iColor_tag a, iColor_tag b);
+    void lerp(iColor& c, F32 t, iColor a, iColor b);
     void lerp(U8& x, F32 t, U8 a, U8 b);
     void update_hud(F32 dt);
     void render_hud();

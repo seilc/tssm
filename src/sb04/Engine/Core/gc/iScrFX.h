@@ -4,7 +4,6 @@
 
 #include <rwcore.h>
 #include <rwplcore.h>
-#include <types.h>
 #include "xMath3.h"
 
 struct iScrFxLensFlare
@@ -19,7 +18,7 @@ struct iScrFxLensFlare
     U32 padding;
 };
 
-struct _iMotionBlurData
+typedef struct _iMotionBlurData
 {
     S32 motionBlurAlpha;
     RwRaster* motionBlurFrontBuffer;
@@ -29,7 +28,7 @@ struct _iMotionBlurData
     U32 w;
     U32 h;
     U8 unk[10]; // There is something here to make this structure 0x88.
-};
+} iMotionBlurData;
 
 void iScrFxInit();
 void iScrFxBegin();

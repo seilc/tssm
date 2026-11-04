@@ -31,19 +31,19 @@ struct xEnvAsset : xBaseAsset
     F32 loldHeight;
 };
 
-struct _zEnv : xBase
+typedef struct _zEnv : xBase
 {
     xEnvAsset* easset;
-};
+} zEnv;
 
 void zEnvInit(void* env, void* easset);
-void zEnvInit(_zEnv* env, xEnvAsset* easset);
-void zEnvSetup(_zEnv* env);
-void zEnvStartingCamera(_zEnv* env);
+void zEnvInit(zEnv* env, xEnvAsset* easset);
+void zEnvSetup(zEnv* env);
+void zEnvStartingCamera(zEnv* env);
 void zEnvRender(xEnv* env);
-void zEnvSave(_zEnv* ent, xSerial* s);
-void zEnvLoad(_zEnv* ent, xSerial* s);
-void zEnvReset(_zEnv* env);
+void zEnvSave(zEnv* ent, xSerial* s);
+void zEnvLoad(zEnv* ent, xSerial* s);
+void zEnvReset(zEnv* env);
 S32 zEnvEventCB(xBase*, xBase* to, U32 toEvent, const F32* toParam, xBase*);
 
 void xEnvLoadBsp(xEnv* env, const void* data, U32 datasize, S32 dataType);

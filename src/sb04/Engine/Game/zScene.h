@@ -31,14 +31,14 @@ struct zSceneParameters : xDynAsset
 
 struct zScene : xScene
 {
-    _zPortal* pendingPortal;
+    zPortal* pendingPortal;
     S32 num_base;
     xBase** base;
     U32 num_update_base;
     xBase** update_base;
     S32 baseCount[141];
     xBase* baseList[141];
-    _zEnv* zen;
+    zEnv* zen;
     zSceneParameters* parameters;
     U8 enableDrawing;
 };
@@ -54,8 +54,8 @@ struct zSceneObjectInstanceDesc
     U32 (*querySubObjects)(void*);
 };
 
-extern _tagClimate gClimate;
-extern _zEnv* gCurEnv;
+extern Climate gClimate;
+extern zEnv* gCurEnv;
 extern U32 gTransitionSceneID;
 extern F32 gSceneUpdateTime;
 
@@ -64,7 +64,7 @@ void zSceneInitEnvironmentalSoundEffect();
 void zSceneInit(U32 theSceneID, S32 reloadInProgress);
 void zSceneExit(S32 beginReload);
 void zSceneUpdateSFXWidgets();
-void zSceneSwitch(_zPortal* p, S32 forceSameScene);
+void zSceneSwitch(zPortal* p, S32 forceSameScene);
 void zSceneSave(zScene* ent, xSerial* s);
 void zSceneLoad(zScene* ent, xSerial* s);
 void zSceneSetup();

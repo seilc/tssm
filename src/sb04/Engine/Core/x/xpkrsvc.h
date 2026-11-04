@@ -1,7 +1,6 @@
 #ifndef XPKRSVC_H
 #define XPKRSVC_H
 
-#include <types.h>
 #include "PowerPC_EABI_Support\MSL_C\MSL_Common\time.h"
 
 #include "xhipio.h"

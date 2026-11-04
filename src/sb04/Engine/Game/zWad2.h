@@ -1,8 +1,6 @@
 #ifndef ZWAD2_H
 #define ZWAD2_H
 
-#include <types.h>
-
 #include "xCounter.h"
 #include "xDebug.h"
 #include "xPartition.h"
@@ -162,7 +160,7 @@ struct PowerUpMenuTableEntry
     ePOWERUPMENU entry;
     char* name;
     S32 powerup;
-    _xCounter* counter;
+    xCounter* counter;
 };
 
 struct PowerUpMovieTableEntry
@@ -207,11 +205,11 @@ struct NPCBrainTableEntry
     U32 id;
 };
 
-struct tagiRenderArrays
+typedef struct tagiRenderArrays
 {
     U16 m_index[960];
-    RxObjSpace3DVertex m_vertex[480];
+    RwIm3DVertex m_vertex[480];
     F32 m_vertexTZ[480];
-};
+} iRenderArrays;
 
 #endif

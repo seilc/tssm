@@ -4,7 +4,7 @@
 
 extern RwRaster* g_rast_gctapdance;
 extern S32 g_alreadyTriedAlloc;
-extern _iMotionBlurData sMBD;
+extern iMotionBlurData sMBD;
 extern U32 sMotionBlurEnabled;
 
 void iScrFxLensFlare_Reset()

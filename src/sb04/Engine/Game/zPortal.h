@@ -11,15 +11,15 @@ struct xPortalAsset : xBaseAsset
     U32 sceneID;
 };
 
-struct _zPortal : xBase
+typedef struct _zPortal : xBase
 {
     xPortalAsset* passet;
-};
+} zPortal;
 
 void zPortalInit(void* portal, void* passet);
-void zPortalInit(_zPortal* portal, xPortalAsset* passet);
-void zPortalSave(_zPortal* ent, xSerial* s);
-void zPortalLoad(_zPortal* ent, xSerial* s);
+void zPortalInit(zPortal* portal, xPortalAsset* passet);
+void zPortalSave(zPortal* ent, xSerial* s);
+void zPortalLoad(zPortal* ent, xSerial* s);
 S32 zPortalEventCB(xBase* from, xBase* to, U32 toEvent, const F32* toParam, xBase* b3);
 
 #endif

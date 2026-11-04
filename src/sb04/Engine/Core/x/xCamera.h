@@ -15,7 +15,7 @@
 
 struct xScene;
 
-enum _tagTransType
+typedef enum _tagTransType
 {
     eTransType_None,
     eTransType_Interp1,
@@ -28,7 +28,7 @@ enum _tagTransType
     eTransType_Interp3Rev,
     eTransType_Interp4Rev,
     eTransType_Total
-};
+} eTransType;
 
 enum xCamCoordType
 {
@@ -47,7 +47,7 @@ enum xCamOrientType
     XCAM_ORIENT_INVALID = 0xffffffff,
 };
 
-struct _tagxCamFollowAsset
+typedef struct _tagxCamFollowAsset
 {
     F32 rotation;
     F32 distance;
@@ -55,32 +55,32 @@ struct _tagxCamFollowAsset
     F32 rubber_band;
     F32 start_speed;
     F32 end_speed;
-};
+} xCamFollowAsset;
 
-struct _tagxCamShoulderAsset
+typedef struct _tagxCamShoulderAsset
 {
     F32 distance;
     F32 height;
     F32 realign_speed;
     F32 realign_delay;
-};
+} xCamShoulderAsset;
 
-struct _tagp2CamStaticAsset
+typedef struct _tagp2CamStaticAsset
 {
     U32 unused;
-};
+} p2CamStaticAsset;
 
-struct _tagxCamPathAsset
+typedef struct _tagxCamPathAsset
 {
     U32 assetID;
     F32 time_end;
     F32 time_delay;
-};
+} xCamPathAsset;
 
-struct _tagp2CamStaticFollowAsset
+typedef struct _tagp2CamStaticFollowAsset
 {
     F32 rubber_band;
-};
+} p2CamStaticFollowAsset;
 
 struct xCamAsset : xBaseAsset
 {
@@ -93,17 +93,17 @@ struct xCamAsset : xBaseAsset
     S16 offset_end_frames;
     F32 fov;
     F32 trans_time;
-    _tagTransType trans_type;
+    eTransType trans_type;
     U32 flags;
     F32 fade_up;
     F32 fade_down;
     union
     {
-        _tagxCamFollowAsset cam_follow;
-        _tagxCamShoulderAsset cam_shoulder;
-        _tagp2CamStaticAsset cam_static;
-        _tagxCamPathAsset cam_path;
-        _tagp2CamStaticFollowAsset cam_staticFollow;
+        xCamFollowAsset cam_follow;
+        xCamShoulderAsset cam_shoulder;
+        p2CamStaticAsset cam_static;
+        xCamPathAsset cam_path;
+        p2CamStaticFollowAsset cam_staticFollow;
     };
     U32 valid_flags;
     U32 markerid[2];

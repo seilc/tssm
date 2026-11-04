@@ -11,11 +11,11 @@ extern U32 startPressed;
 //extern U8 sHackSmoothedUpdate;
 extern U32 gBusStopIsRunning;
 
-enum _tagGameVidMode
+typedef enum _tagGameVidMode
 {
     eGameVidModeNTSC,
     eGameVidModePAL
-};
+} GameVidMode;
 
 enum eGameWhereAmI
 {

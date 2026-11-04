@@ -5,8 +5,6 @@
 
 #include "zScene.h"
 
-#include <types.h>
-
 struct zMovePoint : xMovePoint
 {
     F32 RadiusZone()

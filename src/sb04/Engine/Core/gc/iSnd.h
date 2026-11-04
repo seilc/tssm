@@ -4,8 +4,8 @@
 #include <types.h>
 
 struct xSndVoiceInfo;
-struct tag_xFile;
-struct _AXVPB;
+typedef struct tag_xFile xFile;
+typedef struct _AXVPB AXVPB;
 
 struct iSndVol
 {
@@ -25,7 +25,7 @@ struct iSndInfo
 // This was not in dwarf data
 struct vinfo
 {
-    _AXVPB* voice;
+    AXVPB* voice;
     S32 buffer[4];
     U32 _0x14;
     S32 buffer2[2];
@@ -90,10 +90,10 @@ S32 iSndIsPlaying(U32 assetID);
 S32 iSndIsPlaying(U32 assetID, U32 parid);
 void iSndWaitForDeadSounds();
 void iSndSceneExit();
-void sndloadcb(tag_xFile* tag);
+void sndloadcb(xFile* tag);
 S32 iSndLoadSounds(void*);
 void iSndSetExternalCallback(void (*func_ptr)(U32));
-void iSndAXFree(_AXVPB** param1);
+void iSndAXFree(AXVPB** param1);
 void iSndStartStereo(U32 id1, U32 id2, F32 pitch);
 void iSndStop(U32 snd);
 void iSndSetVol(U32 snd, F32 vol);

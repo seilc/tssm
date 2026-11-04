@@ -5,8 +5,6 @@
 #include "xBehaveMgr.h"
 #include "zNPCTypes.h"
 
-#include <types.h>
-
 struct zNPCMgr : RyzMemData
 {
     st_XORDEREDARRAY npclist;

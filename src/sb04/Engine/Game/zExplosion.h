@@ -28,7 +28,7 @@ namespace
     {
         F32 life;
         F32 scale;
-        xColor_tag color;
+        xColor color;
     };
 
     struct streak_config

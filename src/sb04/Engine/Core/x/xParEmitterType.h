@@ -10,30 +10,30 @@ struct xPECircle
     xVec3 dir;
 };
 
-struct _tagEmitSphere
+struct xPESphere
 {
     F32 radius;
 };
 
-struct _tagEmitRect
+struct xPERect
 {
     F32 x_len;
     F32 z_len;
 };
 
-struct _tagEmitLine
+struct xPELine
 {
     xVec3 pos1;
     xVec3 pos2;
     F32 radius;
 };
 
-struct _tagEmitVolume
+struct xPEVolume
 {
     U32 emit_volumeID;
 };
 
-struct _tagEmitOffsetPoint
+struct xPEOffsetPoint
 {
     xVec3 offset;
 };

@@ -1,11 +1,10 @@
 #ifndef ZRUMBLE_H
 #define ZRUMBLE_H
 
-#include <types.h>
 #include "xEnt.h"
 #include "xPad.h"
 
-enum _tagSDRumbleType
+typedef enum _tagSDRumbleType
 {
     SDR_None,
     SDR_Test,
@@ -27,15 +26,15 @@ enum _tagSDRumbleType
     SDR_Teleport,
     SDR_TeleportEject,
     SDR_Total
-};
+} SDRumbleType;
 
-void zRumbleStart(S32 pad_id, _tagSDRumbleType rumble_type, xEnt* ent);
-void zRumbleStart(S32 pad_id, _tagSDRumbleType rumble_type);
-void zRumbleStart(_tagSDRumbleType rumble_type);
-void zRumbleStart(_tagSDRumbleType rumble_type, xEnt* ent);
-void zRumbleStartDistance(S32 pad_id, F32 real_dist, F32 max_dist, _tagRumbleType type,
+void zRumbleStart(S32 pad_id, SDRumbleType rumble_type, xEnt* ent);
+void zRumbleStart(S32 pad_id, SDRumbleType rumble_type);
+void zRumbleStart(SDRumbleType rumble_type);
+void zRumbleStart(SDRumbleType rumble_type, xEnt* ent);
+void zRumbleStartDistance(S32 pad_id, F32 real_dist, F32 max_dist, RumbleType type,
                           F32 maxTime);
-void zRumbleStartEntDistance(xEnt* ent, F32 dist, _tagRumbleType type, F32 maxTime);
-S32 zPadAddRumble(_tagRumbleType type, F32 time, S32 replace, U32 fxflags);
+void zRumbleStartEntDistance(xEnt* ent, F32 dist, RumbleType type, F32 maxTime);
+S32 zPadAddRumble(RumbleType type, F32 time, S32 replace, U32 fxflags);
 
 #endif

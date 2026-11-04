@@ -60,7 +60,7 @@ struct xModelInstance
     U8 BoneCount;
     U8 BoneIndex;
     U8* BoneRemap;
-    RwMatrixTag* Mat;
+    RwMatrix* Mat;
     xVec3 Scale;
     xBox animBound;
     xBox combinedAnimBound;

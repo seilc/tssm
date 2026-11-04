@@ -3,13 +3,13 @@
 
 #include <types.h>
 
-enum _GameOstrich
+typedef enum _GameOstrich
 {
     eGameOstrich_Loading,
     eGameOstrich_PlayingMovie,
     eGameOstrich_InScene,
     eGameOstrich_Total
-};
+} eGameOstrich;
 
 enum eGameMode
 {
@@ -93,13 +93,13 @@ enum eIntroState
 
 extern S32 gGameState;
 extern eGameMode gGameMode;
-extern _GameOstrich gGameOstrich;
+extern eGameOstrich gGameOstrich;
 
 void zGameStatePauseUnpauseSnd(bool pause);
 S32 zGameStateGet();
 eGameMode zGameModeGet();
-_GameOstrich zGameGetOstrich();
-void zGameSetOstrich(_GameOstrich o);
+eGameOstrich zGameGetOstrich();
+void zGameSetOstrich(eGameOstrich o);
 S32 zGameStateFindEvent(U32* eventList, S32 eventCount, S32 targetMode, S32 targetEvent,
                           S32* new_mode, S32* new_state);
 void zGameStateSwitchEvent(S32 event);

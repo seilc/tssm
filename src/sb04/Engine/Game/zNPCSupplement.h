@@ -7,7 +7,6 @@
 #include "xPtankPool.h"
 #include "xVec3.h"
 
-#include <types.h>
 #include <rwplcore.h>
 #include <rwcore.h>
 
@@ -273,8 +272,8 @@ struct StreakInfo
     F32 alf_fade;
     F32 alf_start;
     U32 idx_useTxtr;
-    iColor_tag rgba_left;
-    iColor_tag rgba_right;
+    iColor rgba_left;
+    iColor rgba_right;
     S32 taper;
 };
 

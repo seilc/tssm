@@ -6,7 +6,7 @@
 #include <rwcore.h>
 #include <rpworld.h>
 
-struct iColor_tag;
+typedef struct iColor_tag iColor;
 struct xVec2;
 struct xVec3;
 
@@ -49,7 +49,7 @@ struct ptank_pool
 struct ptank_pool__pos_color_size_uv2 : public ptank_pool
 {
     xVec3* pos;
-    iColor_tag* color;
+    iColor* color;
     xVec2* size;
     xVec2* uv;
     S32 stride;

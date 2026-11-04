@@ -22,17 +22,17 @@
 #include "xMath.h"
 #include "xMathInlines.h"
 
-struct tagiRenderArrays
+typedef struct tagiRenderArrays
 {
     U16 m_index[960];
-    RxObjSpace3DVertex m_vertex[480];
+    RwIm3DVertex m_vertex[480];
     F32 m_vertexTZ[480];
-};
+} iRenderArrays;
 
-struct tagiRenderInput
+typedef struct tagiRenderInput
 {
     U16* m_index;
-    RxObjSpace3DVertex* m_vertex;
+    RwIm3DVertex* m_vertex;
     F32* m_vertexTZ;
     U32 m_mode;
     S32 m_vertexType;
@@ -42,10 +42,10 @@ struct tagiRenderInput
     xMat4x3 m_camViewMatrix;
     xVec4 m_camViewR;
     xVec4 m_camViewU;
-};
+} iRenderInput;
 
-tagiRenderArrays gRenderArr;
-tagiRenderInput gRenderBuffer;
+iRenderArrays gRenderArr;
+iRenderInput gRenderBuffer;
 
 void iParMgrRender();
 void iParMgrUpdate(F32);

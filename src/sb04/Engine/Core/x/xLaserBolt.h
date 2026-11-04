@@ -9,7 +9,6 @@
 #include "xParEmitter.h"
 
 #include <rwcore.h>
-#include <types.h>
 
 enum fx_when_enum
 {
@@ -124,8 +123,8 @@ struct xLaserBoltEmitter
     void attach_effects(fx_when_enum when, effect_data* fx, size_t fxsize);
     void pre_collide(bolt& b);
     void collide_update(bolt& b);
-    RxObjSpace3DVertex* render(bolt& b, RxObjSpace3DVertex* vert);
-    RxObjSpace3DVertex* get_vert_buffer(S32& dat);
+    RwIm3DVertex* render(bolt& b, RwIm3DVertex* vert);
+    RwIm3DVertex* get_vert_buffer(S32& dat);
     void applyDamage(bolt& b);
     void reset_fx(fx_when_enum when);
 };

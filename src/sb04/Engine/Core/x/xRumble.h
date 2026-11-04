@@ -3,7 +3,7 @@
 
 #include <types.h>
 
-enum _tagRumbleType
+typedef enum _tagRumbleType
 {
     eRumble_Off,
     eRumble_Hi,
@@ -19,11 +19,11 @@ enum _tagRumbleType
     eRumble_VeryHeavy,
     eRumble_Total,
     eRumbleForceU32 = 0x7fffffff
-};
+} RumbleType;
 
 struct _tagxRumble
 {
-    _tagRumbleType type;
+    RumbleType type;
     F32 seconds;
     _tagxRumble* next;
     S16 active;

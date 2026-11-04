@@ -1,7 +1,6 @@
 #ifndef ZSAVELOAD_H
 #define ZSAVELOAD_H
 
-#include <types.h>
 #include "xsavegame.h"
 struct st_XSAVEGAME_DATA;
 

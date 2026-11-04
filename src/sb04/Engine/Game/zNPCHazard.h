@@ -23,7 +23,7 @@ struct UVAModelInfo
     void Clear();
     void UVVelSet(float, float);
     S32 GetUV(RwTexCoords*& coords, S32& numVertices, RpAtomic* model);
-    void SetColor(iColor_tag);
+    void SetColor(iColor);
     void Update(F32, xVec2*);
     S32 Valid();
     S32 Init(RpAtomic*, S32);

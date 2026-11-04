@@ -1,7 +1,6 @@
 #ifndef XCM_H
 #define XCM_H
 
-#include <types.h>
 #include "xColor.h"
 #include "xBase.h"
 
@@ -43,7 +42,7 @@ class xCMtextbox
     // total size: 0x20
 public:
     unsigned int font; // offset 0x0, size 0x4
-    class iColor_tag color; // offset 0x4, size 0x4
+    iColor color; // offset 0x4, size 0x4
     class sxy char_size; // offset 0x8, size 0x8
     class sxy char_spacing; // offset 0x10, size 0x8
     class sxy box; // offset 0x18, size 0x8

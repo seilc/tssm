@@ -4,7 +4,7 @@
 #include <types.h>
 #include "rwplcore.h"
 
-struct iColor_tag
+typedef struct iColor_tag
 {
     U8 r;
     U8 g;
@@ -19,7 +19,7 @@ struct iColor_tag
         this->a = rhs.a;
         return *this;
     };
-};
+} iColor;
 
 typedef struct xColor_tag
 {

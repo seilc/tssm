@@ -2,7 +2,6 @@
 #define XWAD2_H
 
 #include "zGlobals.h"
-#include <types.h>
 #include <rpworld.h>
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\stdlib.h>
 #include "xString.h"

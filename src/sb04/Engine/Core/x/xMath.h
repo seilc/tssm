@@ -1,8 +1,6 @@
 #ifndef XMATH_H
 #define XMATH_H
 
-#include <types.h>
-
 #include "iMath.h"
 
 #define xabs(x) iabs(x)

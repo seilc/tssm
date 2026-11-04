@@ -40,7 +40,7 @@ volatile static F32 oldOffsetx;
 volatile static F32 oldOffsety;
 static S32 sMemDepthSceneStart = -1;
 static S32 sMemDepthJustHIPStart = -1;
-_zEnv* gCurEnv;
+zEnv* gCurEnv;
 U32 gTransitionSceneID;
 F32 gSceneUpdateTime;
 static xVec3 sOldPosPlayer;
@@ -380,7 +380,7 @@ void zSceneReset()
             }
             case eBaseTypeEnv:
             {
-                _zEnv* env = (_zEnv*)s->base[i];
+                zEnv* env = (zEnv*)s->base[i];
 
                 if (env)
                 {
@@ -429,7 +429,7 @@ void zSceneSave(zScene* ent)
     // REFERENCE BFBB
 }
 
-void zSceneSwitch(_zPortal* p, S32 forceSameScene)
+void zSceneSwitch(zPortal* p, S32 forceSameScene)
 {
     // REFERENCE BFBB
 }

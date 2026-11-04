@@ -1,7 +1,6 @@
 #ifndef ZCAMMARKER_H
 #define ZCAMMARKER_H
 
-#include <types.h>
 #include "zCamera.h"
 #include "xBase.h"
 #include "xCamera.h"

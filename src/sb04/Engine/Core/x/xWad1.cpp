@@ -1,6 +1,5 @@
 #include "xWad1.h"
 #include <dolphin.h>
-#include "types.h"
 #include <PowerPC_EABI_Support\include\math.h>
 
 //                                           xCutscene
@@ -132,7 +131,7 @@ void xCutscene_Init(void* toc)
     for (int i = 0; i < 8; i++)
     {
         *(volatile int*)&sCutsceneFakeModel[i].Mat =
-            (volatile int)xMEMALLOC(sizeof(RwMatrixTag) * 65, 0);
+            (volatile int)xMEMALLOC(sizeof(RwMatrix) * 65, 0);
         *(volatile int*)&sCutsceneFakeModel[i].Bucket =
             (volatile int)xMEMALLOC(sizeof(xModelBucket*) * 2, 0);
         *(volatile int*)sCutsceneFakeModel[i].Bucket =
@@ -151,7 +150,7 @@ void xCutscene_Init(void* toc)
 
 int xCounterEventCB(xBase*, xBase* to, U32 toEvent, const F32*, xBase*, U32)
 {
-    _xCounter* t = (_xCounter*)to;
+    xCounter* t = (xCounter*)to;
 
     switch (toEvent)
     {
@@ -221,7 +220,7 @@ int xCounterEventCB(xBase*, xBase* to, U32 toEvent, const F32*, xBase*, U32)
     return 1;
 }
 
-void xCounterLoad(_xCounter* ent, xSerial* s)
+void xCounterLoad(xCounter* ent, xSerial* s)
 {
     xBaseLoad(ent, s);
 
@@ -229,7 +228,7 @@ void xCounterLoad(_xCounter* ent, xSerial* s)
     s->Read(&ent->count);
 }
 
-void xCounterSave(_xCounter* ent, xSerial* s)
+void xCounterSave(xCounter* ent, xSerial* s)
 {
     xBaseSave(ent, s);
 
@@ -239,7 +238,7 @@ void xCounterSave(_xCounter* ent, xSerial* s)
 
 void xCounterReset(xBase* b)
 {
-    _xCounter* t = (_xCounter*)b;
+    xCounter* t = (xCounter*)b;
 
     xBaseInit(t, t->asset);
 
@@ -414,7 +413,7 @@ static void xCMprep(xCreditsData* data)
 
 //                                              xClimate
 
-_tagClimate* sClimate;
+Climate* sClimate;
 
 const float snow_life = 3.0f;
 const xVec3 snow_vel = { 0.0f, -2.0f, 0.0f };
@@ -430,7 +429,7 @@ void xClimateVecFromAngle(F32 angleDegrees, xVec3* vec)
     xMat3x3LMulVec(vec, &Mat, vec);
 }
 
-void xClimateUpdate(_tagClimate* climate, F32 seconds)
+void xClimateUpdate(Climate* climate, F32 seconds)
 {
     UpdateRain(climate, seconds);
     UpdateWind(climate, seconds);
@@ -450,7 +449,7 @@ void xClimateSetSnow(F32 stre)
 
 // Equivalent
 // float ops are being optimized more aggressively
-void xClimateInitAsset(_tagClimate* climate, xEnvAsset* asset)
+void xClimateInitAsset(Climate* climate, xEnvAsset* asset)
 {
     sClimate = climate;
     climate->wind.strength = 0.0f;
@@ -476,7 +475,7 @@ void xClimateInitAsset(_tagClimate* climate, xEnvAsset* asset)
     }
 }
 
-void xClimateInit(_tagClimate* climate)
+void xClimateInit(Climate* climate)
 {
     climate->rain.strength = 0.0f;
 
@@ -870,7 +869,7 @@ void xBoundDraw(const xBound* b)
 
 static U32 g_loadlock = 0xFFFFFF00;
 static st_FILELOADINFO g_loadinst[8] = {};
-static tag_xFile g_xfload[8] = {};
+static xFile g_xfload[8] = {};
 static st_BINIO_XTRADATA g_xtraload[8] = {};
 static st_BINIO_XTRADATA* g_async_context = NULL;
 
@@ -883,13 +882,13 @@ static st_BINIO_XTRADATA* g_async_context = NULL;
 #define ENDIAN LITTLE_ENDIAN
 #endif
 
-static void BFD_cb_GCP2_readasync(tag_xFile* bffp)
+static void BFD_cb_GCP2_readasync(xFile* bffp)
 {
 }
 
 static S32 BFD_AsyncRead(st_FILELOADINFO* fli, S32 pos, void* data, S32 size, S32 n, S32 endian)
 {
-    tag_xFile* file = (tag_xFile*)fli->privdata;
+    xFile* file = (xFile*)fli->privdata;
     st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)fli->xtradata;
 
     if (fli->error != FIOERR_NONE)
@@ -935,7 +934,7 @@ static S32 BFD_AsyncRead(st_FILELOADINFO* fli, S32 pos, void* data, S32 size, S3
     return 1;
 }
 
-static S32 BFD_read(void* data, S32 elesize, S32 elecnt, tag_xFile* bffp, void* xtradata)
+static S32 BFD_read(void* data, S32 elesize, S32 elecnt, xFile* bffp, void* xtradata)
 {
     st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
     char* dest = (char*)data;
@@ -1017,10 +1016,10 @@ static S32 BFD_read(void* data, S32 elesize, S32 elecnt, tag_xFile* bffp, void* 
     return (S32)numBytes / elesize;
 }
 
-static tag_xFile* BFD_open(const char* filename, const char* mode, U32 lockid, S32, void* xtradata,
-                           S32)
+static xFile* BFD_open(const char* filename, const char* mode, U32 lockid, S32, void* xtradata,
+                       S32)
 {
-    tag_xFile* bffp;
+    xFile* bffp;
     U32 orc; // open return code
     st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
     S32 xfflg = IFILE_OPEN_READ;
@@ -1140,7 +1139,7 @@ static S32 AsyncMRead(st_FILELOADINFO* fli, S32 offset, char* data, S32 size, S3
 
 static S32 ReadRaw(st_FILELOADINFO* fli, void* data, S32 size, S32 count)
 {
-    tag_xFile* file = (tag_xFile*)fli->privdata;
+    xFile* file = (xFile*)fli->privdata;
 
     if (fli->error != FIOERR_NONE)
     {
@@ -1336,7 +1335,7 @@ static void DiscardBuffer(st_FILELOADINFO* fli)
     SetBuffer(fli, NULL, 0);
 }
 
-static S32 BFD_seek(tag_xFile* bffp, S32 offset, S32 whence, void* xtradata)
+static S32 BFD_seek(xFile* bffp, S32 offset, S32 whence, void* xtradata)
 {
     st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
     S32 pos = iFileSeek(bffp, offset, whence);
@@ -1353,7 +1352,7 @@ static S32 BFD_seek(tag_xFile* bffp, S32 offset, S32 whence, void* xtradata)
 
 static S32 ReadSeek(st_FILELOADINFO* fli, S32 pos)
 {
-    tag_xFile* file = (tag_xFile*)fli->privdata;
+    xFile* file = (xFile*)fli->privdata;
 
     if (fli->error != FIOERR_NONE)
     {
@@ -1382,7 +1381,7 @@ static S32 ReadSeek(st_FILELOADINFO* fli, S32 pos)
 
 static S32 SkipBytes(st_FILELOADINFO* fli, S32 fwd)
 {
-    tag_xFile* file = (tag_xFile*)fli->privdata;
+    xFile* file = (xFile*)fli->privdata;
 
     if (fli->error != FIOERR_NONE)
     {
@@ -1417,7 +1416,7 @@ static S32 SkipBytes(st_FILELOADINFO* fli, S32 fwd)
     return 1;
 }
 
-static void BFD_close(tag_xFile* bffp, void* xtradata)
+static void BFD_close(xFile* bffp, void* xtradata)
 {
     st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
 
@@ -1433,7 +1432,7 @@ static void BFD_close(tag_xFile* bffp, void* xtradata)
 
 static void LoadDestroy(st_FILELOADINFO* fli)
 {
-    tag_xFile* fp = (tag_xFile*)fli->privdata;
+    xFile* fp = (xFile*)fli->privdata;
 
     if (fp)
     {
@@ -1449,7 +1448,7 @@ static void LoadDestroy(st_FILELOADINFO* fli)
 
 static S32 BFD_startSector(const char* filename)
 {
-    tag_xFile file = {};
+    xFile file = {};
     U32 addr = 0;
     U32 length = 0;
 
@@ -1463,7 +1462,7 @@ static S32 BFD_startSector(const char* filename)
     return addr;
 }
 
-static S32 BFD_getLength(tag_xFile* bffp, void* xtradata)
+static S32 BFD_getLength(xFile* bffp, void* xtradata)
 {
     return iFileGetSize(bffp);
 }
@@ -1472,7 +1471,7 @@ static S32 BFD_getLength(tag_xFile* bffp, void* xtradata)
 st_FILELOADINFO* xBinioLoadCreate(const char* filename, S32)
 {
     st_FILELOADINFO* fli = NULL;
-    tag_xFile* tmp_fp;
+    xFile* tmp_fp;
     S32 i;
     S32 uselock = -1;
 

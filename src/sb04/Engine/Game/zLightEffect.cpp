@@ -1,77 +1,77 @@
 #include "zLightEffect.h"
 
-void zLightEffectInitCauldron(_zLight* zlight)
+void zLightEffectInitCauldron(zLight* zlight)
 {
     *zlight->reg = 0.0f;
     zlight->flags = zlight->flags | 1;
 }
 
-void zLightEffectRandomColFast(_zLight* zlight, F32)
+void zLightEffectRandomColFast(zLight* zlight, F32)
 {
 }
 
-void zLightEffectRandomCol(_zLight* zlight, F32)
+void zLightEffectRandomCol(zLight* zlight, F32)
 {
 }
 
-void zLightEffectRandomColSlow(_zLight* zlight, F32)
+void zLightEffectRandomColSlow(zLight* zlight, F32)
 {
 }
 
-void zLightEffectHalfDimFast(_zLight* zlight, F32)
+void zLightEffectHalfDimFast(zLight* zlight, F32)
 {
 }
 
-void zLightEffectHalfDim(_zLight* zlight, F32)
+void zLightEffectHalfDim(zLight* zlight, F32)
 {
 }
 
-void zLightEffectHalfDimSlow(_zLight* zlight, F32)
+void zLightEffectHalfDimSlow(zLight* zlight, F32)
 {
 }
 
-void zLightEffectDimFast(_zLight* zlight, F32)
+void zLightEffectDimFast(zLight* zlight, F32)
 {
 }
 
-void zLightEffectDim(_zLight* zlight, F32)
+void zLightEffectDim(zLight* zlight, F32)
 {
 }
 
-void zLightEffectDimSlow(_zLight* zlight, F32)
+void zLightEffectDimSlow(zLight* zlight, F32)
 {
 }
 
-void zLightEffectStrobeFast(_zLight* zlight, F32)
+void zLightEffectStrobeFast(zLight* zlight, F32)
 {
 }
 
-void zLightEffectStrobe(_zLight* zlight, F32)
+void zLightEffectStrobe(zLight* zlight, F32)
 {
 }
 
-void zLightEffectStrobeSlow(_zLight* zlight, F32)
+void zLightEffectStrobeSlow(zLight* zlight, F32)
 {
 }
 
-void zLightEffectInitFlicker(_zLight* zlight)
+void zLightEffectInitFlicker(zLight* zlight)
 {
     *zlight->reg = 0.0f;
     zlight->flags = zlight->flags | 1;
 }
 
-void zLightEffectInitRandomCol(_zLight*)
+void zLightEffectInitRandomCol(zLight*)
 {
 }
 
-void zLightEffectInitHalfDim(_zLight*)
+void zLightEffectInitHalfDim(zLight*)
 {
 }
 
-void zLightEffectInitDim(_zLight*)
+void zLightEffectInitDim(zLight*)
 {
 }
 
-void zLightEffectInitStrobe(_zLight*)
+void zLightEffectInitStrobe(zLight*)
 {
 }

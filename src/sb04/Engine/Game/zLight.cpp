@@ -34,12 +34,12 @@ void zLightAddLocal(xEnt* ent)
 {
 }
 
-void zLightLoad(_zLight* ent, xSerial* s)
+void zLightLoad(zLight* ent, xSerial* s)
 {
     xBaseLoad(ent, s);
 }
 
-void zLightSave(_zLight* ent, xSerial* s)
+void zLightSave(zLight* ent, xSerial* s)
 {
     xBaseSave(ent, s);
 }
@@ -58,7 +58,7 @@ void zLightDestroyAll()
 void zLightResolveLinks()
 {
     S32 i;
-    _zLight* zl;
+    zLight* zl;
 
     for (i = 0; i < sLightTotal; i++)
     {

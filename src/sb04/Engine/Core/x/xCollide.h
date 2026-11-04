@@ -91,7 +91,7 @@ struct xSweptSphere
     xVec3 worldPolynorm;
 };
 
-enum _xCollsIdx
+typedef enum _xCollsIdx
 {
     k_XCOLLS_IDX_FLOOR,
     k_XCOLLS_IDX_CEIL,
@@ -100,7 +100,7 @@ enum _xCollsIdx
     k_XCOLLS_IDX_REAR,
     k_XCOLLS_IDX_RIGHT,
     k_XCOLLS_IDX_COUNT
-};
+} xCollsIdx;
 
 struct xScene;
 

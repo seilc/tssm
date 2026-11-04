@@ -55,8 +55,8 @@ namespace xhud
         F32 space;
         F32 drop_x;
         F32 drop_y;
-        xColor_tag c;
-        xColor_tag drop_c;
+        xColor c;
+        xColor drop_c;
     };
 
     struct font_meter_widget : meter_widget

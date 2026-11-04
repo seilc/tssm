@@ -28,9 +28,9 @@ extern U32 oldSFXVolume;
 
 extern st_ZDISPATCH_DEPOT g_zdsp_depot;
 
-extern iColor_tag _1143;
+extern iColor _1143;
 
-extern iColor_tag _1142;
+extern iColor _1142;
 extern F32 _1179;
 extern F32 _1180;
 extern F32 _1181;

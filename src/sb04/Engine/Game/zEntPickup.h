@@ -49,7 +49,7 @@ struct zPickupAuraInfo
 {
     F32 size;
     F32 yoffset;
-    iColor_tag color;
+    iColor color;
 };
 
 extern zParEmitter* gEmitShinySparkles;

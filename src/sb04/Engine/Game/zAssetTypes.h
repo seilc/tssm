@@ -1,7 +1,6 @@
 #ifndef ZASSETTYPES_H
 #define ZASSETTYPES_H
 
-#include <types.h>
 #include <rwcore.h>
 #include <rpworld.h>
 #include "xSnd.h"

@@ -74,12 +74,12 @@ struct xGlobals
     {
         struct
         {
-            _tagxPad* pad0; // 0x3e4
-            _tagxPad* pad1;
-            _tagxPad* pad2;
-            _tagxPad* pad3; // 0x3f0
+            xPad* pad0; // 0x3e4
+            xPad* pad1;
+            xPad* pad2;
+            xPad* pad3; // 0x3f0
         };
-        _tagxPad* pad[4];
+        xPad* pad[4];
     };
     S32 profile;
     char profFunc[128][6];

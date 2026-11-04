@@ -62,11 +62,11 @@ struct xParEmitterAsset : xBaseAsset
     union
     {
         xPECircle e_circle;
-        _tagEmitSphere e_sphere;
-        _tagEmitRect e_rect;
-        _tagEmitLine e_line;
-        _tagEmitVolume e_volume;
-        _tagEmitOffsetPoint e_offsetp;
+        xPESphere e_sphere;
+        xPERect e_rect;
+        xPELine e_line;
+        xPEVolume e_volume;
+        xPEOffsetPoint e_offsetp;
         xPEVCyl e_vcyl;
         xPEEntBone e_entbone;
         xPEEntBound e_entbound;

@@ -1,14 +1,11 @@
 #ifndef XWAD5_H
 #define XWAD5_H
 
-#include <types.h>
-
 #include <PowerPC_EABI_Support/MSL_C/MSL_Common/ctype_api.h>
 
 #include "zGlobals.h"
 #include "xVec3.h"
 #include "stdlib.h"
-#include <types.h>
 #include "fastmath.h"
 #include "xVolume.h"
 #include "xutil.h"

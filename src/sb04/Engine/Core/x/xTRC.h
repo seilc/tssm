@@ -1,7 +1,6 @@
 #ifndef XTRC_H
 #define XTRC_H
 
-#include "types.h"
 #include "iTRC.h"
 
 #define k_MAX_TRC_PADS 4
@@ -24,19 +23,19 @@ typedef enum _tagTRCState
     TRC_Total
 } TRCState;
 
-struct _tagTRCPadInfo : _tagiTRCPadInfo
+typedef struct _tagTRCPadInfo : iTRCPadInfo
 {
     S32 id;
     TRCState state;
-};
+} TRCPadInfo;
 
-struct _tagTRCDiskInfo
+typedef struct _tagTRCDiskInfo
 {
     TRCState state;
     TRCState id;
-};
+} TRCDiskInfo;
 
-extern _tagTRCPadInfo gTrcPad[k_MAX_TRC_PADS];
+extern TRCPadInfo gTrcPad[k_MAX_TRC_PADS];
 
 void xTRCInit();
 void xTRCInitMessages();

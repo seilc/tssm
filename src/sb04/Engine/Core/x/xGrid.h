@@ -1,8 +1,6 @@
 #ifndef XGRID_H
 #define XGRID_H
 
-#include <types.h>
-
 #include "xMath3.h"
 
 struct xEnt;

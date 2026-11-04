@@ -6,8 +6,6 @@
 
 #include "zVolume.h"
 
-#include <types.h>
-
 struct zGustAsset : xBaseAsset
 {
     U32 flags;

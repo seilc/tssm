@@ -5,7 +5,7 @@
 
 #include <rwcore.h>
 
-struct tagiRenderInput
+typedef struct tagiRenderInput
 {
     U16* m_index;
     RwIm3DVertex* m_vertex;
@@ -18,7 +18,7 @@ struct tagiRenderInput
     xMat4x3 m_camViewMatrix;
     xVec4 m_camViewR;
     xVec4 m_camViewU;
-};
+} iRenderInput;
 
 void iParMgrInit();
 void iParMgrUpdate(F32 elapsedTime);

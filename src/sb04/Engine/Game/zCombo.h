@@ -1,7 +1,6 @@
 #ifndef ZCOMBO_H
 #define ZCOMBO_H
 
-#include <types.h>
 #include "xFont.h"
 #include "xHud.h"
 #include "zEntPickup.h"

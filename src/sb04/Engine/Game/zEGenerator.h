@@ -4,8 +4,6 @@
 #include "zEnt.h"
 #include "zLightning.h"
 
-#include <types.h>
-
 struct zEGenAsset : xEntAsset
 {
     xVec3 src_dpos;

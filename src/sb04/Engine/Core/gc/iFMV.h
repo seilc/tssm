@@ -5,16 +5,14 @@
 #include <bink.h>
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\size_t.h>
 
-struct _GXRenderModeObj;
-
 struct iFMV
 {
     static void* mXFBs[2];
     static void* mCurrentFrameBuffer;
-    static _GXRenderModeObj* mRenderMode;
+    static GXRenderModeObj* mRenderMode;
     static U8 mFirstFrame;
 
-    static void InitDisplay(_GXRenderModeObj*);
+    static void InitDisplay(GXRenderModeObj*);
     static void InitGX();
     static void InitVI();
     static void Suspend();

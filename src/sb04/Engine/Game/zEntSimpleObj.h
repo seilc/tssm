@@ -36,7 +36,7 @@ struct zEntSimpleObj : zEnt
 
 struct zScene;
 
-extern void iModelAnimMatrices(RpAtomic*, xQuat*, xVec3*, RwMatrixTag*);
+extern void iModelAnimMatrices(RpAtomic*, xQuat*, xVec3*, RwMatrix*);
 
 void zEntSimpleObj_MgrInit(zEntSimpleObj** entList, U32 entCount);
 void zEntSimpleObj_MgrUpdateRender(RpWorld* world, F32 dt);

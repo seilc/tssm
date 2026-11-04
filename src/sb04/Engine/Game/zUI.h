@@ -55,7 +55,7 @@ struct zUIMotionFrame
     F32 rotation;
     F32 offsetU;
     F32 offsetV;
-    xColor_tag color;
+    xColor color;
     U8 brightness;
 };
 
@@ -86,7 +86,7 @@ struct zUICustom
 struct zUICustomConditionallyDisabled : zUICustom
 {
     S32 padding; // aligns 2 functions
-    _zConditional* m_pCondition;
+    zConditional* m_pCondition;
     U8 m_bCondition;
 
     U8 PreRender();
@@ -100,7 +100,7 @@ struct State
     F32 y;
     F32 width;
     F32 height;
-    xColor_tag color;
+    xColor color;
     U8 brightness;
     U8 pad[3];
 };
@@ -187,7 +187,7 @@ struct zUITextAsset : zUIAsset
     U8 justifyX;
     U8 justifyY;
     U8 textFlags;
-    xColor_tag shadowColor;
+    xColor shadowColor;
     F32 shadowOffsetX;
     F32 shadowOffsetY;
     F32 textScaleX;
@@ -202,7 +202,7 @@ struct zUIUserStringAsset : zUITextAsset
 
 struct zUIText : zUI
 {
-    xColor_tag shadowColor;
+    xColor shadowColor;
     char* text;
 
     void DoApplyMotionFrame(zUIMotionFrame* frame);

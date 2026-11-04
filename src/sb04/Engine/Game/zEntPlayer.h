@@ -27,7 +27,7 @@ enum zControlOwner
     CONTROL_OWNER_CUTSCENE = 0x8000
 };
 
-enum _tagePlayerSnd
+typedef enum _tagePlayerSnd
 {
     ePlayerSnd_Invalid,
     ePlayerSnd_Land,
@@ -86,9 +86,9 @@ enum _tagePlayerSnd
     ePlayerSnd_MeleeDeflect,
     ePlayerSnd_BellySmash2,
     ePlayerSnd_Total
-};
+} ePlayerSnd;
 
-enum _tagePlayerStreamSnd
+typedef enum _tagePlayerStreamSnd
 {
     ePlayerStreamSnd_Invalid,
     ePlayerStreamSnd_PickupSock,
@@ -206,12 +206,12 @@ enum _tagePlayerStreamSnd
     ePlayerStreamSnd_GotGGToken,
     ePlayerStreamSnd_GotTreasureChest,
     ePlayerStreamSnd_Total
-};
+} ePlayerStreamSnd;
 
 struct zDelayedStreamSound
 {
-    _tagePlayerStreamSnd start;
-    _tagePlayerStreamSnd end;
+    ePlayerStreamSnd start;
+    ePlayerStreamSnd end;
     F32 delay;
 };
 
@@ -222,13 +222,13 @@ struct zPlayerSndTimer
 };
 
 // TODO: Why are there two of these enums with the same effect, should there be?
-enum _zPlayerType
+typedef enum _zPlayerType
 {
     ePlayer_SB,
     ePlayer_Patrick,
     ePlayer_Sandy,
     ePlayer_MAXTYPES
-};
+} zPlayerType;
 
 enum eSNDCurrentPlayer
 {
@@ -238,13 +238,13 @@ enum eSNDCurrentPlayer
     eCurrentPlayerCount
 };
 
-enum _zPlayerWallJumpState
+typedef enum _zPlayerWallJumpState
 {
     k_WALLJUMP_NOT,
     k_WALLJUMP_LAUNCH,
     k_WALLJUMP_FLIGHT,
     k_WALLJUMP_LAND
-};
+} zPlayerWallJumpState;
 
 struct zJumpParam
 {
@@ -281,7 +281,7 @@ struct zLedgeGrabParams
 
 struct zPlayerSettings
 {
-    _zPlayerType pcType;
+    zPlayerType pcType;
     F32 MoveSpeed[6];
     F32 AnimSneak[3];
     F32 AnimWalk[3];
@@ -400,23 +400,23 @@ U8 zEntPlayer_MinimalUpdate(xEnt* ent, xScene* sc, F32 dt, xVec3& drive_motion);
 
 S32 zEntPlayer_MoveInfo();
 
-void zEntPlayer_SNDPlay(_tagePlayerSnd player_snd, F32 delay);
-void zEntPlayer_SNDPlayRandom(_tagePlayerSnd player_snd_start, _tagePlayerSnd player_snd_end,
+void zEntPlayer_SNDPlay(ePlayerSnd player_snd, F32 delay);
+void zEntPlayer_SNDPlayRandom(ePlayerSnd player_snd_start, ePlayerSnd player_snd_end,
                               F32 delay);
-void zEntPlayer_SNDPlayStream(_tagePlayerStreamSnd player_snd);
-void zEntPlayer_SNDPlayStream(_tagePlayerStreamSnd player_snd, U32 flags);
+void zEntPlayer_SNDPlayStream(ePlayerStreamSnd player_snd);
+void zEntPlayer_SNDPlayStream(ePlayerStreamSnd player_snd, U32 flags);
 // Only plays sound if player's spatula count is between lower and upper
-void zEntPlayer_SNDPlayStream(U32 lower, U32 upper, _tagePlayerStreamSnd player_snd, U32 flags);
+void zEntPlayer_SNDPlayStream(U32 lower, U32 upper, ePlayerStreamSnd player_snd, U32 flags);
 
 // Only plays sound if player's spatula count is between lower and upper
-void zEntPlayer_SNDPlayStreamRandom(U32 lower, U32 upper, _tagePlayerStreamSnd player_snd_start,
-                                    _tagePlayerStreamSnd player_snd_end, F32 delay);
-void zEntPlayer_SNDPlayStreamRandom(_tagePlayerStreamSnd player_snd_start,
-                                    _tagePlayerStreamSnd player_snd_end, F32 delay);
+void zEntPlayer_SNDPlayStreamRandom(U32 lower, U32 upper, ePlayerStreamSnd player_snd_start,
+                                    ePlayerStreamSnd player_snd_end, F32 delay);
+void zEntPlayer_SNDPlayStreamRandom(ePlayerStreamSnd player_snd_start,
+                                    ePlayerStreamSnd player_snd_end, F32 delay);
 
-void zEntPlayer_SNDSetVol(_tagePlayerSnd player_snd, F32 new_vol);
-void zEntPlayer_SNDSetPitch(_tagePlayerSnd player_snd, F32 new_pitch);
-void zEntPlayer_SNDStop(_tagePlayerSnd player_snd);
+void zEntPlayer_SNDSetVol(ePlayerSnd player_snd, F32 new_vol);
+void zEntPlayer_SNDSetPitch(ePlayerSnd player_snd, F32 new_pitch);
+void zEntPlayer_SNDStop(ePlayerSnd player_snd);
 
 void zEntPlayerSpeakStop();
 

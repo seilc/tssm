@@ -4,8 +4,6 @@
 #include "iDebug.h"
 #include "xString.h"
 
-#include <types.h>
-
 extern U32 gFrameCount;
 
 struct uint_data

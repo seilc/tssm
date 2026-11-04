@@ -1319,8 +1319,8 @@ void xGridInit(xGrid* grid, const xBox* bounds, U16 nx, U16 nz, U8 ingrid_id)
 //                                              xFX
 
 /* boot.HIP texture IDs */
-#define ID_gloss_edge 0xB8C2351E
-#define ID_rainbowfilm_smooth32 0x741B0566
+#define GLOSS_EDGE_ID 0xB8C2351E // xStrHash("gloss_edge")
+#define RAINBOWFILM_SMOOTH32_ID 0x741B0566 // xStrHash("rainbowfilm_smooth32")
 
 extern const char _stringBase0_7[];
 
@@ -2564,7 +2564,7 @@ S32 xFogEventCB(xBase* to, xBase* from, U32 toEvent, const F32* toParam, xBase* 
     case eEventOn:
         iFogParams fog;
         fog.type = rwFOGTYPELINEAR;
-        xFogAsset* fromFog = ((_xFog*)from)->tasset;
+        xFogAsset* fromFog = ((xFog*)from)->tasset;
         fog.start = fromFog->fogStart;
         fog.stop = fromFog->fogStop;
         fog.density = fromFog->fogDensity;
@@ -2583,18 +2583,18 @@ S32 xFogEventCB(xBase* to, xBase* from, U32 toEvent, const F32* toParam, xBase* 
         iCameraSetFogParams(NULL, 0.0f);
         break;
     case eEventReset:
-        xFogReset((_xFog*)from);
+        xFogReset((xFog*)from);
         break;
     }
     return eEventEnable;
 }
 
-void xFogLoad(_xFog* ent, xSerial* s)
+void xFogLoad(xFog* ent, xSerial* s)
 {
     xBaseLoad((xBase*)ent, s);
 }
 
-void xFogSave(_xFog* ent, xSerial* s)
+void xFogSave(xFog* ent, xSerial* s)
 {
     xBaseSave((xBase*)ent, s);
 }
@@ -2608,10 +2608,10 @@ void xFogInit(xBase* ent, xFogAsset* tasset)
 {
     xBaseInit(ent, (xBaseAsset*)tasset);
     //ent->eventFunc = xFogEventCB;
-    ((_xFog*)ent)->tasset = tasset;
+    ((xFog*)ent)->tasset = tasset;
     if (ent->linkCount != 0)
     {
-        ent->link = (xLinkAsset*)(((_xFog*)ent)->tasset + 1);
+        ent->link = (xLinkAsset*)(((xFog*)ent)->tasset + 1);
     }
     else
     {

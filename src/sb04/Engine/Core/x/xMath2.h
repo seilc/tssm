@@ -1,8 +1,6 @@
 #ifndef XMATH2_H
 #define XMATH2_H
 
-#include <types.h>
-
 #include "xMath.h"
 
 template <class T> struct basic_rect

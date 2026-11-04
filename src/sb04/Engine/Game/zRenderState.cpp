@@ -1,8 +1,8 @@
 #include "zRenderState.h"
 
-_SDRenderState sRS;
+SDRenderState sRS;
 
-_SDRenderState zRenderStateCurrent()
+SDRenderState zRenderStateCurrent()
 {
     return sRS;
 }

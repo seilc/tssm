@@ -1752,6 +1752,8 @@ S32 OrdComp_R_Asset(void* vkey, void* vitem)
     return rc;
 }
 
+#define SIMPLE_SHADOW_TABLE_ID 0x98A3F56C // xStrHash("simple shadow table")
+
 S32 PKR_FRIEND_assetIsGameDup(U32 aid, const st_PACKER_READ_DATA* skippr, S32 oursize, U32 ourtype,
                               U32 chksum, char*)
 {
@@ -1760,7 +1762,7 @@ S32 PKR_FRIEND_assetIsGameDup(U32 aid, const st_PACKER_READ_DATA* skippr, S32 ou
     {
         return 0;
     }
-    if (aid == 0x98a3f56c)
+    if (aid == SIMPLE_SHADOW_TABLE_ID)
     {
         return 0;
     }
@@ -3494,7 +3496,7 @@ void xPadKill()
 
 void xPadRumbleEnable(S32 idx, S32 enable)
 {
-    _tagxPad* p = &mPad[idx];
+    xPad* p = &mPad[idx];
     if (p->state != ePad_Enabled)
     {
         enable = 0;
@@ -3517,9 +3519,9 @@ void xPadRumbleEnable(S32 idx, S32 enable)
 }
 
 // WIP.
-_tagxPad* xPadEnable(S32 idx)
+xPad* xPadEnable(S32 idx)
 {
-    _tagxPad* p = &mPad[idx];
+    xPad* p = &mPad[idx];
     if (p->state == ePad_Disabled && idx == 0)
     {
         p = iPadEnable(&mPad[0], 0);
@@ -3555,7 +3557,7 @@ S32 xPadInit()
 S32 xPadUpdate(S32 idx, F32 time_passed)
 {
     U32 new_on;
-    _tagxPad* p = &mPad[idx];
+    xPad* p = &mPad[idx];
     S32 ret;
     U32 fake_dpad;
     S32 i;
@@ -3683,7 +3685,7 @@ S32 xPadUpdate(S32 idx, F32 time_passed)
             else
                 p->up_tmr[1] += time_passed;
 
-            p = (_tagxPad*)(p->value + 8);
+            p = (xPad*)(p->value + 8);
         }
 
         if (p->flags & 0x10)
@@ -3719,9 +3721,9 @@ S32 xPadUpdate(S32 idx, F32 time_passed)
     return 0;
 }
 
-void xPadNormalizeAnalog(_tagxPad& pad, S32 inner_zone, S32 outer_zone)
+void xPadNormalizeAnalog(xPad& pad, S32 inner_zone, S32 outer_zone)
 {
-    _tagPadAnalog* src = &pad.analog1;
+    PadAnalog* src = &pad.analog1;
 
     for (S32 i = 0; i < 2; i++, src++)
     {

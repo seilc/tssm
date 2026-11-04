@@ -20,7 +20,7 @@ struct xMemBlock_tag
     S32 align;
 };
 
-struct xMemBlkInfo_tag
+typedef struct xMemBlkInfo_tag
 {
     xMemBlock_tag* header;
     U32 pre;
@@ -29,7 +29,7 @@ struct xMemBlkInfo_tag
     U32 curr;
     U32 waste;
     U32 total;
-};
+} xMemBlkInfo;
 
 struct xMemFreeLink
 {
@@ -85,26 +85,26 @@ struct xMemHeap_tag
     xMemBlock_tag* lastblk;
 };
 
-struct xMemArea_tag
+typedef struct xMemArea_tag
 {
     U32 addr;
     U32 size;
     U32 flags;
-};
+} xMemArea;
 
-struct xMemInfo_tag
+typedef struct xMemInfo_tag
 {
-    xMemArea_tag system;
+    xMemArea system;
 
     // Offset: 0xC
-    xMemArea_tag stack;
+    xMemArea stack;
 
     // Offset: 0x18
-    xMemArea_tag DRAM;
+    xMemArea DRAM;
 
     // Offset: 0x24
-    xMemArea_tag SRAM;
-};
+    xMemArea SRAM;
+} xMemInfo;
 
 struct xMemPool;
 typedef void (*xMemPoolInitCB)(xMemPool*, void*);
@@ -126,7 +126,7 @@ extern U32 gActiveHeap;
 void xMemInit();
 void xMemExit();
 void xMemInitHeap(xMemHeap_tag* heap, U32 base, U32 size, U32 flags);
-U32 xMemGetBlockInfo(xMemHeap_tag* heap, U32 size, S32 align, xMemBlkInfo_tag* info);
+U32 xMemGetBlockInfo(xMemHeap_tag* heap, U32 size, S32 align, xMemBlkInfo* info);
 void* xMemGrowAlloc(U32 heapID, U32 size);
 void* xMemAlloc(U32 heapID, U32 size, S32 align);
 void* xMemPushTemp(U32 size);

@@ -7,8 +7,6 @@
 #include "zNMECommon.h"
 #include "zTalkBox.h"
 
-#include <types.h>
-
 // DIRECTLY PORTED FROM BFBB
 
 struct ztaskbox : xBase

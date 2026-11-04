@@ -6,7 +6,6 @@
 #include "containers.h"
 #include "iColor.h"
 
-#include <types.h>
 #include <rwcore.h>
 
 struct xDecalEmitter
@@ -50,7 +49,7 @@ struct xDecalEmitter
     struct curve_node
     {
         F32 time;
-        iColor_tag color;
+        iColor color;
         F32 scale;
     };
 

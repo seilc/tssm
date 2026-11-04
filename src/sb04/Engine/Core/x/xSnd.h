@@ -1,7 +1,6 @@
 #ifndef XSND_H
 #define XSND_H
 
-#include <types.h>
 #include "xVec3.h"
 #include "xMath3.h"
 #include "iSnd.h"
@@ -63,7 +62,7 @@ struct xSndGlobals
     xVec3 pos;
 };
 
-struct _xSndDelayed
+typedef struct _xSndDelayed
 {
     U32 id;
     F32 vol;
@@ -78,7 +77,7 @@ struct _xSndDelayed
     sound_category category;
     F32 delay;
     U32 pad0;
-};
+} xSndDelayed;
 
 struct xSoundFXAsset : xBaseAsset
 {

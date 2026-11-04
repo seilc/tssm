@@ -29,7 +29,7 @@ struct iLight
     F32 radius_sq;
 
     //0x1C
-    _xFColor color;
+    xFColor color;
 
     //0x2C
     xVec3 dir;
@@ -41,7 +41,7 @@ extern RpWorld* gLightWorld;
 void iLightInit(RpWorld* world);
 iLight* iLightCreate(iLight* light, U32 type);
 void iLightModify(iLight* light, U32 flags);
-void iLightSetColor(iLight* light, _xFColor* col);
+void iLightSetColor(iLight* light, xFColor* col);
 void iLightSetPos(iLight* light, xVec3* pos);
 void iLightDestroy(iLight* light);
 void iLightEnv(iLight* light, S32 env);

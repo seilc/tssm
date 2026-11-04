@@ -22,7 +22,7 @@ struct xFXRing
     F32 ring_tilt_delta; // 0x24?
     F32 ring_height; // 0x28
     F32 ring_height_delta;
-    iColor_tag ring_color;
+    iColor ring_color;
     U16 ring_segs;
     U8 u_repeat;
     U8 v_repeat;
@@ -53,7 +53,7 @@ struct xFXRibbon
     struct curve_node
     {
         F32 time;
-        iColor_tag color;
+        iColor color;
         F32 scale;
     };
 
@@ -95,7 +95,7 @@ struct xFXCameraTexture
     RpWorld* world;
     RwTexture* texture;
     U32 vert_buffer_used;
-    xColor_tag bgcolor;
+    xColor bgcolor;
     RwCamera* oldcam;
     RpWorld* oldworld;
     F32 rcz;

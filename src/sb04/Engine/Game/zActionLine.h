@@ -3,12 +3,12 @@
 
 #include "xVec3.h"
 
-struct _tagActionLine
+typedef struct _tagActionLine
 {
     U32 flags;
     xVec3 pos[4];
     F32 time_left;
-};
+} ActionLine;
 
 void zActionLineInit();
 void zActionLineUpdate(F32 seconds);

@@ -13,14 +13,14 @@ enum XFILE_READSECTOR_STATUS
     XFILE_RDSTAT_EXPIRED
 };
 
-struct tag_xFile
+typedef struct tag_xFile
 {
     char relname[32];
-    tag_iFile ps;
+    iFile ps;
     void* user_data;
-};
+} xFile;
 
-void xFileSetUserData(tag_xFile* file, void* userdata);
+void xFileSetUserData(xFile* file, void* userdata);
 XFILE_READSECTOR_STATUS xFileReadAsyncStatus(S32 key, S32* amtToFar);
 
 #endif

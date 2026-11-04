@@ -11,12 +11,12 @@ void zEnvEventCB(xBase* a0, xBase* a1, U32 a2, const F32* a3, xBase* a4, U32 a5)
 {
 }
 
-void zEnvLoad(_zEnv* ent, xSerial* s)
+void zEnvLoad(zEnv* ent, xSerial* s)
 {
     xBaseLoad(ent, s);
 }
 
-void zEnvSave(_zEnv* ent, xSerial* s)
+void zEnvSave(zEnv* ent, xSerial* s)
 {
     xBaseSave(ent, s);
 }
@@ -56,12 +56,12 @@ void zEnvRender(xEnv* env)
     xEnvRender(env, FALSE);
 }
 
-void zEnvStartingCamera(_zEnv*)
+void zEnvStartingCamera(zEnv*)
 {
     return;
 }
 
-void zEnvSetup(_zEnv* env)
+void zEnvSetup(zEnv* env)
 {
     // TODO
     // I don't think the struct is correct
@@ -74,7 +74,7 @@ void zEnvSetup(_zEnv* env)
 }
 
 // Again, Copied from Battle, Needs a good amount of work
-void zEnvInit(_zEnv* env, xEnvAsset* easset)
+void zEnvInit(zEnv* env, xEnvAsset* easset)
 {
     U32 bufsize;
     void* buf;
@@ -143,5 +143,5 @@ void zEnvInit(_zEnv* env, xEnvAsset* easset)
 // Inlining issue
 void zEnvInit(void* env, void* easset)
 {
-    zEnvInit((_zEnv*)env, (xEnvAsset*)easset);
+    zEnvInit((zEnv*)env, (xEnvAsset*)easset);
 }

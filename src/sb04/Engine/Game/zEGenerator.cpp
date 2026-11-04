@@ -14,7 +14,7 @@ void zEGenerator_TurnOn(zEGenerator* egen)
     xVec3 destOffset;
     xEnt* ent;
     //S32 i;
-    _tagLightningAdd add;
+    LightningAdd add;
 }
 
 void zEGenerator_Render(zEGenerator* egen)

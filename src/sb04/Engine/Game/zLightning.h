@@ -6,7 +6,7 @@
 
 #include "zFX.h"
 
-struct _tagLightningAdd
+typedef struct _tagLightningAdd
 {
     U32 type;
     F32 setup_degrees;
@@ -19,32 +19,32 @@ struct _tagLightningAdd
     F32 time;
     F32 arc_height;
     F32 thickness;
-    iColor_tag color;
+    iColor color;
     F32 rand_radius;
     U32 flags;
     F32 zeus_normal_offset;
     F32 zeus_back_offset;
     F32 zeus_side_offset;
-};
+} LightningAdd;
 
-struct _tagLightningLine
+typedef struct _tagLightningLine
 {
     F32 unused;
-};
+} LightningLine;
 
-struct _tagLightningRot
+typedef struct _tagLightningRot
 {
     F32 deg[16];
     F32 degrees;
     F32 height;
-};
+} LightningRot;
 
-struct _tagLightningZeus
+typedef struct _tagLightningZeus
 {
     F32 normal_offset;
     F32 back_offset;
     F32 side_offset;
-};
+} LightningZeus;
 
 struct zLightning
 {
@@ -63,9 +63,9 @@ struct zLightning
             F32 thickness[16];
             union
             {
-                _tagLightningLine line;
-                _tagLightningRot rot;
-                _tagLightningZeus zeus;
+                LightningLine line;
+                LightningRot rot;
+                LightningZeus zeus;
             };
             F32 rand_radius;
         } legacy;
@@ -83,7 +83,7 @@ struct zLightning
             xVec3 arc_normal;
         } func;
     };
-    iColor_tag color;
+    iColor color;
     F32 time_left;
     F32 time_total;
 };
@@ -99,7 +99,7 @@ struct zLightningFuncPiece
 void lightningTweakChangeType(tweak_info& t);
 void lightningTweakStart(tweak_info& t);
 void zLightningInit();
-zLightning* zLightningAdd(_tagLightningAdd* add);
+zLightning* zLightningAdd(LightningAdd* add);
 void UpdateLightning(zLightning* l, F32 seconds);
 void zLightningUpdate(F32 seconds);
 void zLightningFunc_Render(zLightning* l);

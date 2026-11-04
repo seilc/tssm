@@ -21,7 +21,7 @@ enum xFileDriveType
 };
 
 #ifdef GAMECUBE
-struct tag_iFile
+typedef struct tag_iFile
 {
     U32 flags;
     char path[128];
@@ -32,17 +32,17 @@ struct tag_iFile
     S32 unknown[7];
     S32 unkE8;
     S32 offset;
-};
+} iFile;
 #else
 #ifdef PS2
-struct tag_iFile
+typedef struct tag_iFile
 {
     U32 flags;
     char path[128];
     S32 fd;
     S32 offset;
     S32 length;
-};
+} iFile;
 #endif
 #endif
 
@@ -54,24 +54,24 @@ struct tag_iFile
 #define IFILE_SEEK_CUR 1
 #define IFILE_SEEK_END 2
 
-struct tag_xFile;
+typedef struct tag_xFile xFile;
 
 void iFileInit();
 void iFileExit();
 U32* iFileLoad(char* name, U32* buffer, U32* size);
-U32 iFileOpen(const char* name, S32 flags, tag_xFile* file);
-S32 iFileSeek(tag_xFile* file, S32 offset, S32 whence);
-U32 iFileRead(tag_xFile* file, void* buf, U32 size);
-S32 iFileReadAsync(tag_xFile* file, void* buf, U32 aSize, void (*callback)(tag_xFile*),
+U32 iFileOpen(const char* name, S32 flags, xFile* file);
+S32 iFileSeek(xFile* file, S32 offset, S32 whence);
+U32 iFileRead(xFile* file, void* buf, U32 size);
+S32 iFileReadAsync(xFile* file, void* buf, U32 aSize, void (*callback)(xFile*),
                    S32 priority);
 IFILE_READSECTOR_STATUS iFileReadAsyncStatus(S32 key, S32* amtToFar);
-U32 iFileClose(tag_xFile* file);
-U32 iFileGetSize(tag_xFile* file);
+U32 iFileClose(xFile* file);
+U32 iFileGetSize(xFile* file);
 void iFileReadStop();
 void iFileFullPath(const char* relname, char* fullname);
 void iFileSetPath(char* path);
-U32 iFileFind(const char* name, int, tag_xFile* file);
-void iFileGetInfo(tag_xFile* file, U32* addr, U32* length);
+U32 iFileFind(const char* name, int, xFile* file);
+void iFileGetInfo(xFile* file, U32* addr, U32* length);
 void iFileAsyncService();
 
 #endif

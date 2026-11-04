@@ -3,7 +3,6 @@
 
 #include "xEvent.h"
 
-#include <types.h>
 #include "xEvent.h"
 
 char* zEventName(U32 eventEnum);

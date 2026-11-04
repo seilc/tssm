@@ -2035,12 +2035,12 @@ void iPadStopRumble()
     PADControlMotor(mPad[globals.currentActivePad].port, 0); // Scheduling memes.
 }
 
-void iPadStopRumble(_tagxPad* pad)
+void iPadStopRumble(xPad* pad)
 {
     PADControlMotor(pad->port, 0);
 }
 
-S32 iPadUpdate(_tagxPad* pad, U32* on)
+S32 iPadUpdate(xPad* pad, U32* on)
 {
     U16 buttons;
     U32 temp_on;
@@ -2121,7 +2121,7 @@ S32 iPadUpdate(_tagxPad* pad, U32* on)
     return 1;
 }
 
-_tagxPad* iPadEnable(_tagxPad* pad, S16 port)
+xPad* iPadEnable(xPad* pad, S16 port)
 {
     pad->port = port;
     pad->slot = 0;
@@ -2144,7 +2144,7 @@ S32 iPadInit()
 
 //                                                                                  iMemMgr
 
-extern xMemInfo_tag gMemInfo;
+extern xMemInfo gMemInfo;
 extern OSHeapHandle he;
 extern OSHeapHandle hs;
 extern unsigned char _stack_addr[];
@@ -2571,7 +2571,7 @@ void iLightSetPos(iLight* light, xVec3* pos)
     RwFrameUpdateObjects(f);
 }
 
-void iLightSetColor(iLight* light, _xFColor* col)
+void iLightSetColor(iLight* light, xFColor* col)
 {
     RpLightSetColor(light->hw, (RwRGBAReal*)col);
 }
@@ -2841,7 +2841,7 @@ static void PlayFMV(char* fname, u32 buttons, F32 time)
         }
     }
 
-    tag_xFile file;
+    xFile file;
     DVDFileInfo* pfinfo = &file.ps.fileInfo;
     do
     {
@@ -2972,12 +2972,12 @@ void* _MovieAlloc(U32 size)
 
 struct file_queue_entry
 {
-    tag_xFile* file;
+    xFile* file;
     void* buf;
     U32 size;
     U32 offset;
     IFILE_READSECTOR_STATUS stat;
-    void (*callback)(tag_xFile* file);
+    void (*callback)(xFile* file);
     U32 asynckey;
 };
 
@@ -3000,7 +3000,7 @@ U32 iFileGetSectorSize(xFileDriveType drive)
     }
 }
 
-void iFileGetInfo(tag_xFile* file, U32* addr, U32* length)
+void iFileGetInfo(xFile* file, U32* addr, U32* length)
 {
     if (addr)
     {
@@ -3013,7 +3013,7 @@ void iFileGetInfo(tag_xFile* file, U32* addr, U32* length)
     }
 }
 
-U32 iFileFind(const char* name, S32 x, tag_xFile* file)
+U32 iFileFind(const char* name, S32 x, xFile* file)
 {
     return iFileOpen(name, 0, file);
 }
@@ -3022,14 +3022,14 @@ void iFileSetPath(const char* path)
 {
 }
 
-U32 iFileGetSize(tag_xFile* file)
+U32 iFileGetSize(xFile* file)
 {
     return file->ps.fileInfo.length;
 }
 
-U32 iFileClose(tag_xFile* file)
+U32 iFileClose(xFile* file)
 {
-    tag_iFile* ps = &file->ps;
+    iFile* ps = &file->ps;
     S32 ret;
 
     ret = DVDClose(&file->ps.fileInfo);
@@ -3122,11 +3122,11 @@ static void async_cb(s32 result, DVDFileInfo* fileInfo)
     }
 }
 
-S32 iFileReadAsync(tag_xFile* file, void* buf, U32 aSize, void (*callback)(tag_xFile*),
+S32 iFileReadAsync(xFile* file, void* buf, U32 aSize, void (*callback)(xFile*),
                    S32 priority)
 {
     static S32 fopcount = 1;
-    tag_iFile* ps = &file->ps;
+    iFile* ps = &file->ps;
     S32 i;
 
     for (i = 0; i < 4; i++)
@@ -3174,14 +3174,14 @@ IFILE_READSECTOR_STATUS iFileReadAsyncStatus(S32 key, S32* amtToFar)
     return file_queue[key & 0x3].stat;
 }
 
-static void ifilereadCB(tag_xFile* file)
+static void ifilereadCB(xFile* file)
 {
     iFileSyncAsyncReadActive = 0;
 }
 
-U32 iFileRead(tag_xFile* file, void* buf, U32 size)
+U32 iFileRead(xFile* file, void* buf, U32 size)
 {
-    tag_iFile* ps = &file->ps;
+    iFile* ps = &file->ps;
 
     iFileSeek(file, ps->offset, IFILE_SEEK_SET);
 
@@ -3197,9 +3197,9 @@ U32 iFileRead(tag_xFile* file, void* buf, U32 size)
     return size;
 }
 
-U32 iFileOpen(const char* name, S32 flags, tag_xFile* file)
+U32 iFileOpen(const char* name, S32 flags, xFile* file)
 {
-    tag_iFile* ps = &file->ps;
+    iFile* ps = &file->ps;
 
     if (flags & IFILE_OPEN_ABSPATH)
     {
@@ -3234,7 +3234,7 @@ U32 iFileOpen(const char* name, S32 flags, tag_xFile* file)
 U32* iFileLoad(const char* name, U32* buffer, U32* size)
 {
     char path[128];
-    tag_xFile file;
+    xFile file;
     S32 fileSize, alignedSize;
 
     iFileFullPath(name, path);
@@ -3613,7 +3613,7 @@ void iCSFileClose(xCutscene* csn)
     csn->Opened = 0;
 }
 
-static void iCSAsyncReadCB(tag_xFile* file)
+static void iCSAsyncReadCB(xFile* file)
 {
     S32 bytes;
     xCutscene* csn;

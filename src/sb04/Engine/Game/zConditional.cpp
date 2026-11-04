@@ -2,19 +2,19 @@
 
 S32 zConditionalEventCB(xBase*, xBase*, U32, const F32*, xBase*);
 
-void zConditionalLoad(_zConditional* ent, xSerial* s)
+void zConditionalLoad(zConditional* ent, xSerial* s)
 {
     xBaseLoad(ent, s);
 }
 
-void zConditionalSave(_zConditional* ent, xSerial* s)
+void zConditionalSave(zConditional* ent, xSerial* s)
 {
     xBaseSave(ent, s);
 }
 
 void zConditionalInit(void* b, void* asset)
 {
-    _zConditional* cond = (_zConditional*)b;
+    zConditional* cond = (zConditional*)b;
 
     xBaseInit((xBase*)cond, (xBaseAsset*)asset);
     //cond->eventFunc = (xBaseEventCB)zConditionalEventCB;

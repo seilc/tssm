@@ -1,7 +1,6 @@
 #ifndef ZREWARDS_H
 #define ZREWARDS_H
 
-#include "types.h"
 #include "zEnt.h"
 #include "zEntPickup.h"
 #include "zNPCTypes.h"

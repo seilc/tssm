@@ -1,8 +1,6 @@
 #ifndef ZVAR_H
 #define ZVAR_H
 
-#include <types.h>
-
 #include "xString.h"
 
 // REMEMBER, CODE DIRECTLY PORTED FROM BFBB.

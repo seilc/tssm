@@ -12,12 +12,12 @@
 
 struct zScene;
 
-struct _ShadowParams
+typedef struct _ShadowParams
 {
     U32 type;
     F32 at;
     F32 rad;
-};
+} ShadowParams;
 
 struct zEnt : xEnt
 {

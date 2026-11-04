@@ -608,7 +608,7 @@ void xModelInit()
 
 //                                          xMem
 
-extern xMemInfo_tag gMemInfo;
+extern xMemInfo gMemInfo;
 extern xMemHeap_tag gxHeap[3];
 extern xMemHeap gxxHeap[3];
 extern void (*sMemBaseNotifyFunc)();
@@ -728,7 +728,7 @@ void* xMemAlloc(U32 heapID, U32 size, S32 align)
         return (void*)0xDEADBEEF;
     }
 
-    xMemBlkInfo_tag info;
+    xMemBlkInfo info;
     U32 total = xMemGetBlockInfo(heap, size, true_align, &info);
     hdr = info.header;
 
@@ -799,7 +799,7 @@ void* xMemGrowAlloc(U32 heapID, U32 size)
 #if 0
 // Not particularly close. This function is a nightmare, it has so many
 // variables to untangle.
-void xMemGetBlockInfo(xMemHeap_tag* heap, U32 size, S32 align, xMemBlkInfo_tag* info)
+void xMemGetBlockInfo(xMemHeap_tag* heap, U32 size, S32 align, xMemBlkInfo* info)
 {
     S32 hdr = 1;
     xHeapState_tag* sp = &heap->state[heap->state_idx];
@@ -1842,7 +1842,7 @@ xLightKit* xLightKit_Prepare(void* data)
         if (currlight->type >= 2)
         {
             RwFrame* frame = RwFrameCreate();
-            RwMatrixTag tmpmat;
+            RwMatrix tmpmat;
 
             memset(&tmpmat, 0, 64);
             tmpmat.right.x = -currlight->matrix[0];

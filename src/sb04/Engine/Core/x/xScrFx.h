@@ -9,7 +9,7 @@
 void xScrFxUpdate(RwCamera* cam, F32 dt);
 void xScrFxRender(RwCamera*);
 void xScrFxDrawScreenSizeRectangle();
-void xScrFxFade(iColor_tag* base, iColor_tag* dest, F32 seconds, void (*callback)(),
+void xScrFxFade(iColor* base, iColor* dest, F32 seconds, void (*callback)(),
                 S32 hold);
 S32 xScrFxIsLetterbox();
 void xScrFxLetterboxReset();

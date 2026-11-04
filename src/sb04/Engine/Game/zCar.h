@@ -1,7 +1,6 @@
 #ifndef ZCAR_H
 #define ZCAR_H
 
-#include "types.h"
 #include "xAnim.h"
 #include "xBase.h"
 #include "xEnt.h"
@@ -187,7 +186,7 @@ struct zCar
     iSndHandle soundSkidLoopHandle;
     iSndHandle soundSkidLoopHandles[22];
     U8 soundGearCrunchReady;
-    _xCounter* nitroUsedCounter;
+    xCounter* nitroUsedCounter;
     U8 oilOneLinerPlayed;
     zStreamedSoundList carOneLiners;
     effect* mpRumbleCollision;

@@ -1,7 +1,6 @@
 #ifndef ZMUSIC_H
 #define ZMUSIC_H
 
-#include <types.h>
 #include "xBase.h"
 
 struct zMusicSituation

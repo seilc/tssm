@@ -1,9 +1,7 @@
 #ifndef ZRENDERSTATE_H
 #define ZRENDERSTATE_H
 
-#include <types.h>
-
-enum _SDRenderState
+typedef enum _SDRenderState
 {
     SDRS_Unknown,
     SDRS_Default,
@@ -56,10 +54,10 @@ enum _SDRenderState
     SDRS_NMEHazardOpaque,
     SDRS_NMEHazardAlpha,
     SDRS_Total = -1
-};
+} SDRenderState;
 
 void zRenderStateInit();
-_SDRenderState zRenderStateCurrent();
-void zRenderState(_SDRenderState newState);
+SDRenderState zRenderStateCurrent();
+void zRenderState(SDRenderState newState);
 
 #endif

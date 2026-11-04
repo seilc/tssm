@@ -5,7 +5,6 @@
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\stdlib.h>
 
 #include "stdlib.h"
-#include <types.h>
 #include <rpworld.h>
 #include "rwcore.h"
 #include "xModel.h"
