@@ -43,8 +43,8 @@ jobs:
           RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" -p '*_report' -D cur
-          prev=$(gh run list -R "$GITHUB_REPOSITORY" -w Build -b main -e push -s success -L 20 \
-              --json databaseId --jq "[.[] | select(.databaseId != $RUN_ID)][0].databaseId // empty")
+          prev=$(gh run list -R "$GITHUB_REPOSITORY" -w Build -b main -e push -L 20 \
+              --json databaseId,conclusion --jq "[.[] | select(.databaseId != $RUN_ID and .conclusion == \"success\")][0].databaseId // empty")
           if [ -n "$prev" ] && gh run download "$prev" -R "$GITHUB_REPOSITORY" -p '*_report' -D prev; then
             echo "PREV=prev" >> "$GITHUB_ENV"
           fi
