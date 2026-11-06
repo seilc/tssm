@@ -3,6 +3,8 @@
 
 #include <types.h>
 
+#define ARRAY_LENGTH(a) (sizeof(a) / sizeof(a[0]))
+
 S32 xUtilStartup();
 S32 xUtilShutdown();
 char* xUtil_idtag2string(U32 srctag, S32 bufidx);

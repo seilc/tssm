@@ -10,6 +10,8 @@ extern U32 gLevelChanged;
 extern U32 startPressed;
 //extern U8 sHackSmoothedUpdate;
 extern U32 gBusStopIsRunning;
+extern U32 gSoak;
+extern char** soaklevels;
 
 typedef enum _tagGameVidMode
 {

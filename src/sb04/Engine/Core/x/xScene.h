@@ -10,7 +10,6 @@
 typedef const char* (*xSceneBase2NameCallback)(xBase*);
 typedef const char* (*xSceneID2NameCallback)(U32);
 typedef xBase* (*xSceneResolvIDCallback)(U32);
-typedef xEnt* (*xSceneEntCallback)(xEnt* ent, xScene* sc, void* data);
 
 struct xScene // Updated Struct
 {

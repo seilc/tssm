@@ -74,6 +74,11 @@ struct xEntFrame
     xVec3 dpos;
 };
 
+struct xEntCollis;
+
+typedef void(*xEntCollisPostCallback)(xEnt*, xScene*, F32, xEntCollis*);
+typedef U32(*xEntCollisDepenQueryCallback)(xEnt*, xEnt*, xScene*, F32, xCollis*);
+
 struct xEntCollis
 {
     U8 chk;
@@ -91,18 +96,21 @@ struct xEntCollis
     U8 idx;
 
     xCollis colls[18];
-    void (*post)(xEnt*, xScene*, F32, xEntCollis*);
-    U32 (*depenq)(xEnt*, xEnt*, xScene*, F32, xCollis*);
+    xEntCollisPostCallback post;
+    xEntCollisDepenQueryCallback depenq;
 };
 
 struct xShadowSimpleCache;
 struct xEntShadow;
 
-typedef void (*xEntUpdateCallback)(xEnt*, xScene*, F32);
-typedef void (*xEntBoundUpdateCallback)(xEnt*, xVec3*);
-typedef void (*xEntMoveCallback)(xEnt*, xScene*, F32, xEntFrame*);
-typedef void (*xEntRenderCallback)(xEnt*);
-typedef void (*xEntTranslateCallback)(xEnt*, xVec3*, xMat4x3*);
+typedef void(*xEntVisUpdateCallback)(xEnt*);
+typedef void(*xEntUpdateCallback)(xEnt*, xScene*, F32);
+typedef void(*xEntEndUpdateCallback)(xEnt*, xScene*, F32);
+typedef void(*xEntBoundUpdateCallback)(xEnt*, xVec3*);
+typedef void(*xEntMoveCallback)(xEnt*, xScene*, F32, xEntFrame*);
+typedef void(*xEntRenderCallback)(xEnt*);
+typedef void(*xEntTranslateCallback)(xEnt*, xVec3*, xMat4x3*);
+typedef xEnt*(*xSceneEntCallback)(xEnt*, xScene*, void*);
 
 // Size: 0xD0
 struct xEnt : xBase
@@ -129,20 +137,20 @@ struct xEnt : xBase
     U8 collLev;
     U8 chkby;
     U8 penby;
-    void (*visUpdate)(xEnt*);
+    xEntVisUpdateCallback visUpdate;
     xModelInstance* model;
     xModelInstance* collModel;
     xModelInstance* camcollModel;
-    void (*update)(xEnt*, xScene*, F32);
-    void (*endUpdate)(xEnt*, xScene*, F32);
-    void (*bupdate)(xEnt*, xVec3*);
-    void (*move)(xEnt*, xScene*, F32, xEntFrame*);
-    void (*render)(xEnt*);
+    xEntUpdateCallback update;
+    xEntEndUpdateCallback endUpdate;
+    xEntBoundUpdateCallback bupdate;
+    xEntMoveCallback move;
+    xEntRenderCallback render;
     xEntFrame* frame;
     xEntCollis* collis;
     xGridBound gridb;
     xBound bound;
-    void (*transl)(xEnt*, xVec3*, xMat4x3*);
+    xEntTranslateCallback transl;
     xFFX* ffx;
     xEnt* driver;
     xEnt* driven;
@@ -197,11 +205,11 @@ void xEntCollideWalls(xEnt* p, xScene* sc, F32 dt);
 void xEntCollideCeiling(xEnt* p, xScene* sc, F32 dt);
 void xEntCollideFloor(xEnt* p, xScene* sc, F32 dt);
 xEnt* xEntCollCheckOneEntNoDepen(xEnt* ent, xScene* sc, void* data);
-void xEntCollCheckNPCs(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*));
-void xEntCollCheckDyns(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*));
-void xEntCollCheckStats(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*));
-void xEntCollCheckNPCsByGrid(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*));
-void xEntCollCheckByGrid(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*));
+void xEntCollCheckNPCs(xEnt* p, xScene* sc, xSceneEntCallback hitIt);
+void xEntCollCheckDyns(xEnt* p, xScene* sc, xSceneEntCallback hitIt);
+void xEntCollCheckStats(xEnt* p, xScene* sc, xSceneEntCallback hitIt);
+void xEntCollCheckNPCsByGrid(xEnt* p, xScene* sc, xSceneEntCallback hitIt);
+void xEntCollCheckByGrid(xEnt* p, xScene* sc, xSceneEntCallback hitIt);
 void xEntCollCheckEnv(xEnt* p, xScene* sc);
 void xEntEndCollide(xEnt* ent, xScene* sc, F32 dt);
 void xEntBeginCollide(xEnt* ent, xScene* sc, F32 dt);

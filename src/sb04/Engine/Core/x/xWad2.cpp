@@ -4124,7 +4124,7 @@ xEnt* xEntCollCheckOneEntNoDepen(xEnt* ent, xScene* sc, void* data)
     return ent;
 }
 
-void xEntCollCheckNPCs(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*))
+void xEntCollCheckNPCs(xEnt* p, xScene* sc, xSceneEntCallback hitIt)
 {
     p->collis->npc_sidx = p->collis->idx;
 
@@ -4133,7 +4133,7 @@ void xEntCollCheckNPCs(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*
     p->collis->npc_eidx = p->collis->idx;
 }
 
-void xEntCollCheckDyns(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*))
+void xEntCollCheckDyns(xEnt* p, xScene* sc, xSceneEntCallback hitIt)
 {
     p->collis->dyn_sidx = p->collis->idx;
 
@@ -4142,7 +4142,7 @@ void xEntCollCheckDyns(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*
     p->collis->dyn_eidx = p->collis->idx;
 }
 
-void xEntCollCheckStats(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*))
+void xEntCollCheckStats(xEnt* p, xScene* sc, xSceneEntCallback hitIt)
 {
     p->collis->stat_sidx = p->collis->idx;
 
@@ -4151,7 +4151,7 @@ void xEntCollCheckStats(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void
     p->collis->stat_eidx = p->collis->idx;
 }
 
-void xEntCollCheckNPCsByGrid(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*))
+void xEntCollCheckNPCsByGrid(xEnt* p, xScene* sc, xSceneEntCallback hitIt)
 {
     p->collis->npc_sidx = p->collis->idx;
 
@@ -4161,8 +4161,7 @@ void xEntCollCheckNPCsByGrid(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*,
     p->collis->npc_eidx = p->collis->idx;
 }
 
-static void xEntCollCheckOneGrid(xEnt* p, xScene* sc, xEnt* (*hitIt)(xEnt*, xScene*, void*),
-                                 xGrid* grid)
+static void xEntCollCheckOneGrid(xEnt* p, xScene* sc, xSceneEntCallback hitIt, xGrid* grid)
 {
     xVec3* r26 = xEntGetCenter(p);
     xGridIterator it;

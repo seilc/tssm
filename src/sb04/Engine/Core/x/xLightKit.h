@@ -23,6 +23,8 @@ struct xLightKit
     xLightKitLight* lightList;
 };
 
+extern xLightKit* gLastLightKit;
+
 xLightKit* xLightKit_Prepare(void* data);
 void xLightKit_Enable(xLightKit* lkit, RpWorld* world);
 void xLightKit_Destroy(xLightKit* lkit);

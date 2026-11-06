@@ -3,7 +3,7 @@
 
 #include "xMath3.h"
 
-extern U8* giAnimScratch;
+extern U8* g_iAnim_workBuffer;
 
 void iAnimInit();
 F32 iAnimDuration(void* RawData);

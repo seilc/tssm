@@ -128,6 +128,7 @@ struct xFXCameraTexture
 #define RING_COUNT 8
 
 extern xFXRing ringlist[RING_COUNT];
+extern RpAtomicCallBackRender gAtomicRenderCallBack;
 
 void xFXInit();
 xFXRing* xFXRingCreate(const xVec3* pos, const xFXRing* params);

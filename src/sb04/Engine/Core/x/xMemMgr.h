@@ -122,6 +122,7 @@ struct xMemPool
 };
 
 extern U32 gActiveHeap;
+extern U32 scratch_mem_used;
 
 void xMemInit();
 void xMemExit();

@@ -12,6 +12,8 @@ struct xEnv
     xLightKit* lightKit;
 };
 
+extern xEnv* gCurXEnv;
+
 struct xEnvAsset : xBaseAsset
 {
     U32 bspAssetID;

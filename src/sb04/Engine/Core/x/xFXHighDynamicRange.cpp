@@ -4,6 +4,7 @@
 #include "xColor.h"
 #include "xGlobals.h"
 #include "xMath.h"
+#include "xutil.h"
 #include "iDraw.h"
 #include "zGameState.h"
 #include "zGlobals.h"
@@ -160,7 +161,7 @@ void xFXHighDynamicRangeStartRender()
     set_vert(verts[1], 0.0f, FB_YRES, 0.0f, 0.0f, clearcolor, rcz, nsz);
     set_vert(verts[2], FB_XRES, 0.0f, 0.0f, 0.0f, clearcolor, rcz, nsz);
     set_vert(verts[3], FB_XRES, FB_YRES, 0.0f, 0.0f, clearcolor, rcz, nsz);
-    RwIm2DRenderPrimitive(rwPRIMTYPETRISTRIP, verts, 4);
+    RwIm2DRenderPrimitive(rwPRIMTYPETRISTRIP, verts, ARRAY_LENGTH(verts));
 
     iDrawSetFBMSK(mask, 0xFFFFFFFF, true);
 

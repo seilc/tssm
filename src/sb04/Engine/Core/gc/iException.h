@@ -4,4 +4,6 @@
 #include <dolphin.h>
 #include <types.h>
 
+void iExceptionMemCrash(const char* location, U32 size, const char* optionalString);
+
 #endif

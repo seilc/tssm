@@ -2009,11 +2009,11 @@ void xAnimFileEval(xAnimFile* data, F32 time, F32* bilinear, U32 flags, xVec3* t
             biplus[i] = MIN(biindex[i] + 1, data->NumAnims[i]);
         }
 
-        q0 = (xQuat*)(giAnimScratch + 0x1560);
+        q0 = (xQuat*)(g_iAnim_workBuffer + 0x1560);
         t0 = (xVec3*)((U8*)q0 + 0x410);
         if (bilerp[0] && bilerp[1])
         {
-            q1 = (xQuat*)(giAnimScratch + 0x1c80);
+            q1 = (xQuat*)(g_iAnim_workBuffer + 0x1c80);
             t1 = (xVec3*)((U8*)q1 + 0x410);
 
             iAnimEval(data->RawData[biindex[0] + biindex[1] * data->NumAnims[0]], time, flags, tran,
@@ -2066,7 +2066,7 @@ static void SingleEval(xAnimSingle* single, xVec3* tran, xQuat* quat)
 
         if (single->Blend && single->Blend->State)
         {
-            xQuat* qbuf = (xQuat*)(giAnimScratch + 0xE40);
+            xQuat* qbuf = (xQuat*)(g_iAnim_workBuffer + 0xE40);
             xVec3* vbuf = (xVec3*)(qbuf + 0x41);
 
             xAnimFileEval(single->Blend->State->Data, single->Blend->Time,
@@ -2083,14 +2083,14 @@ void xAnimPlayEval(xAnimPlay* play)
 {
     U32 i;
     U32 bone;
-    xQuat* quatresult = (xQuat*)giAnimScratch;
+    xQuat* quatresult = (xQuat*)g_iAnim_workBuffer;
     xVec3* tranresult = (xVec3*)((U8*)quatresult + 0x410);
 
     if (play->BoneCount > 1)
     {
         xQuat* quatblend = (xQuat*)((U8*)quatresult + 0x720);
         xVec3* tranblend = (xVec3*)((U8*)quatblend + 0x410);
-        SingleEval(play->Single, tranresult, (xQuat*)giAnimScratch);
+        SingleEval(play->Single, tranresult, (xQuat*)g_iAnim_workBuffer);
         for (i = 1; i < play->NumSingle; ++i)
         {
             xAnimSingle* si = &play->Single[i];
@@ -2800,7 +2800,7 @@ void xAnimPlayChooseTransition(xAnimPlay* play)
 {
     U32 i;
     void* object = play->Object;
-    xAnimTransition** list = (xAnimTransition**)giAnimScratch;
+    xAnimTransition** list = (xAnimTransition**)g_iAnim_workBuffer;
     xAnimTransition** found;
     xAnimTransitionList* curr;
 
@@ -2902,7 +2902,7 @@ xAnimState* xAnimTableGetStateID(xAnimTable* table, U32 ID)
 
 void xAnimTableAddFile(xAnimTable* table, xAnimFile* file, const char* states)
 {
-    U8* buffer = (U8*)giAnimScratch;
+    U8* buffer = (U8*)g_iAnim_workBuffer;
     char* stateName = xStrTokBuffer(states, " ,\t\n\r", buffer);
     while (stateName != NULL)
     {
@@ -3399,8 +3399,8 @@ static U32 DefaultOverride(xAnimState* state, xAnimTransition* tran)
 void _xAnimTableAddTransition(xAnimTable* table, xAnimTransition* tran, const char* source,
                               const char* dest)
 {
-    U8* buffer = (U8*)giAnimScratch;
-    xAnimState** stateList = (xAnimState**)(giAnimScratch + 0x400);
+    U8* buffer = (U8*)g_iAnim_workBuffer;
+    xAnimState** stateList = (xAnimState**)(g_iAnim_workBuffer + 0x400);
     S32 i;
     U32 stateCount = 0;
     U32 allocCount = 0;

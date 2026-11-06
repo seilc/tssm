@@ -6,6 +6,9 @@
 
 #include <rwcore.h>
 
+extern RwTexture* gxFlareTexture;
+extern RwFrame* gxFlareFrame;
+
 void xScrFxUpdate(RwCamera* cam, F32 dt);
 void xScrFxRender(RwCamera*);
 void xScrFxDrawScreenSizeRectangle();
