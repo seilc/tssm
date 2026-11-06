@@ -827,12 +827,12 @@ void SweptSphereHitsCameraEnt(xScene*, xRay3* ray, xQCData* qcd, xEnt* ent, void
 
             if (ent->collLev != 5)
             {
-                if (ent->bound.type == XBOUND_TYPE_BOX)
+                if (ent->bound.type == k_XBOUNDTYPE_BOX)
                 {
                     xSweptSphereToBox(*sws, ent->bound.box.box);
                     return;
                 }
-                else if (ent->bound.type == XBOUND_TYPE_OBB)
+                else if (ent->bound.type == k_XBOUNDTYPE_OBB)
                 {
                     xSweptSphereToOBB(sws, &ent->bound.box.box, ent->bound.mat);
                     return;
@@ -848,7 +848,7 @@ void SweptSphereHitsCameraEnt(xScene*, xRay3* ray, xQCData* qcd, xEnt* ent, void
 
         switch (ent->bound.type)
         {
-        case XBOUND_TYPE_SPHERE:
+        case k_XBOUNDTYPE_SPHERE:
         {
             F32 oldrad = ent->bound.sph.r;
 
@@ -860,7 +860,7 @@ void SweptSphereHitsCameraEnt(xScene*, xRay3* ray, xQCData* qcd, xEnt* ent, void
 
             break;
         }
-        case XBOUND_TYPE_BOX:
+        case k_XBOUNDTYPE_BOX:
         {
             xBox tmpbox;
             tmpbox.upper.x = ent->bound.box.box.upper.x + sws->radius;
@@ -874,7 +874,7 @@ void SweptSphereHitsCameraEnt(xScene*, xRay3* ray, xQCData* qcd, xEnt* ent, void
 
             break;
         }
-        case XBOUND_TYPE_OBB:
+        case k_XBOUNDTYPE_OBB:
         {
             xBox tmpbox;
             xRay3 lr;

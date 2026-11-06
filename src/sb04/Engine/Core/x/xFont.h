@@ -212,10 +212,7 @@ struct xtextbox
     F32 yextent(bool cache) const { return yextent(temp_layout(cache), 0, -1); }
     F32 yextent(const layout& l, S32 begin_jot, S32 end_jot) const { S32 size; return yextent(HUGE, size, l, begin_jot, end_jot); }
 
-    void render(bool cache) const
-    {
-        render(temp_layout(cache), 0, -1);
-    }
+    void render(bool cache) const { render(temp_layout(cache), 0, -1); }
 };
 
 struct xtextbox::layout

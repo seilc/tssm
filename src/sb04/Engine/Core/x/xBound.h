@@ -5,6 +5,17 @@
 #include "xMath3.h"
 #include "xCollide.h"
 
+enum xBoundType
+{
+    k_XBOUNDTYPE_NONE,
+    k_XBOUNDTYPE_SPHERE,
+    k_XBOUNDTYPE_BOX,
+    k_XBOUNDTYPE_CYLINDER,
+    k_XBOUNDTYPE_OBB,
+    k_XBOUNDTYPE_COUNT,
+    k_XBOUNDTYPE_SHIFT = 3
+};
+
 // Size: 0x4C
 struct xBound
 {
@@ -20,12 +31,6 @@ struct xBound
     };
     xMat4x3* mat;
 };
-
-#define XBOUND_TYPE_NA 0 // None/invalid
-#define XBOUND_TYPE_SPHERE 1 // Sphere - xBound::sph
-#define XBOUND_TYPE_BOX 2 // Axis aligned bounding box - xBound::box
-#define XBOUND_TYPE_CYL 3 // Cylinder - xBound::cyl (unused?)
-#define XBOUND_TYPE_OBB 4 // Oriented bounding box - xBound::box and xBound::mat
 
 void xBoundGetBox(xBox& box, const xBound& bound);
 void xBoundDraw(const xBound* bound);

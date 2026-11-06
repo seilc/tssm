@@ -378,15 +378,15 @@ namespace
     {
         switch (bound.type)
         {
-        case XBOUND_TYPE_SPHERE:
+        case k_XBOUNDTYPE_SPHERE:
         {
             return bound.sph.r;
         }
-        case XBOUND_TYPE_BOX:
+        case k_XBOUNDTYPE_BOX:
         {
             return bound.box.center.y - bound.box.box.lower.y;
         }
-        case XBOUND_TYPE_OBB:
+        case k_XBOUNDTYPE_OBB:
         {
             if (0.0f == bound.mat->up.x && 0.0f == bound.mat->up.z)
             {
@@ -401,7 +401,7 @@ namespace
                 return bound.box.center.y - box.lower.y;
             }
         }
-        case XBOUND_TYPE_CYL:
+        case k_XBOUNDTYPE_CYLINDER:
         default:
         {
             return 0.0f;
@@ -428,7 +428,7 @@ namespace
         old_bound_type = ent.bound.type;
         old_bound_radius = ent.bound.sph.r;
 
-        ent.bound.type = XBOUND_TYPE_SPHERE;
+        ent.bound.type = k_XBOUNDTYPE_SPHERE;
         ent.bound.sph.r = 0.0f;
 
         r30->y = FLOAT_MAX;
@@ -599,11 +599,11 @@ void xEntSetup(xEnt* ent)
 
     if (ent->model)
     {
-        if (ent->bound.type == XBOUND_TYPE_BOX)
+        if (ent->bound.type == k_XBOUNDTYPE_BOX)
         {
             iBoxForModel(&ent->bound.box.box, (ent->collModel) ? ent->collModel : ent->model);
         }
-        else if (ent->bound.type == XBOUND_TYPE_OBB)
+        else if (ent->bound.type == k_XBOUNDTYPE_OBB)
         {
             iBoxForModelLocal(&ent->bound.box.box, (ent->collModel) ? ent->collModel : ent->model);
         }
@@ -1017,7 +1017,7 @@ void xEntDefaultBoundUpdate(xEnt* ent, xVec3* pos)
 {
     xBound* bound = &ent->bound;
 
-    if (bound->type == XBOUND_TYPE_SPHERE)
+    if (bound->type == k_XBOUNDTYPE_SPHERE)
     {
         xVec3Copy(&bound->sph.center, pos);
 
@@ -1255,7 +1255,7 @@ void xEntCollide(xEnt* ent, xScene* sc, F32 dt)
         {
             F32 h_dot_n;
 
-            if (ent->bound.type == XBOUND_TYPE_SPHERE)
+            if (ent->bound.type == k_XBOUNDTYPE_SPHERE)
             {
                 h_dot_n = ent->bound.sph.r;
             }
@@ -1555,18 +1555,18 @@ xEnt* xEntCollCheckOneEntNoDepen(xEnt* ent, xScene* sc, void* data)
 
             coll->flags = 0x1F00;
 
-            if (p->bound.type == XBOUND_TYPE_SPHERE)
+            if (p->bound.type == k_XBOUNDTYPE_SPHERE)
             {
                 xModelInstance* r4 = (ent->collModel) ? ent->collModel : ent->model;
                 ncolls = 15 - p->collis->idx;
                 idx = iSphereHitsModel3(&p->bound.sph, r4, coll, ncolls, 0.78539819f);
             }
-            else if (p->bound.type == XBOUND_TYPE_BOX)
+            else if (p->bound.type == k_XBOUNDTYPE_BOX)
             {
                 upper = &p->bound.box.box.upper;
                 lower = &p->bound.box.box.lower;
 
-                tmp.type = XBOUND_TYPE_SPHERE;
+                tmp.type = k_XBOUNDTYPE_SPHERE;
 
                 xVec3Add(&tmp.sph.center, upper, lower);
                 xVec3SMulBy(&tmp.sph.center, 0.5f);
@@ -1602,8 +1602,8 @@ xEnt* xEntCollCheckOneEntNoDepen(xEnt* ent, xScene* sc, void* data)
 
             p->collis->idx++;
 
-            if (ent->pflags & 0x20 && ent->bound.type == XBOUND_TYPE_SPHERE &&
-                p->bound.type == XBOUND_TYPE_SPHERE && coll->hdng.y < -0.866025f)
+            if (ent->pflags & 0x20 && ent->bound.type == k_XBOUNDTYPE_SPHERE &&
+                p->bound.type == k_XBOUNDTYPE_SPHERE && coll->hdng.y < -0.866025f)
             {
                 F32 rsum = p->bound.sph.r + ent->bound.sph.r;
                 F32 dx = p->bound.sph.center.x - ent->bound.sph.center.x;
@@ -1640,7 +1640,7 @@ void xEntCollideFloor(xEnt* p, xScene* sc, F32 dt)
     S32 stepping = 0;
     F32 sbr;
 
-    if (p->bound.type == XBOUND_TYPE_SPHERE)
+    if (p->bound.type == k_XBOUNDTYPE_SPHERE)
     {
         sbr = p->bound.sph.r;
     }
@@ -1738,7 +1738,7 @@ void xEntCollideCeiling(xEnt* p, xScene* sc, F32 dt)
     xCollis* ml = coll;
     F32 sbr;
 
-    if (p->bound.type == XBOUND_TYPE_SPHERE)
+    if (p->bound.type == k_XBOUNDTYPE_SPHERE)
     {
         sbr = p->bound.sph.r;
     }
@@ -1795,7 +1795,7 @@ void xEntCollideWalls(xEnt* p, xScene* sc, F32 dt)
     U8 idx, sidx;
     F32 sbr;
 
-    if (p->bound.type == XBOUND_TYPE_SPHERE)
+    if (p->bound.type == k_XBOUNDTYPE_SPHERE)
     {
         sbr = p->bound.sph.r;
     }
