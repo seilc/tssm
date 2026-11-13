@@ -90,42 +90,7 @@ F32 xVec3Normalize(xVec3* o, const xVec3* v)
     return len;
 }
 
-//                                  xVolume
-
-xBound* xVolume::GetBound()
-{
-    return &this->asset->bound;
-}
-
-void xVolume::Load(xSerial* s)
-{
-    xBaseLoad(this, s);
-}
-
-void xVolume::Save(xSerial* s)
-{
-    xBaseSave(this, s);
-}
-
-void xVolume::Reset()
-{
-    xBaseReset(this, this->asset);
-}
-
-void xVolume::Init(xVolumeAsset* asset)
-{
-    xBaseInit(this, asset);
-    this->asset = asset;
-
-    if (this->linkCount)
-    {
-        this->link = (xLinkAsset*)(this->asset + 1);
-    }
-    else
-    {
-        this->link = NULL;
-    }
-}
+#include "xVolume.cpp"
 
 //                                  xUtil
 

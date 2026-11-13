@@ -1,17 +1,9 @@
 #ifndef XBASE_H
 #define XBASE_H
 
+#include "xBaseAsset.h"
 #include "xLinkAsset.h"
 #include "xserializer.h"
-
-// Size: 0x8
-struct xBaseAsset
-{
-    U32 id;
-    U8 baseType;
-    U8 linkCount;
-    U16 baseFlags;
-};
 
 struct xBase;
 

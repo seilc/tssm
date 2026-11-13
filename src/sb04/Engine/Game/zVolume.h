@@ -2,6 +2,7 @@
 #define ZVOLUME_H
 
 #include "xVolume.h"
+#include "xVec3.h"
 
 struct zVolume : xVolume
 {

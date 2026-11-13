@@ -1,6 +1,7 @@
 #include "zVolume.h"
 
 #include "xEvent.h"
+#include "xVolumeAsset.h"
 
 struct PreCalcOcclude
 {
