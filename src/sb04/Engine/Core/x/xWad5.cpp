@@ -334,8 +334,7 @@ U32 xUpdateCull_AlwaysTrueCB(void* ent, void* cbdata)
 }
 
 #include "xTRC.cpp"
-
-//                                  xTransient
+#include "xTransient.cpp"
 
 //                                  xTimer
 
