@@ -3057,33 +3057,7 @@ void zEntEvent(char* to, U32 toEvent)
     }
 }
 
-//                                          xEnv
-
-xEnv* gCurXEnv;
-
-void xEnvRender(xEnv* env, bool)
-{
-    if (env->geom != NULL)
-    {
-        iEnvRender(env->geom, false);
-    }
-}
-
-void xEnvFree(xEnv* env)
-{
-    if (env->geom != NULL)
-    {
-        iEnvFree(env->geom);
-        env->geom = NULL;
-    }
-}
-
-void xEnvSetup(xEnv* env)
-{
-    iEnvDefaultLighting(env->geom);
-    env->lightKit = NULL;
-    gCurXEnv = env;
-}
+#include "xEnv.cpp"
 
 //                                 xEntMotionTranslate
 

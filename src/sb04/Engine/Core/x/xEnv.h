@@ -49,9 +49,11 @@ void zEnvReset(zEnv* env);
 S32 zEnvEventCB(xBase*, xBase* to, U32 toEvent, const F32* toParam, xBase*);
 
 void xEnvLoadBsp(xEnv* env, const void* data, U32 datasize, S32 dataType);
-void xEnvFree(xEnv* env);
+
+void xEnvLoadJSPList(xEnv* env, S32 dataType);
 void xEnvSetup(xEnv* env);
-void xEnvRender(xEnv* env);
-void xEnvRender(xEnv* env, bool);
+void xEnvFree(xEnv* env);
+void xEnvRender(xEnv* env, bool alpha);
+void xEnvSceneReset(xEnv* env);
 
 #endif
