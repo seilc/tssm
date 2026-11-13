@@ -605,7 +605,7 @@ void xModelInit()
 
 //                                      xMemoryManagerFixed
 
-//                                      xMemoryManager
+#include "xMemoryManager.cpp"
 
 //                                          xMem
 
@@ -706,6 +706,7 @@ S32 xMemPushBase()
     return xMemPushBase(gActiveHeap);
 }
 
+#pragma auto_inline off
 void* xMemAlloc(U32 heapID, U32 size, S32 align)
 {
     // This variable not in DWARF
@@ -755,6 +756,7 @@ void* xMemAlloc(U32 heapID, U32 size, S32 align)
     heap->lastblk = hdr;
     return (void*)hdr->addr;
 }
+#pragma auto_inline reset
 
 #if 0
 // Not particularly close. Not 100% confident that I understand what's going on,
@@ -933,6 +935,7 @@ void xQuatDiff(xQuat* o, const xQuat* a, const xQuat* b)
 }
 
 /* xQuatMul (xQuat *, xQuat const *, xQuat const *) */
+#pragma auto_inline off
 void xQuatMul(xQuat* o, const xQuat* a, const xQuat* b)
 {
     F32 temp_f10;
@@ -962,6 +965,7 @@ void xQuatMul(xQuat* o, const xQuat* a, const xQuat* b)
              -((temp_f5 * temp_f6) - ((temp_f7 * temp_f4) - (temp_f11 * temp_f8))));
     xQuatNormalize(o, o);
 }
+#pragma auto_inline reset
 
 F32 xacos(F32 x)
 {

@@ -389,7 +389,7 @@ config.libs = [
         "objects": [
             Object(NonMatching, "sb04/Engine/Core/x/xWad4.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Core/x/xWad2.cpp", extra_cflags=["-sym on"]),
-            Object(NonMatching, "sb04/Engine/Core/x/xWad3.cpp", extra_cflags=["-sym on"]),
+            Object(NonMatching, "sb04/Engine/Core/x/xWad3.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/x/xWad1.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Core/x/xWad5.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(Matching, "sb04/Engine/Core/x/xFXHighDynamicRange.cpp", extra_cflags=["-inline deferred"]),
