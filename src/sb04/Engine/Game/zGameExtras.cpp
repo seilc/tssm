@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zGameExtras.h"
 
 void zGameExtras_Load(xSerial* xser)

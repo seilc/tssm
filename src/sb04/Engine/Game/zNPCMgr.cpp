@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zNPCMgr.h"
 
 struct NPCMTypeTable //     ported from bfbb

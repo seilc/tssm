@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zEGenerator.h"
 
 void zEGenerator_TurnOn(zEGenerator* egen)

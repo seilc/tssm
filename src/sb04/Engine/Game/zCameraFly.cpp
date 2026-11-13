@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "xLinkAsset.h"
 
 #include "xBase.h"

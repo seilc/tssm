@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "xWad5.h"
 
 //                                  xVec3

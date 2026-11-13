@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zGrid.h"
 
 void zGridExit(zScene* s)

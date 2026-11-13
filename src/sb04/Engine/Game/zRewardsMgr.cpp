@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zRewardsMgr.h"
 
 #include "xHudMeter.h"

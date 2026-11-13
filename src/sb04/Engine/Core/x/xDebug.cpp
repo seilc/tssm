@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "xDebug.h"
 
 U32 gFrameCount;

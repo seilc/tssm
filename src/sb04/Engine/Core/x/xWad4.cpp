@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "xWad4.h"
 #include "rwplcore.h"
 #include "xPad.h"

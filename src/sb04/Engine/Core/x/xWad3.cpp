@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "xWad3.h"
 #include "iModel.h"
 

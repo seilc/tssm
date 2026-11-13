@@ -1,3 +1,4 @@
+#include "xCommon.h"
 void zUIUserString_Init(zUIUserString*, zUIUserStringAsset*)
 {
 }

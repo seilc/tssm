@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zWad2.h"
 #include "iTime.h"
 

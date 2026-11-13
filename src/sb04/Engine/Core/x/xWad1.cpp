@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "xWad1.h"
 #include <dolphin.h>
 #include <PowerPC_EABI_Support\include\math.h>

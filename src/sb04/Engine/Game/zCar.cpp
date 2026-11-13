@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zCar.h"
 
 // Refrain from doing these functions until the zCar struct is fixed.

@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zWad3.h"
 
 #include "zVolume.cpp"

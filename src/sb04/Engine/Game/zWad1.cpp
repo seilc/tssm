@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zWad1.h"
 
 #include "zEnv.cpp"

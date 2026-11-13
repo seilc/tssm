@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zLight.h"
 
 void zLightSetVolume(zVolume* vol)

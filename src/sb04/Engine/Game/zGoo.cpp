@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zGoo.h"
 
 void zGooExit()

@@ -4,6 +4,8 @@
 #include <types.h>
 #include <intrin.h>
 
+#include <dtrigf.h>
+
 #ifdef __MWERKS__
 #define iabs(x) (float)(__fabs((float)x))
 #else

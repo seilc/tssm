@@ -199,6 +199,7 @@ cflags_base = [
     "-multibyte",  # For Wii compilers, replace with `-enc SJIS`
     "-i include",
     "-i src/PowerPC_EABI_Support/include",
+    "-i src/PowerPC_EABI_Support/include/PowerPC_EABI_Support/MSL_C/PPC_EABI",
     "-i src/dolphin/include",
     "-i src/dolphin/src",
     "-i src",

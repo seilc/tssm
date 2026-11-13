@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zParticleLocator.h"
 
 extern U32 gActiveHeap;

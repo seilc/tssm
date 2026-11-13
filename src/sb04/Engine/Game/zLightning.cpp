@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zLightning.h"
 
 void _zLightningKill(zLightning* l)

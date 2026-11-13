@@ -1,3 +1,4 @@
+#include "xCommon.h"
 
 #include "xWad2.h"
 

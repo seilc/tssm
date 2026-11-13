@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zPlayerBase.h"
 
 void zPlayerReset(zEnt* ent)

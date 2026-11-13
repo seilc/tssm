@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zSurface.h"
 
 #include "xstransvc.h"

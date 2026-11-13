@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zPlayerSB.h"
 
 TreasureChest* zPlayerSB::GetTreasureChestHud()

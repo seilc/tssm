@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "iWad.h"
 
 static iTime sStartupTime;

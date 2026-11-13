@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zConditional.h"
 
 S32 zConditionalEventCB(xBase*, xBase*, U32, const F32*, xBase*);

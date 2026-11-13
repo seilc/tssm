@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zParticleGenerator.h"
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\bsearch.h>
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\stdlib.h>

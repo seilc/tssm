@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zCollGeom.h"
 
 static volatile U32 sNumTables;

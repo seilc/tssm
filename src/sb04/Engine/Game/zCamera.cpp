@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "xpkrsvc.h"
 #include "xScrFx.h"
 #include "xstransvc.h"

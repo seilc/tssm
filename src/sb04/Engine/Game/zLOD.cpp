@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zLOD.h"
 
 zLODTable* zLOD_Get(xEnt* ent)

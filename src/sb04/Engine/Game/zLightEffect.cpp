@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zLightEffect.h"
 
 void zLightEffectInitCauldron(zLight* zlight)

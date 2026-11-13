@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zCutsceneMgr.h"
 
 static S32 gCutsceneSkipOK;

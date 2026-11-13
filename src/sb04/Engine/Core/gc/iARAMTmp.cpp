@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "iARAMTmp.h"
 
 // Marked as to-do.

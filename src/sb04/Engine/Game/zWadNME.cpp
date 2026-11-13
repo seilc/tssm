@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zWadNME.h"
 
 #include "zNMETypeCritBasic.cpp"

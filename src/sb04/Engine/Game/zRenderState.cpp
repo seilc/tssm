@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zRenderState.h"
 
 SDRenderState sRS;

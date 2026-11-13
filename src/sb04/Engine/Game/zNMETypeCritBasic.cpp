@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zNMETypeCritBasic.h"
 
 void zNMECritBasic::SelfSetup()

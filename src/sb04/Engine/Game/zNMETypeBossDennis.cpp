@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "zNMETypeBossDennis.h"
 
 S32 zNMEGoalDenDead::Exit(F32 dt, void* ctxt)

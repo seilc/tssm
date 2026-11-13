@@ -1,3 +1,4 @@
+#include "xCommon.h"
 #include "iTRC.h"
 
 #include "xSnd.h"
