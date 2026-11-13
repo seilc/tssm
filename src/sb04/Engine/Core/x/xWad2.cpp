@@ -4880,3 +4880,5 @@ void xEntRestorePipeline(xModelInstance* model)
 {
     xEntRestorePipeline(model->Surf, model->Data);
 }
+
+#include "xDebug.cpp"

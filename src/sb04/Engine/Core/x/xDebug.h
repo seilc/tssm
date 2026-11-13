@@ -4,8 +4,6 @@
 #include "iDebug.h"
 #include "xString.h"
 
-extern U32 gFrameCount;
-
 struct uint_data
 {
     U32 value_def;
@@ -90,15 +88,15 @@ struct tweak_callback
     convert_callback convert_tweak_to_mem;
 };
 
-void xprintf(const char* msg, ...);
+void xprintf(const char* fmt, ...);
 void xDebugInit();
 void xDebugUpdate();
 void xDebugExit();
 void xDebugTimestampScreen();
+void xDrawTextInit(U32 uBufferSize, U32 uNumLinesMax);
+void xDrawTextRender();
 
-void xDebugUpdate();
-
-F32 NSCREENY(F32 scale);
-F32 NSCREENX(F32 scale);
+extern U32 gFrameCount;
+extern U32 gSceneFrameCount;
 
 #endif
