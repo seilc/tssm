@@ -556,7 +556,7 @@ void xEntSetup(xEnt* ent)
 
         if (surf)
         {
-            surf->type = XSURFACE_TYPE_1;
+            surf->type = 1;
             surf->ent = ent;
 
             minst = ent->model;

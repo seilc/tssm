@@ -21,15 +21,13 @@ struct xSurface : xBase
     void* moprops;
 };
 
-#define XSURFACE_TYPE_1 1
-#define XSURFACE_TYPE_3 3
-
 void xSurfaceInit(U16 num_surfs);
 void xSurfaceExit();
 void xSurfaceSave(xSurface* ent, xSerial* s);
 void xSurfaceLoad(xSurface* ent, xSerial* s);
-void xSurfaceReset(xSurface* ent);
+void xSurfaceReset(xSurface*);
 U16 xSurfaceGetNumSurfaces();
 xSurface* xSurfaceGetByIdx(U16 n);
+xSurface* xSurfaceGetByName(const char* name);
 
 #endif

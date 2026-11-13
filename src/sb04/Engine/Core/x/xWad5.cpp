@@ -360,55 +360,7 @@ void xTimerInit(void* b, void* tasset)
     xTimerInit((xBase*)b, (xTimerAsset*)tasset);
 }
 
-//                                  xSurface
-
-xSurface* surfs;
-U16 nsurfs;
-
-xSurface* xSurfaceGetByIdx(U16 n)
-{
-    return surfs != NULL ? &surfs[n] : NULL;
-}
-
-U16 xSurfaceGetNumSurfaces()
-{
-    return nsurfs;
-}
-
-void xSurfaceReset(xSurface* ent)
-{
-}
-
-void xSurfaceLoad(xSurface* ent, xSerial* s)
-{
-    xBaseLoad((xBase*)ent, s);
-}
-
-void xSurfaceSave(xSurface* ent, xSerial* s)
-{
-    xBaseSave((xBase*)ent, s);
-}
-
-void xSurfaceExit()
-{
-}
-
-void xSurfaceInit(U16 num_surfs)
-{
-    nsurfs = num_surfs;
-    if (num_surfs != 0)
-    {
-        surfs = (xSurface*)xMEMALLOC(num_surfs * sizeof(xSurface), 0);
-        for (U16 i = 0; i < nsurfs; i++)
-        {
-            surfs[i].idx = i;
-        }
-    }
-    else
-    {
-        surfs = NULL;
-    }
-}
+#include "xSurface.cpp"
 
 //                                      xStr
 
