@@ -24,8 +24,7 @@ struct xUpdateCullGroup
     xGroup* groupObject;
 };
 
-typedef void (*xUpdateCullActivateCallback)(void*);
-typedef void (*xUpdateCullDeactivateCallback)(void*);
+typedef void (*xUpdateCullMgrCallback)(void*);
 
 struct xUpdateCullMgr
 {
@@ -38,8 +37,8 @@ struct xUpdateCullMgr
     xUpdateCullEnt* mgrList;
     U32 grpCount;
     xUpdateCullGroup* grpList;
-    xUpdateCullActivateCallback activateCB;
-    xUpdateCullDeactivateCallback deactivateCB;
+    xUpdateCullMgrCallback activateCB;
+    xUpdateCullMgrCallback deactivateCB;
 };
 
 union FloatAndVoid

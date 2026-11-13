@@ -105,7 +105,6 @@ struct xEntShadow;
 
 typedef void(*xEntVisUpdateCallback)(xEnt*);
 typedef void(*xEntUpdateCallback)(xEnt*, xScene*, F32);
-typedef void(*xEntEndUpdateCallback)(xEnt*, xScene*, F32);
 typedef void(*xEntBoundUpdateCallback)(xEnt*, xVec3*);
 typedef void(*xEntMoveCallback)(xEnt*, xScene*, F32, xEntFrame*);
 typedef void(*xEntRenderCallback)(xEnt*);
@@ -142,7 +141,7 @@ struct xEnt : xBase
     xModelInstance* collModel;
     xModelInstance* camcollModel;
     xEntUpdateCallback update;
-    xEntEndUpdateCallback endUpdate;
+    xEntUpdateCallback endUpdate;
     xEntBoundUpdateCallback bupdate;
     xEntMoveCallback move;
     xEntRenderCallback render;

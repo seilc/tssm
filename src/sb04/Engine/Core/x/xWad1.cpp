@@ -3561,7 +3561,7 @@ void _xAnimTableAddTransition(xAnimTable* table, xAnimTransition* tran, const ch
 }
 
 xAnimTransition* xAnimTableNewTransition(xAnimTable* table, const char* source, const char* dest,
-                                         xAnimTransitionConditionalCallback conditional,
+                                         xAnimTransitionCallback conditional,
                                          xAnimTransitionCallback callback, U32 flags, U32 userFlags,
                                          F32 srcTime, F32 destTime, U16 priority, U16 queuePriority,
                                          F32 blendRecip, U16* blendOffset)

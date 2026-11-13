@@ -75,16 +75,19 @@ struct tweak_info
 
 struct tweak_callback
 {
-    void (*on_change)(tweak_info&);
-    void (*on_select)(tweak_info&);
-    void (*on_unselect)(tweak_info&);
-    void (*on_start_edit)(tweak_info&);
-    void (*on_stop_edit)(tweak_info&);
-    void (*on_expand)(tweak_info&);
-    void (*on_collapse)(tweak_info&);
-    void (*on_update)(tweak_info&);
-    void (*convert_mem_to_tweak)(tweak_info&, void*);
-    void (*convert_tweak_to_mem)(tweak_info&, void*);
+    typedef void (*event_callback)(const tweak_info&);
+    typedef void (*convert_callback)(const tweak_info&, void*);
+
+    event_callback on_change;
+    event_callback on_select;
+    event_callback on_unselect;
+    event_callback on_start_edit;
+    event_callback on_stop_edit;
+    event_callback on_expand;
+    event_callback on_collapse;
+    event_callback on_update;
+    convert_callback convert_mem_to_tweak;
+    convert_callback convert_tweak_to_mem;
 };
 
 void xprintf(const char* msg, ...);

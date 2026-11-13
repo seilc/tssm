@@ -82,14 +82,13 @@ struct xAnimState
     xAnimStateBeforeAnimMatricesCallback BeforeAnimMatrices;
 };
 
-typedef U32 (*xAnimTransitionConditionalCallback)(xAnimTransition*, xAnimSingle*, void*);
 typedef U32 (*xAnimTransitionCallback)(xAnimTransition*, xAnimSingle*, void*);
 
 struct xAnimTransition
 {
     xAnimTransition* Next;
     xAnimState* Dest;
-    xAnimTransitionConditionalCallback Conditional;
+    xAnimTransitionCallback Conditional;
     xAnimTransitionCallback Callback;
     U32 Flags;
     U32 UserFlags;
@@ -172,7 +171,7 @@ struct xAnimPlay
     xAnimTable* Table; // 0x10
     xMemPool* Pool;
     xModelInstance* ModelInst;
-    void (*BeforeAnimMatrices)(xAnimPlay*, xQuat*, xVec3*, S32);
+    xAnimStateBeforeAnimMatricesCallback BeforeAnimMatrices;
 };
 
 class AnimTableList
@@ -194,7 +193,7 @@ xAnimState* xAnimTableNewState(xAnimTable* table, const char* name, U32 flags, U
                                xAnimStateCallback stateCallback,
                                xAnimStateBeforeAnimMatricesCallback beforeAnimMatrices);
 xAnimTransition* xAnimTableNewTransition(xAnimTable* table, const char* source, const char* dest,
-                                         xAnimTransitionConditionalCallback conditional,
+                                         xAnimTransitionCallback conditional,
                                          xAnimTransitionCallback callback, U32 flags, U32 userFlags,
                                          F32 srcTime, F32 destTime, U16 priority, U16 queuePriority,
                                          F32 blendRecip, U16* blendOffset);
