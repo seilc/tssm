@@ -2,7 +2,8 @@
 """Draw a treemap of the Game units as a PNG, for the Discord progress post.
 
 Usage: treemap.py CUR_DIR OUT.png [PREV_DIR]
-Every Game unit of the first version, grouped by folder and sized by code bytes (tiny units raised to a minimum box):
+Every Game unit of the first version, grouped by folder and sized by code bytes (tiny units raised to a minimum box;
+a unity Wad as the files it holds, progress.split_wads):
 green is complete, grey has nothing matched, and blue is partly matched, brighter the more is matched. With PREV_DIR,
 units whose match changed in any version get an outline, or a yellow fill when too small for one. Wide and short, with
 folder headings only, to stay readable on a phone without filling the screen.
@@ -15,7 +16,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-from progress import CATEGORY, VERSIONS
+from progress import CATEGORY, VERSIONS, split_wads
 
 WIDTH, HEIGHT = 1000, 420
 MARGIN = 4
@@ -40,7 +41,7 @@ def load(d, ver):
     if not path.exists():
         return None
     units = {}
-    for unit in json.loads(path.read_text())["units"]:
+    for unit in split_wads(json.loads(path.read_text())["units"]):
         if CATEGORY in unit.get("metadata", {}).get("progress_categories", []):
             units[unit["name"].split("/", 1)[-1]] = unit
     return units

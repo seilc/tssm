@@ -4,7 +4,8 @@
 Usage: progress.py CUR_DIR [PREV_DIR]
 One line per version (matched code, and its change since PREV_DIR; a 🎉 when it passed a multiple of 10% since
 PREV_DIR), then, with PREV_DIR, the Game files whose match changed, with the changed functions of the files not yet
-complete.
+complete. A unity Wad counts as the files it holds (split_wads), each measured from its functions, as if it weren't
+in a Wad.
 Optional environment, for the line naming who pushed what: PUSHER (GitHub login), REPO (owner/name), HEAD_SHA,
 PREV_SHA, COMMITS (the number of commits pushed).
 Prints nothing when nothing changed since PREV_DIR.
@@ -12,6 +13,7 @@ Each directory holds <VERSION>_report/report.json, as downloaded from the Build 
 """
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -21,10 +23,47 @@ USERNAME = "Chris"
 CATEGORY = "game"
 ABBREVS = {"DEBUG": "D", "RELEASE": "R", "MASTERDEBUG": "MD", "MASTER": "M"}
 MAX_CONTENT = 2000  # Discord's message limit
+WADMAP = Path(__file__).resolve().parent / "wadmap.json"  # which file each Wad function comes from
+
+
+def split_wads(units):
+    """The report's units with each unity Wad replaced by the files it holds, as wadmap.json lists their functions.
+    A file's measures come from its functions (code only: the report gives data per section, not per symbol), and it
+    is complete when every function is. Functions the map doesn't name stay with the Wad's own file."""
+    if not WADMAP.exists():
+        return units
+    wads = json.loads(WADMAP.read_text())["wads"]
+    out, split = [], {}  # split: unit name -> (metadata, functions), merged when two pieces share a name
+    taken = {u["name"] for u in units if u.get("metadata", {}).get("source_path") not in wads}
+    for u in units:
+        meta = u.get("metadata", {})
+        files = wads.get(meta.get("source_path"))
+        if files is None:
+            out.append(u)
+            continue
+        folder, own = meta["source_path"].rsplit("/", 1)
+        where = {f: name for name, funcs in files.items() for f in funcs}
+        prefix = u["name"].rsplit("/", 1)[0]
+        for f in u.get("functions", []):
+            file = where.get(f["name"], own)
+            name = f"{prefix}/{file.rsplit('.', 1)[0]}"
+            if name in taken:  # a standalone object of that name: keep both apart
+                name += f" ({own})"
+            split.setdefault(name, ({**meta, "source_path": f"{folder}/{file}"}, []))[1].append(f)
+    for name, (meta, funcs) in split.items():
+        size = sum(int(f["size"]) for f in funcs)
+        done = [f for f in funcs if float(f.get("fuzzy_match_percent", 0.0)) == 100.0]
+        fuzzy = sum(int(f["size"]) * float(f.get("fuzzy_match_percent", 0.0)) for f in funcs) / size if size else 0.0
+        out.append({"name": name, "functions": funcs, "metadata": {**meta, "complete": len(done) == len(funcs)},
+                    "measures": {"fuzzy_match_percent": fuzzy, "total_code": str(size),
+                                 "matched_code": str(sum(int(f["size"]) for f in done)),
+                                 "total_functions": len(funcs), "matched_functions": len(done)}})
+    return out
 
 
 def func_name(name):
-    """A demangled name without its argument list."""
+    """A demangled name without its argument list (and without an anonymous namespace, `@unnamed@xWad2_cpp@::`)."""
+    name = re.sub(r"@unnamed@\w+@::", "", name)
     if name.endswith(" const"):
         name = name[:-len(" const")]
     if not name.endswith(")"):
@@ -46,7 +85,7 @@ def load(d, ver):
     if m is None:
         return None
     units = {}
-    for u in r.get("units", []):
+    for u in split_wads(r.get("units", [])):
         meta = u.get("metadata", {})
         if CATEGORY not in meta.get("progress_categories", []):
             continue
