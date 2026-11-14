@@ -18,9 +18,7 @@ inline F32 xVec3Length(const xVec3* v)
 }
 inline void xVec3SMul(xVec3* o, const xVec3* v, F32 s)
 {
-    o->x = s * v->x;
-    o->y = s * v->y;
-    o->z = s * v->z;
+    o->x = v->x * s, o->y = v->y * s, o->z = v->z * s;
 }
 inline void xVec3Add(xVec3* o, const xVec3* a, const xVec3* b)
 {
@@ -29,7 +27,10 @@ inline void xVec3Add(xVec3* o, const xVec3* a, const xVec3* b)
     o->z = a->z + b->z;
 }
 void xVec3Init(xVec3* v, F32 _x, F32 _y, F32 _z);
-void xVec3AddTo(xVec3* o, const xVec3* v);
+inline void xVec3AddTo(xVec3* a, const xVec3* b)
+{
+    a->x += b->x, a->y += b->y, a->z += b->z;
+}
 void xVec3Lerp(xVec3* o, const xVec3* a, const xVec3* b, F32 t);
 void xVec3ScaleC(xVec3* o, const xVec3* v, F32 x, F32 y, F32 z);
 

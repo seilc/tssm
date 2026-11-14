@@ -30,11 +30,15 @@ inline F32 xsqrt(register F32 x)
     return 100000.0f;
 }
 
+inline F32 xexp(F32 x)
+{
+    return expf(x);
+}
+
 F32 xfmod(F32 a, F32 b);
 F32 xatan2(F32 y, F32 x);
 F32 xasin(F32 x);
 F32 xacos(F32 x);
-F32 xexp(F32 x);
 F32 xpow(F32 x, F32 y);
 
 F32 SQ(F32 x);

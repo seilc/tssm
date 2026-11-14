@@ -31,6 +31,11 @@ MATH_INLINE float cosf(float __x)
     return cos((double)__x);
 }
 
+MATH_INLINE float expf(float __x)
+{
+    return exp((double)__x);
+}
+
 // The 3 inlines below were originally MATH_INLINE
 // Changed to correct issues. Change back if needed
 
