@@ -1732,7 +1732,7 @@ void xMathInit()
     }
 }
 
-//                                        xLightVolume
+#include "xLightVolume.cpp"
 
 //                                          xLightKit
 
