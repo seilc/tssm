@@ -187,6 +187,8 @@ xIniFile* xIniParse(char* buf, S32 len)
     return ini;
 }
 
+#include "xIM.cpp"
+
 //                                           xhud::text_widget
 
 void xhud::text_widget::render()

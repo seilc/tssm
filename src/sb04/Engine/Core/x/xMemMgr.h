@@ -1,7 +1,7 @@
 #ifndef XMEMMGR_H
 #define XMEMMGR_H
 
-#include <types.h>
+#include "iMemMgr.h"
 
 #include <PowerPC_EABI_Support/MSL_C++/MSL_Common/Include/new>
 
@@ -132,7 +132,6 @@ void xMemInitHeap(xMemHeap_tag* heap, U32 base, U32 size, U32 flags);
 U32 xMemGetBlockInfo(xMemHeap_tag* heap, U32 size, S32 align, xMemBlkInfo* info);
 void* xMemGrowAlloc(U32 heapID, U32 size);
 void* xMemAlloc(U32 heapID, U32 size, S32 align);
-void* xMemPushTemp(U32 size);
 void xMemPopTemp(void* memory);
 S32 xMemPushBase(U32 heapID);
 S32 xMemPushBase();
@@ -149,5 +148,12 @@ void xMemPoolFree(xMemPool* pool, void* data);
 
 #define xMEMALLOC(size, align) xMemAlloc(gActiveHeap, (size), (align))
 #define xMEMGROWALLOC(size) xMemGrowAlloc(gActiveHeap, (size))
+#define xMEMPUSHTEMP(amt) xMemPushTemp((amt))
+#define xMEMPOPTEMP(pointer) iMemPopTemp((pointer))
+
+inline void* xMemPushTemp(U32 amt)
+{
+    return iMemPushTemp(amt);
+}
 
 #endif

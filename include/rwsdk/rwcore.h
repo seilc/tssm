@@ -3,30 +3,73 @@
 
 #include <rwsdk/rwplcore.h>
 
-typedef struct _RxObjSpace3DVertex RxObjSpace3DVertex;
+typedef struct RxObjSpace3DVertex RxObjSpace3DVertex;
 
-union RxColorUnion
+struct RxObjSpace3DVertex
 {
-    RwRGBA preLitColor;
-    RwRGBA color;
-};
-
-// TODO: Determine whether c should go before or after objNormal
-// Context: These headers came from an official header source (unsure of release platform)
-//          However, currently decomped functions seem to pack the struct
-//          in this particular way so it's like this for now.
-//          See: zActionLIne.cpp
-struct _RxObjSpace3DVertex
-{
-    RwV3d objVertex;
-    RwV3d objNormal;
-    RxColorUnion c;
+    RwReal x;
+    RwReal y;
+    RwReal z;
+    RwReal nx;
+    RwReal ny;
+    RwReal nz;
+    RwUInt8 r;
+    RwUInt8 g;
+    RwUInt8 b;
+    RwUInt8 a;
     RwReal u;
     RwReal v;
 };
 
 typedef RxObjSpace3DVertex RxObjSpace3DLitVertex;
 typedef RxObjSpace3DLitVertex RwIm3DVertex;
+
+enum RwIm3DTransformFlags
+{
+    rwIM3D_VERTEXUV = 0x1,
+    rwIM3D_ALLOPAQUE = 0x2,
+    rwIM3D_NOCLIP = 0x4,
+    rwIM3D_VERTEXXYZ = 0x8,
+    rwIM3D_VERTEXRGBA = 0x10,
+    rwIM3DTRANSFORMFLAGSFORCEENUMSIZEINT = RWFORCEENUMSIZEINT,
+};
+typedef enum RwIm3DTransformFlags RwIm3DTransformFlags;
+
+#define RwIm3DVertexSetPos(_vert, _imx, _imy, _imz)  \
+    MACRO_START                                      \
+    {                                                \
+        RwV3d tmp;                                   \
+        tmp.x = _imx;                                \
+        tmp.y = _imy;                                \
+        tmp.z = _imz;                                \
+        (_vert)->x = tmp.x;                          \
+        (_vert)->y = tmp.y;                          \
+        (_vert)->z = tmp.z;                          \
+    }                                                \
+    MACRO_STOP
+
+#define RwIm3DVertexSetRGBA(_vert, _r, _g, _b, _a)  \
+    MACRO_START                                     \
+    {                                               \
+        RwRGBA col;                                 \
+        col.red = _r;                               \
+        col.green = _g;                             \
+        col.blue = _b;                              \
+        col.alpha = _a;                             \
+        (_vert)->r = col.red;                       \
+        (_vert)->g = col.green;                     \
+        (_vert)->b = col.blue;                      \
+        (_vert)->a = col.alpha;                     \
+    }                                               \
+    MACRO_STOP
+
+#define RwIm3DVertexSetUV(_vert, _u, _v)  \
+    MACRO_START                           \
+    {                                     \
+        (_vert)->u = _u;                  \
+        (_vert)->v = _v;                  \
+    }                                     \
+    MACRO_STOP
 
 typedef struct rxHeapFreeBlock;
 typedef struct rxHeapSuperBlockDescriptor;

@@ -1241,6 +1241,7 @@
     "update__Q24xhud12meter_widgetFf"
    ],
    "xIM.cpp": [
+    "xIMRender__FR14xIMLockContextPC7xMat4x3",
     "xIMUnlock__FR14xIMLockContext",
     "xIMLock__FR14xIMLockContext9xIMFormati"
    ],
@@ -1258,7 +1259,6 @@
     "render__Q24xhud6widgetFv",
     "update__Q24xhud6widgetFf",
     "destroy__Q24xhud6widgetFv",
-    "xIMRender__FR14xIMLockContextPC7xMat4x3",
     "xEntVisibilityCullOff__FP4xEnt",
     "xEntVisibilityCullOn__FP4xEnt",
     "xEntHide__FP4xEnt",
