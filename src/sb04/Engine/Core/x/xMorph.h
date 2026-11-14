@@ -41,7 +41,7 @@ struct xMorphTargetFile
 typedef void*(*xMorphFindAssetCallback)(U32, char*);
 
 xMorphSeqFile* xMorphSeqSetup(void* data, xMorphFindAssetCallback FindAssetCB);
-void xMorphRender(xMorphSeqFile* seq, RwMatrix* mat, F32 time);
+void xMorphRender(xMorphSeqFile* seq, RwMatrix* mat, F32 time); // UNUSED
 F32 xMorphSeqDuration(xMorphSeqFile* seq);
 
 #endif
