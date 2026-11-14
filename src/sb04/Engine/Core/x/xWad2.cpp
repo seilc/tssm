@@ -358,6 +358,7 @@ void xhud::model_widget::render()
     render_model(*model, rc);
 }
 
+#include "xHudMeter.cpp"
 #include "xHud.cpp"
 
 //                                                   HIPL

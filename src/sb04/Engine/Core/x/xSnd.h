@@ -6,6 +6,8 @@
 #include "iSnd.h"
 #include "xEnt.h"
 
+typedef iSndGroupHandle xSndGroupHandle;
+
 enum sound_category
 {
     SND_CAT_INVALID = 0xffffffff,
@@ -126,13 +128,6 @@ struct xSndGroup
 {
     xSndGroupHeader header;
     xSndGroupInfo aSndGroupInfo[0];
-};
-
-template <S32 N> struct sound_queue
-{
-    U32 _playing[N + 1];
-    S32 head;
-    S32 tail;
 };
 
 enum sound_effect

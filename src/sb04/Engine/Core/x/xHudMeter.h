@@ -2,7 +2,7 @@
 #define XHUDMETER_H
 
 #include "xHud.h"
-#include "xSnd.h"
+#include "xSndMgr.h"
 
 namespace xhud {
 

@@ -224,13 +224,6 @@ struct wait_context
     query_enum query;
 };
 
-struct sound_queue
-{
-    iSndHandle _playing[5];
-    S32 head;
-    S32 tail;
-};
-
 struct trigger_pair
 {
     ztalkbox* origin;
