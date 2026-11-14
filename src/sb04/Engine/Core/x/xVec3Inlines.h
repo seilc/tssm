@@ -32,6 +32,14 @@ void xVec3Init(xVec3* v, F32 _x, F32 _y, F32 _z);
 void xVec3AddTo(xVec3* o, const xVec3* v);
 void xVec3Lerp(xVec3* o, const xVec3* a, const xVec3* b, F32 t);
 void xVec3ScaleC(xVec3* o, const xVec3* v, F32 x, F32 y, F32 z);
+
+inline F32 xVec3Hdng(xVec3* hdng, const xVec3* a, const xVec3* b)
+{
+    F32 d;
+    xVec3HdngMacro(hdng, a, b, &d);
+    return d;
+}
+
 F32 xVec3Dist(const xVec3* a, const xVec3* b);
 F32 xVec3Dist2(const xVec3* vecA, const xVec3* vecB);
 F32 xVec3Length2(const xVec3* vec);

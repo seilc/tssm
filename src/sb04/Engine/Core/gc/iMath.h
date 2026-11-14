@@ -6,11 +6,7 @@
 
 #include <dtrigf.h>
 
-#ifdef __MWERKS__
-#define iabs(x) (float)(__fabs((float)x))
-#else
-#define iabs(x) fabsf(x)
-#endif
+#define iabs(x) (float)(__fabs((float)(x)))
 
 F32 isin(F32 x);
 F32 icos(F32 x);

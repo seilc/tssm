@@ -19,6 +19,4 @@
 #include "xCamera.h"
 #include "xMathInlines.h"
 
-F32 xVec3Hdng(xVec3* a, const xVec3* b, const xVec3* c);
-
 #endif
