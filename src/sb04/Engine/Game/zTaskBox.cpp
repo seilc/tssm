@@ -181,7 +181,7 @@ void ztaskbox::complete()
     {
         this->state = STATE_INVALID;
         this->flag.enabled = false;
-        zEntEvent(this, 0, this, eEventTaskBox_OnComplete, 0, NULL, 0, 1);
+        zEntEvent(this, 0, this, eEventTaskBox_OnComplete, 0, NULL, 0, FE_NO);
         this->current = (ztaskbox*)zSceneFindObject(this->asset->next_task);
 
         // Bruh

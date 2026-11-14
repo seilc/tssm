@@ -3,6 +3,12 @@
 
 #include "xBase.h"
 
+enum ForceEvent
+{
+    FE_YES,
+    FE_NO
+};
+
 enum en_xEventTags
 {
     eEventUnknown,
@@ -815,7 +821,6 @@ enum en_xEventTags
 void zEntEvent(char* to, U32 toEvent);
 void zEntEvent(U32 toID, U32 toEvent);
 void zEntEvent(U32 toID, U32 toEvent, F32 toParam0, F32 toParam1, F32 toParam2, F32 toParam3);
-void zEntEvent(xBase* to, U32 toEvent);
 void zEntEvent(xBase* to, U32 toEvent, F32 toParam0, F32 toParam1, F32 toParam2, F32 toParam3);
 void zEntEvent(xBase* to, U32 toEvent, const F32* toParam);
 void zEntEvent(xBase* to, U32 toEvent, const F32* toParam, xBase* toParamWidget);
@@ -824,6 +829,11 @@ void zEntEvent(xBase* from, xBase* to, U32 toEvent, const F32* toParam);
 void zEntEvent(xBase* from, U32 fromEvent, xBase* to, U32 toEvent, const F32* toParam,
                xBase* toParamWidget, S32 forceEvent);
 void zEntEvent(xBase* from, U32 fromEvent, xBase* to, U32 toEvent, const F32* toParam,
-               xBase* toParamWidget, U32 unknown, S32 forceEvent);
+               xBase* toParamWidget, U32 toParamWidgetID, ForceEvent forceEvent);
+
+inline void zEntEvent(xBase* to, U32 toEvent)
+{
+    zEntEvent(NULL, 0, to, toEvent, NULL, NULL, 0, FE_NO);
+}
 
 #endif

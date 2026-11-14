@@ -20,6 +20,9 @@ struct xBase
     xBaseEventCallback eventFunc; // 0xC
 };
 
+// xBase::baseFlags
+#define k_XBASE_RECEIVES_SHADOWS ((U16)(1 << 4))
+
 void xBaseInit(xBase* xb, const xBaseAsset* asset);
 void xBaseSetup(xBase* xb);
 void xBaseSave(xBase* ent, xSerial* s);

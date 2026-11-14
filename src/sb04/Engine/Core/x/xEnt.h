@@ -160,6 +160,9 @@ struct xEnt : xBase
     void* user_data;
 };
 
+// xEnt::flags
+#define k_XENT_IS_VISIBLE ((U8)(1 << 0))
+
 // collision types
 #define XENT_COLLTYPE_NONE 0x0
 #define XENT_COLLTYPE_TRIG 0x1 // trigger (TRIG)
@@ -191,7 +194,6 @@ xMat4x3* xEntGetFrame(const xEnt* ent);
 void xEntEnable(xEnt* ent);
 xVec3* xEntGetCenter(const xEnt* ent);
 xVec3* xEntGetPos(const xEnt* ent);
-inline U32 xEntIsVisible(const xEnt* ent);
 void xEntHide(xEnt* ent);
 void xEntShow(xEnt* ent);
 void xEntInitShadow(xEnt& ent, xEntShadow& shadow);
@@ -257,6 +259,11 @@ inline xVec3* xEntGetPos(const xEnt* ent)
 inline xVec3* xEntGetCenter(const xEnt* ent)
 {
     return (xVec3*)xBoundCenter(&ent->bound);
+}
+
+inline U32 xEntIsVisible(const xEnt* ent)
+{
+    return (ent->flags & (k_XENT_IS_VISIBLE | 0x4 | 0x80)) == k_XENT_IS_VISIBLE;
 }
 
 #endif
