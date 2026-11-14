@@ -16,7 +16,7 @@ enum en_npcglyph
     NPC_GLYPH_FRIEND,
     NPC_GLYPH_DAZED,
     NPC_GLYPH_NOMORE,
-    NPC_GLYPH_FORCE = 0x7fffffff
+    NPC_GLYPH_FORCE = FORCEENUMSIZEINT
 };
 
 struct NPCGlyph

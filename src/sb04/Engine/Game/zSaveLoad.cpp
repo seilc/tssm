@@ -2,6 +2,7 @@
 #include "iTRC.h"
 
 #include "xSnd.h"
+#include "xutil.h"
 
 #include "zSaveLoad.h"
 
@@ -151,9 +152,9 @@ S32 xSGT_SaveInfoPrefsCB(void* p1, st_XSAVEGAME_DATA* data, S32* i, S32* j)
 
 S32 xSGT_SaveProcCB(void* vp, st_XSAVEGAME_DATA* xsgdata, st_XSAVEGAME_WRITECONTEXT* wctxt)
 {
-    if (globals.sceneCur->sceneID == 'PG12')
+    if (globals.sceneCur->sceneID == IDTAG('P','G','1','2'))
     {
-        strcpy(currSceneStr, xUtil_idtag2string('HB01', 0));
+        strcpy(currSceneStr, xUtil_idtag2string(IDTAG('H','B','0','1'), 0));
     }
     else
     {
@@ -558,9 +559,9 @@ S32 zSaveLoad_SaveGame()
     char label[64];
     const char* area;
 
-    if (globals.sceneCur->sceneID == 'PG12')
+    if (globals.sceneCur->sceneID == IDTAG('P','G','1','2'))
     {
-        area = zSceneGetLevelName('HB01');
+        area = zSceneGetLevelName(IDTAG('H','B','0','1'));
     }
     else
     {
@@ -683,9 +684,9 @@ S32 zSaveLoad_DoAutoSave()
     U32 progress = zSceneCalcProgress();
 
     const char* area;
-    if (globals.sceneCur->sceneID == 'PG12')
+    if (globals.sceneCur->sceneID == IDTAG('P','G','1','2'))
     {
-        area = zSceneGetLevelName('HB01');
+        area = zSceneGetLevelName(IDTAG('H','B','0','1'));
     }
     else
     {
@@ -865,9 +866,9 @@ S32 zSaveLoad_GameSelect(S32 mode)
             else
             {
                 strcpy(zSaveLoadGameTable[i].label, xSGGameLabel(svinst, i));
-                if (strcmpi(zSaveLoadGameTable[i].label, zSceneGetLevelName('MNU3')) == 0)
+                if (strcmpi(zSaveLoadGameTable[i].label, zSceneGetLevelName(IDTAG('M','N','U','3'))) == 0)
                 {
-                    strcpy(zSaveLoadGameTable[i].label, zSceneGetLevelName('HB01'));
+                    strcpy(zSaveLoadGameTable[i].label, zSceneGetLevelName(IDTAG('H','B','0','1')));
                 }
                 strcpy(zSaveLoadGameTable[i].date, xSGGameModDate(svinst, i));
                 zSaveLoadGameTable[i].progress = xSGGameProgress(svinst, i);

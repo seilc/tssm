@@ -1,8 +1,6 @@
 #include "xCommon.h"
 #include "xRenderState.h"
 
-#include <dolphin.h>
-
 void xRenderSceneEnter()
 {
 }

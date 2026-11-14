@@ -75,6 +75,7 @@ typedef struct _tagxPad
 } xPad;
 
 // Named after PS2 buttons to match the "PadPress*" events
+// xPad::on, pressed, released
 #define XPAD_BUTTON_START 0x1
 #define XPAD_BUTTON_SELECT 0x2
 #define XPAD_BUTTON_UP 0x10
@@ -91,6 +92,7 @@ typedef struct _tagxPad
 #define XPAD_BUTTON_TRIANGLE 0x80000 // B on gamecube
 
 // GameCube
+// xPad::on, pressed, released
 #define XPAD_BUTTON_Z 0x100000
 
 extern xPad mPad[4];

@@ -163,7 +163,7 @@ struct xEnt : xBase
 // xEnt::flags
 #define k_XENT_IS_VISIBLE ((U8)(1 << 0))
 
-// collision types
+// xEnt::collType, chkby, penby; xEntCollis::chk, pen
 #define XENT_COLLTYPE_NONE 0x0
 #define XENT_COLLTYPE_TRIG 0x1 // trigger (TRIG)
 #define XENT_COLLTYPE_STAT 0x2 // static (SIMP)

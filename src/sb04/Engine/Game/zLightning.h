@@ -96,8 +96,8 @@ struct zLightningFuncPiece
     U32 pad;
 };
 
-void lightningTweakChangeType(tweak_info& t);
-void lightningTweakStart(tweak_info& t);
+void lightningTweakChangeType(const tweak_info& t);
+void lightningTweakStart(const tweak_info& t);
 void zLightningInit();
 zLightning* zLightningAdd(LightningAdd* add);
 void UpdateLightning(zLightning* l, F32 seconds);

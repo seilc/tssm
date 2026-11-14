@@ -3,6 +3,7 @@
 
 #include "xFont.h"
 #include "xTextAsset.h"
+#include "xutil.h"
 #include "iCamera.h"
 #include "zEntPlayerOOBState.h"
 #include "zGame.h"
@@ -50,7 +51,7 @@ static U32 pad_message_valid()
         return FALSE;
     } else if (!oob_state::IsPlayerInControl()) {
         return FALSE;
-    } else if (globals.sceneCur->sceneID == 'B402') {
+    } else if (globals.sceneCur->sceneID == IDTAG('B','4','0','2')) {
         zGameStall();
         return TRUE;
     } else if (globals.player.ControlOff) {

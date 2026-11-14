@@ -7,6 +7,7 @@
 #include "zEnt.h"
 #include "zLasso.h"
 
+// zPlayerGlobals::ControlOff
 enum zControlOwner
 {
     CONTROL_OWNER_GLOBAL = 0x1,

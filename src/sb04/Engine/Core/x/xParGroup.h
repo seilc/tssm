@@ -24,6 +24,7 @@ struct xParGroup
     xParCmdTex* m_cmdTex;
 };
 
+// xParGroup::m_flags
 #define XPARGROUP_UNK1 0x1
 #define XPARGROUP_ALLOCPARS 0x2
 #define XPARGROUP_NOAGING 0x4

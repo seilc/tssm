@@ -61,7 +61,7 @@ enum en_npchaz
     NPC_HAZ_ROBOBITS,
     NPC_HAZ_VISSPLASH,
     NPC_HAZ_NOMORE,
-    NPC_HAZ_FORCE = 0x7fffffff
+    NPC_HAZ_FORCE = FORCEENUMSIZEINT
 };
 
 struct HAZTypical
@@ -78,7 +78,7 @@ enum en_hazcol
     HAZ_COLTYP_DYN,
     HAZ_COLTYP_NPC,
     HAZ_COLTYP_NOMORE,
-    HAZ_COLTYP_FORCE = 0x7fffffff
+    HAZ_COLTYP_FORCE = FORCEENUMSIZEINT
 };
 
 struct HAZCollide : HAZTypical
@@ -156,7 +156,7 @@ enum en_haznote
     HAZ_NOTE_HITPLAYER,
     HAZ_NOTE_RECONFIG,
     HAZ_NOTE_NOMORE,
-    HAZ_NOTE_FORCE = 0x7fffffff
+    HAZ_NOTE_FORCE = FORCEENUMSIZEINT
 };
 
 struct HAZNotify

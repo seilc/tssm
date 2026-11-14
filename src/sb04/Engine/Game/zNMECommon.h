@@ -90,7 +90,7 @@ enum en_npcparm
     NPC_PARM_BOGUSSHARE,
     NPC_PARM_ENDTAG_SHARE,
     NPC_PARM_NOMORE,
-    NPC_PARM_FORCEINT = 0x7fffffff
+    NPC_PARM_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_NPC_GOAL_SPOT
@@ -103,7 +103,7 @@ enum en_NPC_GOAL_SPOT
     NPC_GSPOT_ALTB,
     NPC_GSPOT_PATROLPAUSE,
     NPC_GSPOT_NOMORE,
-    NPC_GSPOT_FORCEINT = 0x7fffffff
+    NPC_GSPOT_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_NPC_CARRY_STATE
@@ -112,7 +112,7 @@ enum en_NPC_CARRY_STATE
     zNPCCARRY_PICKUP,
     zNPCCARRY_THROW,
     zNPCCARRY_ATTEMPTPICKUP,
-    zNPCCARRY_FORCEINT = 0x7fffffff
+    zNPCCARRY_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_npcvibe
@@ -124,7 +124,7 @@ enum en_npcvibe
     NPC_VIBE_BUILD_B,
     NPC_VIBE_BUILD_C,
     NPC_VIBE_NOMORE,
-    NPC_VIBE_FORCE = 0x7fffffff
+    NPC_VIBE_FORCE = FORCEENUMSIZEINT
 };
 
 struct xEntNPCAsset
@@ -151,7 +151,7 @@ enum en_npcbtyp
     NPCP_BASIS_LOVINGCITIZEN,
     NPCP_BASIS_GRUMPYCITIZEN,
     NPCP_BASIS_NOMORE,
-    NPCP_BASIS_FORCE = 0x7fffffff
+    NPCP_BASIS_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_dupowavmod
@@ -159,7 +159,7 @@ enum en_dupowavmod
     NPCP_DUPOWAVE_CONTINUOUS,
     NPCP_DUPOWAVE_DISCREET,
     NPCP_DUPOWAVE_NOMORE,
-    NPCP_DUPOWAVE_FORCE = 0x7fffffff
+    NPCP_DUPOWAVE_FORCE = FORCEENUMSIZEINT
 };
 
 struct zNPCSettings : xDynAsset
@@ -230,7 +230,7 @@ enum en_LASSO_STATUS
     LASS_STAT_TOSSING,
     LASS_STAT_NOMORE,
     LASS_STAT_UNK_5, // needed to match switch in zNPCCommon::LassoNotify, checks value of 5
-    LASS_STAT_FORCEINT = 0x7fffffff
+    LASS_STAT_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_mdlvert
@@ -256,7 +256,7 @@ enum en_mdlvert
     NPC_MDLVERT_GEN04,
     NPC_MDLVERT_GEN05,
     NPC_MDLVERT_NOMORE,
-    NPC_MDLVERT_FORCEINT = 0x7fffffff
+    NPC_MDLVERT_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_LASSO_EVENT
@@ -268,7 +268,7 @@ enum en_LASSO_EVENT
     LASS_EVNT_YANK,
     LASS_EVNT_ABORT,
     LASS_EVNT_NOMORE,
-    LASS_EVNT_FORCEINT = 0x7fffffff
+    LASS_EVNT_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_NPC_MSG_ID
@@ -307,7 +307,7 @@ enum en_NPC_MSG_ID
     NPC_MID_DEV_HEROMODE,
     NPC_MID_DEV_DONE,
     NPC_MID_NOMORE,
-    NPC_MID_FORCE = 0x7fffffff
+    NPC_MID_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_NPC_MSG_DATA
@@ -324,7 +324,7 @@ enum en_NPC_MSG_DATA
     NPC_MDAT_MOUNT,
     NPC_MDAT_AREANOTIFY,
     NPC_MDAT_NOMORE,
-    NPC_MDAT_FORCE = 0x7fffffff
+    NPC_MDAT_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_SM_NOTICES
@@ -338,7 +338,7 @@ enum en_SM_NOTICES
     SM_NOTE_DUPDEAD,
     SM_NOTE_KILLKIDS,
     SM_NOTE_NOMORE,
-    SM_NOTE_FORCE = 0x7fffffff
+    SM_NOTE_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_allow
@@ -468,7 +468,7 @@ enum en_npcgol
     NME_GOAL_SBBAT_IDLE,
     NME_GOAL_SBBAT_DEAD,
     NME_GOAL_NOMORE,
-    NME_GOAL_FORCE = 0x7fffffff
+    NME_GOAL_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_nmesimp
@@ -559,7 +559,7 @@ enum en_haztyp
     HAZ_TYP_PLYRBANG_V1,
     HAZ_TYP_POWERUP_EXPLOSION_V1,
     HAZ_TYP_NOMORE,
-    HAZ_TYP_FORCE = 0x7fffffff
+    HAZ_TYP_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_npcdmg
@@ -590,7 +590,7 @@ enum en_npcdmg
     DMGTYP_EXPLOSION,
     DMGTYP_BBOWLZAP,
     DMGTYP_NOMORE,
-    DMGTYP_FORCEINT = 0x7fffffff
+    DMGTYP_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_plyrpup
@@ -609,7 +609,7 @@ enum en_carystat
     zNMECARRY_TWIRL,
     zNMECARRY_THROW,
     zNMECARRY_ATTEMPTPICKUP,
-    zNMECARRY_FORCEINT = 0x7fffffff
+    zNMECARRY_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_npcmsg
@@ -645,7 +645,7 @@ enum en_npcmsg
     NME_MID_SCRIPTEND,
     NME_MID_SCRIPTHALT,
     NME_MID_NOMORE,
-    NME_MID_FORCE = 0x7fffffff
+    NME_MID_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_msgdata
@@ -662,7 +662,7 @@ enum en_msgdata
     NME_MDAT_MOUNT,
     NME_MDAT_AREANOTIFY,
     NME_MDAT_NOMORE,
-    NME_MDAT_FORCE = 0x7fffffff
+    NME_MDAT_FORCE = FORCEENUMSIZEINT
 };
 
 struct zNPCLassoInfo

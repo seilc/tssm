@@ -25,7 +25,7 @@ enum en_nparptyp
     NPAR_TYP_VISSPLASH,
     NPAR_TYP_FIREWORKS,
     NPAR_TYP_NOMORE,
-    NPAR_TYP_FORCE = 0x7fffffff
+    NPAR_TYP_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_npcstreak
@@ -39,7 +39,7 @@ enum en_npcstreak
     NPC_STRK_TOSSEDJELLY,
     NPC_STRK_TOSSEDJELLYBLUE,
     NPC_STRK_NOMORE,
-    NPC_STRK_FORCE = 0x7fffffff
+    NPC_STRK_FORCE = FORCEENUMSIZEINT
 };
 
 enum en_nparmode

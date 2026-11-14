@@ -382,7 +382,7 @@ static st_STRAN_SCENE* XST_nth_locked(S32 index)
     return sdata;
 }
 
-char* xST_xAssetID_HIPFullPath(U32 aid)
+const char* xST_xAssetID_HIPFullPath(U32 aid)
 {
     return 0;
 }
@@ -510,7 +510,7 @@ void* xSTFindAsset(U32 aid, U32* size)
     return memloc;
 }
 
-char* xSTAssetName(void* raw_HIP_asset)
+const char* xSTAssetName(void* raw_HIP_asset)
 {
     char* aname = NULL;
 
@@ -528,7 +528,7 @@ char* xSTAssetName(void* raw_HIP_asset)
     return aname;
 }
 
-char* xSTAssetName(U32 aid)
+const char* xSTAssetName(U32 aid)
 {
     char* aname = NULL;
 

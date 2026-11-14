@@ -169,6 +169,7 @@ struct xtextbox
     size_t text_hash;
 
     static callback text_cb;
+    static bool japanese_word_breaking;
 
     static void text_render(const jot& j, const xtextbox& tb, F32 x, F32 y);
     static tag_entry_list read_tag(const substr& s);

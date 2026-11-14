@@ -6,20 +6,9 @@
 class xMemoryManager
 {
 public:
-    void* GetArenaStart() const
-    {
-        return arenaStart;
-    }
-
-    void* GetArenaEnd() const
-    {
-        return arenaEnd;
-    }
-
-    bool IsDebugging() const
-    {
-        return debugDataSize != 0;
-    }
+    void* GetArenaStart() const { return arenaStart; }
+    void* GetArenaEnd() const { return arenaEnd; }
+    bool IsDebugging() const { return debugDataSize != 0; }
 
     U32 GetBlockSize(void* pointer) const;
     void* Allocate(U32 size, U32 options);

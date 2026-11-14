@@ -1010,7 +1010,7 @@ S32 xSGGameThumbIndex(st_XSAVEGAME_DATA* xsgdata, S32 gidx)
     return idx_thum;
 }
 
-char* xSGGameLabel(st_XSAVEGAME_DATA* xsgdata, S32 gidx)
+const char* xSGGameLabel(st_XSAVEGAME_DATA* xsgdata, S32 gidx)
 {
     char* da_name = NULL;
     if (xSG_chdir_gamedir(xsgdata) && g_leaders[gidx].gameLabel != NULL)
@@ -1457,7 +1457,7 @@ void PKR_bld_typecnt(st_PACKER_READ_DATA* pr)
         for (j = 0; j < laynode->assref.cnt; j++)
         {
             assnode = (st_PACKER_ATOC_NODE*)laynode->assref.list[j];
-            if (!(assnode->loadflag & 0x100000) && !(assnode->loadflag & 0x200000))
+            if (!(assnode->loadflag & PKR_LDASS_ISDUP) && !(assnode->loadflag & PKR_LDASS_ISNIL))
             {
                 S32 idx;
                 if (lasttype != 0 && assnode->asstype == lasttype)
@@ -1499,7 +1499,7 @@ void PKR_bld_typecnt(st_PACKER_READ_DATA* pr)
         for (j = 0; j < laynode->assref.cnt; j++)
         {
             st_PACKER_ATOC_NODE* assnode = (st_PACKER_ATOC_NODE*)laynode->assref.list[j];
-            if (!(assnode->loadflag & 0x100000) && !(assnode->loadflag & 0x200000))
+            if (!(assnode->loadflag & PKR_LDASS_ISDUP) && !(assnode->loadflag & PKR_LDASS_ISNIL))
             {
                 S32 idx;
                 if (lasttype != 0 && assnode->asstype == lasttype)
@@ -1600,7 +1600,7 @@ S32 LOD_r_AHDR(st_HIPLOADDATA* pkg, st_PACKER_READ_DATA* pr)
     assnode->readcnt = 0;
     if (assnode->d_size < 1)
     {
-        assnode->loadflag |= 0x200000;
+        assnode->loadflag |= PKR_LDASS_ISNIL;
     }
 
     g_hiprf->readLongs(pkg, &ival, 1);
@@ -1625,7 +1625,7 @@ S32 LOD_r_AHDR(st_HIPLOADDATA* pkg, st_PACKER_READ_DATA* pr)
                                           assnode->d_chksum, NULL);
     if (isdup)
     {
-        assnode->loadflag |= 0x100000;
+        assnode->loadflag |= PKR_LDASS_ISDUP;
     }
     return 1;
 }
@@ -1727,7 +1727,7 @@ S32 PKR_FRIEND_assetIsGameDup(U32 aid, const st_PACKER_READ_DATA* skippr, S32 ou
         }
 
         st_PACKER_ATOC_NODE* tmp_ass = (st_PACKER_ATOC_NODE*)g_readdatainst[i].asstoc.list[idx];
-        if ((tmp_ass->loadflag & 0x80000) == 0 && tmp_ass->asstype != 0x534e4420 &&
+        if ((tmp_ass->loadflag & PKR_LDASS_READY) == 0 && tmp_ass->asstype != 0x534e4420 &&
             tmp_ass->asstype != 0x534e4453)
         {
             continue;
@@ -1769,11 +1769,11 @@ S32 PKR_PkgHasAsset(st_PACKER_READ_DATA* pr, U32 aid)
 
     S32 rc = 1;
     st_PACKER_ATOC_NODE* assnode = (st_PACKER_ATOC_NODE*)pr->asstoc.list[idx];
-    if (assnode->loadflag & 0x100000)
+    if (assnode->loadflag & PKR_LDASS_ISDUP)
     {
         rc = 0;
     }
-    else if (assnode->loadflag & 0x200000)
+    else if (assnode->loadflag & PKR_LDASS_ISNIL)
     {
         rc = 0;
     }
@@ -1879,7 +1879,7 @@ S32 PKR_IsAssetReady(st_PACKER_READ_DATA* pr, U32 aid)
     if (idx >= 0)
     {
         st_PACKER_ATOC_NODE* assnode = (st_PACKER_ATOC_NODE*)pr->asstoc.list[idx];
-        if (assnode->loadflag & 0x80000)
+        if (assnode->loadflag & PKR_LDASS_READY)
         {
             ready = true;
         }
@@ -1976,7 +1976,7 @@ S32 PKR_LoadLayer(st_PACKER_READ_DATA* pr, en_LAYER_TYPE layer)
 
 void PKR_xform_asset(st_PACKER_ATOC_NODE* assnode, S32 dumpable_layer)
 {
-    if (!(assnode->infoflag & 4))
+    if (!(assnode->infoflag & PKR_INFO_READ_TRANSFORM))
     {
         if (assnode->typeref == NULL)
         {
@@ -2022,7 +2022,7 @@ void PKR_xform_asset(st_PACKER_ATOC_NODE* assnode, S32 dumpable_layer)
         else if (assnode->d_size == 0 || assnode->x_size == 0)
         {
             assnode->memloc = NULL;
-            assnode->loadflag |= 0x200000;
+            assnode->loadflag |= PKR_LDASS_ISNIL;
         }
         else
         {
@@ -2050,9 +2050,9 @@ void PKR_updateLayerAssets(st_PACKER_LTOC_NODE* laynode)
         for (S32 i = 0; i < laynode->assref.cnt; i++)
         {
             st_PACKER_ATOC_NODE* tmpass = (st_PACKER_ATOC_NODE*)laynode->assref.list[i];
-            if (!(tmpass->loadflag & 0x100000))
+            if (!(tmpass->loadflag & PKR_LDASS_ISDUP))
             {
-                if (tmpass->loadflag & 0x200000)
+                if (tmpass->loadflag & PKR_LDASS_ISNIL)
                 {
                     tmpass->Name();
                     tmpass->memloc = NULL;
@@ -2060,7 +2060,7 @@ void PKR_updateLayerAssets(st_PACKER_LTOC_NODE* laynode)
                 else
                 {
                     tmpass->memloc = laynode->laymem + (tmpass->d_off - lay_hip_pos);
-                    tmpass->loadflag |= 0x80000;
+                    tmpass->loadflag |= PKR_LDASS_READY;
                     tmpass->Name();
                 }
             }
@@ -2295,7 +2295,7 @@ S32 PKR_SetActive(st_PACKER_READ_DATA* pr, en_LAYER_TYPE layer)
         for (j = 0; j < laynode->assref.cnt; j++)
         {
             assnode = (st_PACKER_ATOC_NODE*)laynode->assref.list[j];
-            if (assnode->loadflag & 0x10000 || (assnode->loadflag & 0x80000) == 0)
+            if (assnode->loadflag & PKR_LDASS_ACTIVE || (assnode->loadflag & PKR_LDASS_READY) == 0)
             {
                 continue;
             }
@@ -2314,7 +2314,7 @@ S32 PKR_SetActive(st_PACKER_READ_DATA* pr, en_LAYER_TYPE layer)
                 }
                 else
                 {
-                    assnode->loadflag |= 0x10000;
+                    assnode->loadflag |= PKR_LDASS_ACTIVE;
                 }
             }
         }
@@ -2343,7 +2343,7 @@ void PKR_ReadDone(st_PACKER_READ_DATA* pr)
         {
             assnode = (st_PACKER_ATOC_NODE*)laynode->assref.list[j];
             if (assnode->typeref != NULL && assnode->typeref->assetUnloaded != NULL &&
-                !(assnode->loadflag & 0x100000))
+                !(assnode->loadflag & PKR_LDASS_ISDUP))
             {
                 assnode->typeref->assetUnloaded(assnode->memloc, assnode->aid);
             }

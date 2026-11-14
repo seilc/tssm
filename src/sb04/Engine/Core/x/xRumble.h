@@ -18,7 +18,7 @@ typedef enum _tagRumbleType
     eRumble_VeryHeavyHi,
     eRumble_VeryHeavy,
     eRumble_Total,
-    eRumbleForceU32 = 0x7fffffff
+    eRumbleForceU32 = FORCEENUMSIZEINT
 } RumbleType;
 
 struct _tagxRumble

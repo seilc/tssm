@@ -16,6 +16,7 @@ typedef struct _xCounter : xBase
     U8 counterFlags;
 } xCounter;
 
+// xCounter::counterFlags
 #define XCOUNTER_ISSPATULA 0x1
 
 void xCounterInit();

@@ -98,4 +98,6 @@ typedef wchar_t wint_t;
 
 #define UINT32_MAX 0xffffffff
 
+#define FORCEENUMSIZEINT ((S32)((~((U32)0))>>1))
+
 #endif // !TYPES_H

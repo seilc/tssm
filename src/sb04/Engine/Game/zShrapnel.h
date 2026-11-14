@@ -12,7 +12,7 @@
 #include <rpworld.h>
 
 typedef struct zFrag;
-typedef struct zShrapnelAsset;
+struct zShrapnelAsset;
 
 enum zFragLocType
 {
@@ -23,7 +23,7 @@ enum zFragLocType
     eFragLocTag,
     eFragLocTagUpdated,
     eFragLocCount,
-    eFragLocForceSize = 0x7fffffff
+    eFragLocForceSize = FORCEENUMSIZEINT
 };
 
 struct zFragBone
@@ -58,7 +58,7 @@ enum zFragType
     eFragSound,
     eFragShockwave,
     eFragCount,
-    eFragForceSize = 0x7fffffff
+    eFragForceSize = FORCEENUMSIZEINT
 };
 
 struct zFragAsset

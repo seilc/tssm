@@ -29,13 +29,13 @@ S32 xSTSwitchScene(U32 sid, void* userdata, S32 (*progmon)(void*, F32));
 void* xSTFindAsset(U32 aid, U32* size);
 S32 xSTAssetCountByType(U32 type);
 void* xSTFindAssetByType(U32 type, S32 idx, U32* size);
-char* xSTAssetName(U32 aid);
-char* xSTAssetName(void* raw_HIP_asset);
+const char* xSTAssetName(U32 aid);
+const char* xSTAssetName(void* raw_HIP_asset);
 S32 xSTGetAssetInfo(U32 aid, PKRAssetTOCInfo* tocainfo);
 S32 xSTGetAssetInfoByType(U32 type, S32 idx, PKRAssetTOCInfo* ainfo);
-char* xST_xAssetID_HIPFullPath(U32 aid);
+const char* xST_xAssetID_HIPFullPath(U32 aid);
 S32 PKRShutdown();
-char* xST_xAssetID_HIPFullPath(U32 aid, U32* sceneID);
+const char* xST_xAssetID_HIPFullPath(U32 aid, U32* sceneID);
 S32 xSTShutdown();
 
 #endif

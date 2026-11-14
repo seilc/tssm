@@ -4,7 +4,7 @@
 U32 gFrameCount;
 U32 gSceneFrameCount;
 
-void xprintf(const char* fmt, ...)
+void xprintf(const char*, ...)
 {
 }
 

@@ -52,7 +52,7 @@ enum en_npcgspot
     NME_GSPOT_PATROLPAUSE,
     NME_GSPOT_NEXT,
     NME_GSPOT_NOMORE,
-    NME_GSPOT_FORCEINT = 0x7fffffff
+    NME_GSPOT_FORCEINT = FORCEENUMSIZEINT
 };
 
 enum en_diehow
@@ -64,7 +64,7 @@ enum en_diehow
     DIE_LOUDLY,
     DIE_NORMAL,
     DIE_NOMORE,
-    DIE_FORCE = 0x7fffffff
+    DIE_FORCE = FORCEENUMSIZEINT
 };
 
 struct zNMEGoalCommon : xGoal

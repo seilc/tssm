@@ -3949,7 +3949,7 @@ void iAnimEvalSKB(iAnimSKBHeader* data, F32 time, U32 flags, xVec3* tran, xQuat*
     }
 }
 
-// UNUSED: needed to match (code from BFBB GC, Incredibles GC)
+// UNUSED: needed to match (code from Incredibles GC, BFBB GC)
 F32 iAnimDurationSKB(iAnimSKBHeader* data)
 {
     return ((F32*)((iAnimSKBKey*)(data + 1) + data->KeyCount))[data->TimeCount - 1];
