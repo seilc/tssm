@@ -241,14 +241,36 @@ void xEntSceneExit();
 void xEntSceneInit();
 void xEntSetTimePassed(F32 sec);
 
-inline void xEntHide(xEnt* ent)
+inline void xEntVisibilityCullOn(xEnt* ent)
 {
-    ent->flags &= ~0x1;
+    ent->flags |= (U8)0x4;
+    if (ent->visUpdate) {
+        ent->visUpdate(ent);
+    }
+}
+
+inline void xEntVisibilityCullOff(xEnt* ent)
+{
+    ent->flags &= (U8)~0x4;
+    if (ent->visUpdate) {
+        ent->visUpdate(ent);
+    }
 }
 
 inline void xEntShow(xEnt* ent)
 {
-    ent->flags |= 0x1;
+    ent->flags |= k_XENT_IS_VISIBLE;
+    if (ent->visUpdate) {
+        ent->visUpdate(ent);
+    }
+}
+
+inline void xEntHide(xEnt* ent)
+{
+    ent->flags &= (U8)~k_XENT_IS_VISIBLE;
+    if (ent->visUpdate) {
+        ent->visUpdate(ent);
+    }
 }
 
 inline xVec3* xEntGetPos(const xEnt* ent)

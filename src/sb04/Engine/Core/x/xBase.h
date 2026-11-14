@@ -21,7 +21,9 @@ struct xBase
 };
 
 // xBase::baseFlags
+#define k_XBASE_IS_ENABLED ((U16)(1 << 0))
 #define k_XBASE_RECEIVES_SHADOWS ((U16)(1 << 4))
+#define k_XBASE_IS_ENTITY ((U16)(1 << 5))
 
 void xBaseInit(xBase* xb, const xBaseAsset* asset);
 void xBaseSetup(xBase* xb);
@@ -30,8 +32,12 @@ void xBaseLoad(xBase* ent, xSerial* s);
 void xBaseReset(xBase* xb, xBaseAsset* asset);
 U32 xBaseIsValid(xBase* xb);
 void xBaseValidate(xBase* xb);
-bool xBaseIsEnabled(const xBase* xb);
 void xBaseDisable(xBase* xb);
 void xBaseEnable(xBase* xb);
+
+inline bool xBaseIsEnabled(const xBase* xb)
+{
+    return xb->baseFlags & k_XBASE_IS_ENABLED;
+}
 
 #endif
