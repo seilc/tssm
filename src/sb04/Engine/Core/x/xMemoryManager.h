@@ -11,6 +11,11 @@ public:
         return arenaStart;
     }
 
+    void* GetArenaEnd() const
+    {
+        return arenaEnd;
+    }
+
     bool IsDebugging() const
     {
         return debugDataSize != 0;

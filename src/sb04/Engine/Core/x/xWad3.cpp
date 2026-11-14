@@ -601,8 +601,7 @@ void xModelInit()
     xModelPipeNumTables = 0;
 }
 
-//                                      xMemoryManagerGeneral
-
+#include "xMemoryManagerGeneral.cpp"
 #include "xMemoryManagerFixed.cpp"
 #include "xMemoryManager.cpp"
 

@@ -4,6 +4,12 @@
 #include "types.h"
 
 template <class T>
+inline T* xMEMADVANCE(T* base, S32 bytes)
+{
+    return (T*)((U8*)base + bytes);
+}
+
+template <class T>
 inline T* xMEMADVANCE(T* base, U32 bytes)
 {
     return (T*)((U8*)base + bytes);
@@ -36,6 +42,26 @@ inline void xMemoryCopyUpA32(void* dest, const void* source, U32 count)
             *destIterator++ = *sourceIterator++;
         } while (--count);
     }
+}
+
+inline void xMemoryCopyUpA128(void* dest, const void* source, U32 count)
+{
+    count /= sizeof(U32);
+
+    U32* destIterator = (U32*)dest;
+    const U32* sourceIterator = (const U32*)source;
+    while (count--)
+        *destIterator++ = *sourceIterator++;
+}
+
+inline void xMemoryCopyDownA128(void* dest, const void* source, U32 count)
+{
+    count /= sizeof(U32);
+
+    U32* destIterator = (U32*)dest + count - 1;
+    const U32* sourceIterator = (const U32*)source + count - 1;
+    while (count--)
+        *destIterator-- = *sourceIterator--;
 }
 
 #endif
