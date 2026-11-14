@@ -12,7 +12,6 @@ inline void xVec3Sub(xVec3* o, const xVec3* a, const xVec3* b)
 }
 void xVec3Cross(xVec3* o, const xVec3* a, const xVec3* b);
 void xVec3Inv(xVec3* o, const xVec3* v);
-void xVec3Copy(xVec3* o, const xVec3* v);
 inline F32 xVec3Length(const xVec3* v)
 {
     return sqrtf(v->x * v->x + v->y * v->y + v->z * v->z);

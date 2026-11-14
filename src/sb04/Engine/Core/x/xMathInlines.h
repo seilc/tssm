@@ -39,6 +39,19 @@ F32 xpow(F32 x, F32 y);
 
 F32 SQ(F32 x);
 
-void xsqrtfast(F32& out, F32 x);
+inline void xsqrtfast(F32& o, register F32 fVal)
+{
+    register F32 fRetVal;
+
+    if (fVal <= 0.0f)
+        o = 0.0f;
+    else
+        asm {
+            frsqrte fRetVal, fVal
+            fres fRetVal, fRetVal
+        }
+
+    o = fRetVal;
+}
 
 #endif

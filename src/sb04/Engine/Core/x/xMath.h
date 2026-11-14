@@ -3,11 +3,17 @@
 
 #include "iMath.h"
 
+#include <math.h>
+
+#define EPSILON 1e-5f
+
 #define xabs(x) iabs(x)
+#define xeq(a,b,e) (xabs((a) - (b)) <= (e))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MAX3(a,b,c) (MAX(MAX((a), (b)), (c)))
 #define CLAMP(x,a,b) MAX((a), MIN((x), (b)))
+#define xsqr(x) ((x) * (x))
 
 #define SQR(x) ((x) * (x))
 
@@ -60,10 +66,12 @@ void xFuncPiece_EndPoints(xFuncPiece* func, F32 pi, F32 pf, F32 fi, F32 ff);
 void xFuncPiece_ShiftPiece(xFuncPiece* shift, xFuncPiece* func, F32 newZero);
 F32 xSCurve(F32 t, F32 softness);
 F32 xSCurve(F32 t);
-void xsqrtfast(F32& dst, F32 num);
+void xsqrtfast(F32& o, F32 fVal);
 
 F32 xrmod(F32 ang);
 
 template <class T> T range_limit(T v, T minv, T maxv);
+
+#include "xMathInlines.h"
 
 #endif
