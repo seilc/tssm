@@ -7,7 +7,7 @@
 
 struct xBase;
 
-typedef S32 (*xBaseEventCB)(xBase*, xBase*, U32, const F32*, xBase*);
+typedef void(*xBaseEventCallback)(xBase* from, xBase* to, U32 toEvent, const F32* toParam, xBase* toParamWidget, U32 toParamWidgetID);
 
 // Size: 0x10
 struct xBase
@@ -17,7 +17,7 @@ struct xBase
     U8 linkCount; // 0x5
     U16 baseFlags; // 0x6
     xLinkAsset* link; // 0x8
-    void (*eventFunc)(xBase*, xBase*, U32, F32*, xBase*, U32); // 0xC
+    xBaseEventCallback eventFunc; // 0xC
 };
 
 void xBaseInit(xBase* xb, const xBaseAsset* asset);

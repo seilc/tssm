@@ -1,20 +1,11 @@
 #ifndef XFOG_H
 #define XFOG_H
 
-#include "xEnt.h"
 #include "xBase.h"
+#include "xFogAsset.h"
+#include "iFog.h"
 
-struct xFogAsset : xBaseAsset
-{
-    U8 bkgndColor[4];
-    U8 fogColor[4];
-    F32 fogDensity;
-    F32 fogStart;
-    F32 fogStop;
-    F32 transitionTime;
-    U8 fogType;
-    U8 padFog[3];
-};
+struct xScene;
 
 typedef struct _xFog : xBase
 {
@@ -23,11 +14,11 @@ typedef struct _xFog : xBase
 
 void xFogClearFog();
 void xFogInit(void* b, void* tasset);
-void xFogInit(xBase* ent, xFogAsset* tasset);
-void xFogReset(xFog* ent);
+void xFogInit(xBase* b, xFogAsset* tasset);
+void xFogReset(xFog* t);
 void xFogSave(xFog* ent, xSerial* s);
 void xFogLoad(xFog* ent, xSerial* s);
-S32 xFogEventCB(xBase* to, xBase* from, U32 toEvent, const F32* toParam, xBase* b3);
-void xFogUpdate(xBase* ent, xScene* sc, F32 dt);
+void xFogEventCB(xBase*, xBase* to, U32 toEvent, const F32*, xBase*, U32);
+void xFogUpdate(xBase* to, xScene* sc, F32);
 
 #endif

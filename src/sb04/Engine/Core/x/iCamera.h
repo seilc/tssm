@@ -4,19 +4,9 @@
 #include <rwcore.h>
 
 #include "xMath3.h"
+#include "iFog.h"
 #include "iEnv.h"
 #include "iTime.h"
-
-struct iFogParams
-{
-    RwFogType type;
-    F32 start;
-    F32 stop;
-    F32 density;
-    RwRGBA fogcolor;
-    RwRGBA bgcolor;
-    U8* table;
-};
 
 extern RwCamera* globalCamera;
 
