@@ -31,7 +31,7 @@ enum en_ZBASETYPE
     eBaseTypeProjectile,
     eBaseTypeSurface,
     eBaseTypeDestructObj,
-    eBaseTypeGust,
+    eBaseTypeHUD_image,
     eBaseTypeVolume,
     eBaseTypeDispatcher,
     eBaseTypeCond,

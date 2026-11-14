@@ -2,10 +2,11 @@
 #define IMODEL_H
 
 #include "xMath3.h"
-#include "xModel.h"
 
 #include <rwcore.h>
 #include <rpworld.h>
+
+struct xModelTag;
 
 void iModelInit();
 U32 iModelNumBones(RpAtomic* model);

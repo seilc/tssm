@@ -2,32 +2,38 @@
 #define XHUDUNITMETER_H
 
 #include "xHudMeter.h"
-#include "xModel.h"
+#include "xHudAsset.h"
 
-namespace xhud
+namespace xhud {
+
+class unit_meter_widget : public meter_widget
 {
-    struct model_info
-    {
-        U32 id;
-        xVec3 loc;
-        xVec3 size;
-    };
+public:
+    struct widget_chunk;
 
-    struct unit_meter_asset : meter_asset
-    {
-        model_info model[2];
-        xVec3 offset;
-        U32 fill_forward;
-    };
+    unit_meter_asset res;
+    xModelInstance* model[6][2];
+    F32 anim_time;
 
-    struct unit_meter_widget : meter_widget
-    {
-        unit_meter_asset res;
-        xModelInstance* model[2][6];
-        F32 anim_time;
+    static void load(xBase& data, xDynAsset& asset, size_t asset_size);
 
-        static void load(xBase& data, xDynAsset& asset, size_t);
-    };
-} // namespace xhud
+    unit_meter_widget(const unit_meter_asset& a);
+
+    void destruct();
+
+    virtual void destroy();
+    virtual U32 type() const;
+    virtual bool is(U32 id) const;
+    virtual void setup();
+    virtual void update(F32 dt);
+    virtual void render();
+};
+
+struct unit_meter_widget::widget_chunk : xBase
+{
+    unit_meter_widget w;
+};
+
+}
 
 #endif

@@ -4,12 +4,14 @@
 #include <rwcore.h>
 #include <rpworld.h>
 
+#include "iModel.h"
 #include "xAnim.h"
 #include "xLightKit.h"
 #include "xSurface.h"
 #include "xMath3.h"
 #include "xMath2.h"
 #include "xModelBucket.h"
+#include "xModelPipe.h"
 
 struct xModelBucket;
 
@@ -18,14 +20,6 @@ struct xModelPool
     xModelPool* Next;
     U32 NumMatrices;
     xModelInstance* List;
-};
-
-struct xModelPipe
-{
-    U32 Flags;
-    U8 Layer;
-    U8 AlphaDiscard;
-    U16 PipePad;
 };
 
 struct xModelInstance
@@ -148,7 +142,6 @@ void xModelRender(xModelInstance* modelInst);
 void xModelRenderSingle(xModelInstance* modelInst);
 void xModelRender2D(const xModelInstance& model, const basic_rect<F32>& r, const xVec3& from,
                     const xVec3& to);
-void xModelSetMaterialAlpha(xModelInstance* modelInst, U8 alpha);
 void xModelUpdate(xModelInstance* modelInst, F32 timeDelta);
 xMat4x3* xModelGetFrame(xModelInstance* modelInst);
 void xModelEval(xModelInstance* modelInst);
@@ -162,6 +155,11 @@ S32 xModelCullSingle(xModelInstance* minst);
 inline void xModelSetFrame(xModelInstance* modelInst, const xMat4x3* frame)
 {
     xMat4x3Copy((xMat4x3*)modelInst->Mat, frame);
+}
+
+inline void xModelSetMaterialAlpha(xModelInstance* modelInst, U8 alpha)
+{
+    iModelSetMaterialAlpha(modelInst->Data, alpha);
 }
 
 inline xMat4x3* xModelGetFrame(xModelInstance* modelInst)

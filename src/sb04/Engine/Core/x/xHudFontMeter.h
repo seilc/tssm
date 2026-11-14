@@ -4,33 +4,42 @@
 #include "xHudMeter.h"
 #include "xFont.h"
 
-namespace xhud
+namespace xhud {
+
+struct font_meter_asset;
+
+class font_meter_widget : public meter_widget
 {
-    struct font_context
-    {
-        U32 id;
-        S32 justify;
-        F32 w;
-        F32 h;
-        F32 space;
-        F32 drop_x;
-        F32 drop_y;
-        color32u c;
-        color32u drop_c;
-    };
+public:
+    struct widget_chunk;
 
-    struct font_meter_widget : meter_widget
-    {
-        font_context font;
-        font_context start_font;
-        S32 precision;
-        xVec2 offset;
-        char buffer[12];
-        S32 last_value;
-        xfont xf;
+    font_context font;
+    font_context start_font;
+    S32 precision;
 
-        static void load(xBase& data, xDynAsset& asset, size_t);
-    };
-} // namespace xhud
+    static void load(xBase& data, xDynAsset& asset, size_t asset_size);
+
+    font_meter_widget(const font_meter_asset& a);
+
+    void destruct();
+
+    virtual void destroy();
+    virtual U32 type() const;
+    virtual bool is(U32 id) const;
+    virtual void update(F32 dt);
+    virtual void render();
+
+protected:
+    char buffer[12];
+    S32 last_value;
+    xfont xf;
+};
+
+struct font_meter_widget::widget_chunk : xBase
+{
+    font_meter_widget w;
+};
+
+}
 
 #endif

@@ -327,7 +327,7 @@ void zSceneReset()
             case eBaseTypeProjectile:
             case eBaseTypeSurface:
             case eBaseTypeDestructObj:
-            case eBaseTypeGust:
+            case eBaseTypeHUD_image:
             case eBaseTypeVolume:
             case eBaseTypeDispatcher:
             case eBaseTypeCond:
@@ -767,7 +767,7 @@ static U32 BaseTypeNeedsUpdate(U8 baseType)
         baseType == eBaseTypeMovePoint || baseType == eBaseTypeBubble ||
         baseType == eBaseTypePortal || baseType == eBaseTypeGroup || baseType == eBaseTypeSFX ||
         baseType == eBaseTypeFFX || baseType == eBaseTypeVFX || baseType == eBaseTypeCounter ||
-        baseType == eBaseTypeProjectile || baseType == eBaseTypeGust ||
+        baseType == eBaseTypeProjectile || baseType == eBaseTypeHUD_image ||
         baseType == eBaseTypeVolume || baseType == eBaseTypeDispatcher ||
         baseType == eBaseTypeCond || baseType == eBaseTypeUI ||
         baseType == eBaseTypeProjectileType || baseType == eBaseTypeLobMaster ||

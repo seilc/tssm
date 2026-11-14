@@ -87,7 +87,10 @@ extern xMat4x3 g_I3;
 extern xVec3 g_Onez;
 
 void xMat3x3Copy(xMat3x3* o, const xMat3x3* m); // TODO: These functions should be inline
-void xMat4x3Copy(xMat4x3* o, const xMat4x3* m);
+inline void xMat4x3Copy(xMat4x3* o, const xMat4x3* m)
+{
+    *o = *m;
+}
 void xMat4x3Mul(xMat4x3* o, const xMat4x3* a, const xMat4x3* b);
 void xMat3x3Euler(xMat3x3* m, F32 yaw, F32 pitch, F32 roll);
 void xMat4x3Toworld(xVec3* o, const xMat4x3* m, const xVec3* v);

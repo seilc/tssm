@@ -2,221 +2,281 @@
 #define XHUD_H
 
 #include "xBase.h"
-#include "xVec3.h"
 #include "xDynAsset.h"
 #include "xModel.h"
+#include "xColor.h"
 
-typedef struct asset;
-typedef struct widget;
+#include <stddef.h>
 
-namespace xhud
+namespace xhud {
+
+struct render_context;
+struct font_context;
+struct motive;
+struct motive_node;
+struct asset;
+class widget;
+
+struct holder;
+
+class block_allocator
 {
-    static bool inited;
+public:
+    void create(S32 block_size, S32 max_blocks);
+    void* alloc();
+    void free(void* mem);
+    void reset();
 
-    struct block_allocator
-    {
-        U32 _block_size;
-        U32 _alloc_size;
-        void* _top; // FIXME: This is a holder*
-        block_allocator* _next_alloc;
+private:
+    S32 block_size;
+    S32 max_blocks;
+    holder* head;
+    void* buffer;
+};
 
-        static block_allocator* _head_alloc;
+struct render_context
+{
+    xVec3 loc;
+    xVec3 size;
+    xVec3 rot;
+    F32 r;
+    F32 g;
+    F32 b;
+    F32 a;
+};
 
-        block_allocator(U32 a0, U32 a1);
+struct font_context
+{
+    U32 id;
+    S32 justify;
+    F32 w;
+    F32 h;
+    F32 space;
+    F32 drop_x;
+    F32 drop_y;
+    xColor c;
+    xColor drop_c;
+};
 
-        static void flush_all();
-        void flush();
-        void set_increment(U32 a0);
-        void size_reserve(U32 size);
-        void* alloc();
-        void free(void* ptr);
-    };
+typedef bool(*motive_update_callback)(widget&, motive&, F32);
+typedef bool(*motive_finish_callback)(widget&, motive&);
 
-    struct color32u
-    {
-        U8 r;
-        U8 g;
-        U8 b;
-        U8 a;
-    };
-
-    struct render_context
-    {
-        xVec3 loc;
-        xVec3 size;
-        xVec3 rot;
-        F32 r;
-        F32 g;
-        F32 b;
-        F32 a;
-    };
-
-    struct asset : xDynAsset
-    {
-        xVec3 loc;
-        xVec3 size;
-
-        static const char* type_name()
-        {
-            return "hud";
-        }
-    };
-
-    struct motive;
-    struct motive_node;
-    struct widget;
-
-    typedef bool(*motive_update_callback)(widget&, motive&, F32);
-
-    struct widget
-    {
-        struct
-        {
-            U8 visible;
-            U8 enabled;
-        } flag;
-        render_context rc;
-        render_context start_rc;
-        const asset* a;
-        enum _enum
-        {
-            ACT_NONE,
-            ACT_SHOW,
-            ACT_HIDE,
-            MAX_ACT
-        } activity;
-
-        virtual void destroy()
-        {
-        }
-        virtual U32 type() const;
-        virtual bool is(U32 id) const;
-        virtual void init()
-        {
-        }
-        virtual void setup()
-        {
-            presetup();
-        }
-        virtual void update(F32 dt)
-        {
-            updater(dt);
-        }
-        virtual void render()
-        {
-        }
-        virtual void dispatch(xBase* b1, U32 event, const F32* toParam, xBase* b2);
-
-        motive_node* _motive_top;
-        motive_node* _motive_temp;
-        motive_node** _motive_temp_tail;
-
-        static void disable_all(bool);
-        static void setup_all();
-        static void update_all(F32 dt);
-        static void render_all();
-
-        static void init_base(xBase&, const xBaseAsset&, unsigned long);
-        static S32 cb_dispatch(xBase*, xBase*, U32, const F32*, xBase*);
-
-        widget(const asset& a);
-        void destruct();
-        void presetup();
-        void updater(F32 dt);
-        void dispatcher(xBase*, U32, const F32*, xBase*, U32);
-
-        void disable()
-        {
-            flag.enabled = 0;
-        }
-
-        void add_tweaks()
-        {
-        }
-
-        void enable()
-        {
-            flag.enabled = 1;
-        }
-
-        void clear_motives();
-        void clear_motives(motive_update_callback fp_update, void* context);
-        void add_motive(const motive& m);
-        void hide();
-        void show();
-
-        bool visible() const
-        {
-            return flag.visible && enabled();
-        }
-
-        U8 enabled() const
-        {
-            return flag.enabled;
-        }
-
-        static block_allocator* motive_allocator();
-    };
-
-    struct motive
+struct motive
+{
+    union
     {
         F32* value;
+        xColor* value_color;
+    };
+    union
+    {
         F32 delta;
-        F32 start_delta;
+        F32 on_time;
+    };
+    union
+    {
         F32 max_offset;
-        F32 offset;
+        F32 total_time;
+        F32 begin_scale;
+    };
+    union
+    {
         F32 accel;
-        motive_update_callback fp_update;
+        F32 fade_time;
+        F32 final_scale;
+    };
+    union
+    {
         void* context;
-        U8 inverse;
+        xColor on_color;
+        F32 begin_alpha;
+    };
+    union
+    {
+        F32 period;
+        xColor off_color;
+        F32 end_alpha;
+    };
+    union
+    {
+        F32 elapsed;
+        F32 orig_width;
+    };
+    union
+    {
+        F32 offset;
+        F32 current_scale;
+    };
+    motive_update_callback fp_update;
+    motive_finish_callback fp_finish;
+    union
+    {
+        F32 start_delta;
+        F32 orig_height;
+    };
+    bool hold;
+    bool inverse;
 
-        motive(F32* value, F32 delta, F32 max_offset, F32 accel,
-               motive_update_callback fp_update, void* context)
-        {
-            this->value = value;
-            this->delta = delta;
-            this->start_delta = delta;
-            this->max_offset = max_offset;
-            this->offset = 0.0f;
-            this->accel = accel;
-            this->fp_update = fp_update;
-            this->context = context;
+    motive(F32* value, F32 delta, F32 max_offset, F32 accel, motive_update_callback fp_update, void* context,
+           F32 _period, bool _hold, bool _inverse, motive_finish_callback finish)
+        : value(value)
+        , delta(delta)
+        , max_offset(max_offset)
+        , accel(accel)
+        , context(context)
+        , period(_period)
+        , elapsed(0.0f)
+        , offset(0.0f)
+        , fp_update(fp_update)
+        , fp_finish(finish)
+        , start_delta(delta)
+        , hold(_hold)
+        , inverse(_inverse)
+    {
+    }
+
+    motive(const motive& c)
+        : value(c.value)
+        , delta(c.delta)
+        , max_offset(c.max_offset)
+        , accel(c.accel)
+        , context(c.context)
+        , period(c.period)
+        , elapsed(c.elapsed)
+        , offset(c.offset)
+        , fp_update(c.fp_update)
+        , fp_finish(c.fp_finish)
+        , start_delta(c.start_delta)
+        , hold(c.hold)
+        , inverse(c.inverse)
+    {
+    }
+
+    bool update(widget& w, F32 dt)
+    {
+        return fp_update(w, *this, dt);
+    }
+
+    void finish(widget& w)
+    {
+        bool finish = true;
+        if (fp_finish) {
+            finish = fp_finish(w, *this);
         }
-        motive(const motive& other);
-
-        bool update(widget& w, F32 dt)
-        {
-            return fp_update(w, *this, dt);
-        }
-
-        void finish()
-        {
-            if (value != NULL)
-            {
-                *value += (max_offset - offset);
+        if (finish) {
+            if (value) {
+                *value += max_offset - offset;
             }
             offset = max_offset;
         }
-    };
+    }
 
-    struct motive_node
+    bool update_time(F32 dt)
     {
-        motive m;
-        motive_node* next;
+        if (!period) {
+            return true;
+        }
+        elapsed += dt;
+        if (elapsed > period) {
+            elapsed = 0.0f;
+            return false;
+        }
+        return true;
+    }
+};
+
+class widget
+{
+public:
+    enum move_direction
+    {
+        LEFT,
+        RIGHT,
+        TOP,
+        BOTTOM
     };
 
-    void init();
-    void setup();
-    void destroy();
-    void update(F32 dt);
-    void render();
-    void render_model(xModelInstance& model, const render_context& context);
+    struct
+    {
+        bool visible;
+        bool enabled;
+        bool active;
+        F32 timer;
+    } flag;
+    render_context rc;
+    render_context start_rc;
+    const asset* a;
+    enum
+    {
+        ACT_NONE,
+        ACT_SHOW,
+        ACT_HIDE,
+        MAX_ACT
+    } activity;
 
-    bool linear_motive_update(widget& w, motive& m, F32);
-    bool accelerate_motive_update(widget& w, motive& m, F32);
-    bool delay_motive_update(widget& w, motive& m, F32);
+    static block_allocator motive_allocator;
 
-    xModelInstance* load_model(U32);
-}; // namespace xhud
+    widget(const asset& a);
+
+    static void init_base(xBase& data, const xBaseAsset& asset, size_t chunk_size);
+    static void scene_enter();
+    static void disable_all(bool destroy_widgets);
+    static void update_all(F32 dt);
+    static void render_all();
+    static void cb_dispatch(xBase* from, xBase* to, U32 event, const F32* argf, xBase* argw, U32 argwi);
+
+    void enable();
+    void disable();
+    void set_timer(F32 value);
+    F32 get_timer() const;
+    void destruct();
+    void presetup();
+    void updater(F32 dt);
+    void dispatcher(xBase*, U32 event, const F32*, xBase*, U32);
+    void show(move_direction dir, bool clearmotives, bool bSkipShowMotive);
+    void hide(move_direction d, bool clearmotives, bool bSkipHideMotive);
+    void delay_hide_widget(move_direction d, F32 time);
+    void add_motive(const motive& m);
+    void clear_motives();
+    bool enabled() const { return flag.enabled; }
+    bool visible() const { return flag.visible && enabled(); }
+
+    virtual void destroy() {}
+    virtual U32 type() const;
+    virtual bool is(U32 id) const;
+    virtual void init() {}
+    virtual void setup() { presetup(); }
+    virtual void update(F32 dt) { updater(dt); }
+    virtual void render() {}
+    virtual void dispatch(xBase* from, U32 event, const F32* argf, xBase* argw, U32 argwi) { dispatcher(from, event, argf, argw, argwi); }
+
+private:
+    motive_node* _motive_top;
+    motive_node* _motive_temp;
+    motive_node** _motive_temp_tail;
+};
+
+void init();
+void destroy();
+void update(F32 dt);
+void render();
+
+xModelInstance* load_model(U32 id);
+void render_model(xModelInstance& m, const render_context& rc);
+bool linear_motive_update(widget& w, motive& m, F32 dt);
+bool accelerate_motive_update(widget&, motive& m, F32 dt);
+bool shake_motive_update(widget&, motive& m, F32 dt);
+void top_hide_widget(widget& w, motive&);
+void bottom_hide_widget(widget& w, motive&);
+void left_hide_widget(widget& w, motive&);
+void right_hide_widget(widget& w, motive&);
+bool delay_motive_update(widget& w, motive& m, F32 dt);
+
+inline F32 widget::get_timer() const { return flag.timer; }
+inline void widget::set_timer(F32 value) { flag.timer = value; }
+inline void widget::enable() { flag.enabled = true; }
+inline void widget::disable() { flag.enabled = false; }
+
+}
 
 #endif

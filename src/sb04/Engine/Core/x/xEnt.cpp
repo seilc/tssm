@@ -237,7 +237,7 @@ static void xEntAddShadowRecFlag(xEnt* ent)
     case eBaseTypeProjectile:
     case eBaseTypeSurface:
     case eBaseTypeDestructObj:
-    case eBaseTypeGust:
+    case eBaseTypeHUD_image:
     case eBaseTypeVolume:
     case eBaseTypeDispatcher:
     case eBaseTypeCond:

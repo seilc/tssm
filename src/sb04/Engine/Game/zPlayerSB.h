@@ -2,6 +2,7 @@
 #define ZPLAYERSB_H
 
 #include "zPlayer.h"
+#include "zHud.h"
 
 // not everything is here?
 struct zPlayerSB : zPlayer

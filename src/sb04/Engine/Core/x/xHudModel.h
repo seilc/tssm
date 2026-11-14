@@ -1,41 +1,44 @@
 #ifndef XHUDMODEL_H
 #define XHUDMODEL_H
 
-#include "xAnim.h"
 #include "xHud.h"
 
-namespace xhud
+struct xAnimTable;
+
+xAnimTable* xHUDCreateAnimTable();
+
+namespace xhud {
+
+struct model_asset;
+
+class model_widget : public widget
 {
-    struct model_asset : asset
-    {
-        U32 model;
+public:
+    struct widget_chunk;
 
-        static const char* type_name()
-        {
-            return "hud:model";
-        }
-    };
+    U32 mid;
+    xModelInstance* model;
+    F32 x_scale;
+    F32 y_scale;
 
-    struct model_widget : widget
-    {
-        U32 mid;
-        xModelInstance* model;
+    static void load(xBase& data, xDynAsset& asset, size_t asset_size);
 
-        model_widget(const model_asset&);
+    model_widget(const model_asset& a);
+    
+    void destruct();
+    virtual void destroy();
+    virtual U32 type() const;
+    virtual bool is(U32 id) const;
+    virtual void update(F32 dt);
+    virtual void set_params(xModelInstance*& model, render_context& rc, F32 xs, F32 ys, F32 lx, F32 ly);
+    virtual void render();
+};
 
-        static void load(xBase& data, xDynAsset& asset, size_t);
+struct model_widget::widget_chunk : xBase
+{
+    model_widget w;
+};
 
-        void destruct();
-
-        virtual void destroy();
-        virtual U32 type() const;
-        virtual bool is(U32 id) const;
-        virtual void update(F32 dt);
-        virtual void render();
-    };
-
-} // namespace xhud
-
-xAnimTable* XHUD_AnimTable_Idle();
+}
 
 #endif

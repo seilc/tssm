@@ -75,7 +75,7 @@ struct xVec3
         return *this;
     }
 
-    xVec3& operator*=(F32);
+    xVec3& operator*=(F32 f) { x *= f; y *= f; z *= f; return *this; }
     xVec3& operator/=(F32);
 
     xVec3& right_normalize();

@@ -9,6 +9,7 @@
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\cmath>
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\cstring>
 #include "xIni.h"
+#include "xHudAsset.h"
 #include "xHudText.h"
 #include "xTextAsset.h"
 #include "xstransvc.h"
