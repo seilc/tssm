@@ -6,6 +6,11 @@
 class xMemoryManager
 {
 public:
+    void* GetArenaStart() const
+    {
+        return arenaStart;
+    }
+
     bool IsDebugging() const
     {
         return debugDataSize != 0;

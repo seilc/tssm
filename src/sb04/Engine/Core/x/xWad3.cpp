@@ -603,8 +603,7 @@ void xModelInit()
 
 //                                      xMemoryManagerGeneral
 
-//                                      xMemoryManagerFixed
-
+#include "xMemoryManagerFixed.cpp"
 #include "xMemoryManager.cpp"
 
 //                                          xMem
