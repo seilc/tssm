@@ -816,6 +816,7 @@ typedef rwGameCube2DVertex RwIm2DVertex;
 typedef RwUInt16 RxVertexIndex;
 typedef RxVertexIndex RwImVertexIndex;
 
+#define RwRenderStateGetMacro(_state, _value) (RWSRCGLOBAL(dOpenDevice).fpRenderStateGet(_state, _value))
 #define RwRenderStateSetMacro(_state, _value) (RWSRCGLOBAL(dOpenDevice).fpRenderStateSet(_state, _value))
 #define RwIm2DGetNearScreenZMacro() (RWSRCGLOBAL(dOpenDevice).zBufferNear)
 #define RwIm2DRenderPrimitiveMacro(_primType, _vertices, _numVertices) \
@@ -824,6 +825,7 @@ typedef RxVertexIndex RwImVertexIndex;
 #define RwIm2DGetNearScreenZ() RwIm2DGetNearScreenZMacro()
 #define RwIm2DRenderPrimitive(_primType, _vertices, _numVertices) \
     RwIm2DRenderPrimitiveMacro(_primType, _vertices, _numVertices)
+#define RwRenderStateGet(_state, _value) RwRenderStateGetMacro(_state, _value)
 #define RwRenderStateSet(_state, _value) RwRenderStateSetMacro(_state, _value)
 
 #define RwIm2DVertexSetCameraX(vert, camx) /* Nothing */
@@ -1303,7 +1305,6 @@ extern RwError* RwErrorGet(RwError* code);
 extern RwInt32 _rwerror(RwInt32 code, ...);
 extern RwFileFunctions* RwOsGetFileInterface(void);
 extern RwReal RwIm2DGetFarScreenZ(void);
-extern RwBool RwRenderStateGet(RwRenderState state, void* value);
 extern RwBool RwIm2DRenderLine(RwIm2DVertex* vertices, RwInt32 numVertices, RwInt32 vert1,
                                RwInt32 vert2);
 extern RwBool RwIm2DRenderIndexedPrimitive(RwPrimitiveType primType, RwIm2DVertex* vertices,

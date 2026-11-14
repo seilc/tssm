@@ -1338,62 +1338,7 @@ S32 xSGStartup()
 
 //                                                xRenderState
 
-void xRenderFixIMEnd()
-{
-}
-
-void xRenderFixIMBegin()
-{
-}
-
-void xRenderFixUntexturedEnd(RpAtomic* atomic)
-{
-}
-
-void xRenderFixUntexturedBegin(RpAtomic* atomic)
-{
-}
-
-S32 old_alpha_discard_value_gc;
-bool alphaDiscardCurrentlySet;
-
-void xRenderStateResetAlphaDiscard()
-{
-    alphaDiscardCurrentlySet = false;
-    RwGameCubeSetAlphaCompare(6, old_alpha_discard_value_gc, 0, 6, old_alpha_discard_value_gc);
-    if ((U8)old_alpha_discard_value_gc != 0)
-    {
-        _rwDlRenderStateSetZCompLoc(FALSE);
-    }
-    else
-    {
-        _rwDlRenderStateSetZCompLoc(TRUE);
-    }
-}
-
-void xRenderStateSetAlphaDiscard(S32 ref)
-{
-    alphaDiscardCurrentlySet = true;
-    RwEngineInstance->dOpenDevice.fpRenderStateGet(rwRENDERSTATEALPHATESTFUNCTIONREF,
-                                                   &old_alpha_discard_value_gc);
-    RwGameCubeSetAlphaCompare(6, ref, 0, 6, ref);
-    if (ref > 0)
-    {
-        _rwDlRenderStateSetZCompLoc(FALSE);
-    }
-    else
-    {
-        _rwDlRenderStateSetZCompLoc(TRUE);
-    }
-}
-
-void xRenderSceneExit()
-{
-}
-
-void xRenderSceneEnter()
-{
-}
+#include "xRenderState.cpp"
 
 //                                                xRenderBuffer
 

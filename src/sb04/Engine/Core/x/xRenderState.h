@@ -1,11 +1,22 @@
 #ifndef XRENDERSTATE_H
 #define XRENDERSTATE_H
 
-#include <rwcore.h>
-#include <types.h>
+#include "types.h"
 
-void xRenderStateSetDstBlendMode(S32 xmode);
-void xRenderStateSetSrcBlendMode(S32 xmode);
+#include <rwcore.h>
+#include <rpworld.h>
+
+void xRenderSceneEnter();
+void xRenderSceneExit();
 void xRenderStateSetTexture(RwTexture* texture);
+void xRenderStateSetSrcBlendMode(S32 xmode);
+void xRenderStateSetDstBlendMode(S32 xmode);
+void xRenderStateSetAlphaDiscard(RwInt32 value);
+void xRenderStateResetAlphaDiscard();
+void xRenderFixUntexturedBegin(RpAtomic*);
+void xRenderFixUntexturedEnd(RpAtomic*);
+void xRenderFixIMBegin();
+void xRenderFixIMEnd();
+void xRenderTexCacheRestore(); // UNUSED
 
 #endif
