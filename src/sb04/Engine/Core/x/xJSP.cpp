@@ -111,11 +111,13 @@ U32 get_matid(xJSPHeader* jsp, U32 old_mat_id, U32 jspAssetID)
         for (S32 i = 0; i < count; i++) {
             if (jsp == jsplist[i]) {
                 const U32* aidlist = ((xScene*)xglobals->sceneCur)->env->geom->jsp_aid;
+                xASSERT(aidlist[i]);
                 matid = xStrHashCat(aidlist[i], num);
             }
         }
     }
 
+    xASSERT_FMT(matid, "Material lookup failure: old mat ID: 0x%08X JSP: 0x%08X", old_mat_id, jsp);
     return matid;
 }
 
@@ -124,11 +126,13 @@ void xJSP_MultiStreamRead(void* data, U32 size, xJSPHeader** jsp, U32 assetID)
     S32 i;
     RpClump* clump;
     xClumpCollBSPTree* colltree;
+    RwBool rwresult;
     xJSPHeaderEx* hdr;
 
     if (!*jsp) {
         hdr = (xJSPHeaderEx*)RwMalloc(sizeof(xJSPHeaderEx), rwMEMHINTDUR_NADURATION);
         *jsp = hdr;
+        xASSERT(*jsp);
         memset(hdr, 0, sizeof(xJSPHeaderEx));
     } else {
         hdr = (xJSPHeaderEx*)*jsp;
@@ -148,9 +152,12 @@ void xJSP_MultiStreamRead(void* data, U32 size, xJSPHeader** jsp, U32 assetID)
         mp = (__rwMark*)((U8*)data + mark.length);
         memmove(&mark, mp, sizeof(__rwMark));
         RwMemNative32(&mark, sizeof(__rwMark));
+        xASSERT(mark.type == rwID_HI_JSPINFO);
 
         data = mp + 1;
         xJSPHeader* tmphdr = (xJSPHeader*)data;
+        xASSERT((tmphdr->idtag[3] == 0) && !strcmp(tmphdr->idtag,"JSP"));
+        xASSERT((tmphdr->version == 3) || (tmphdr->version == 4) || (tmphdr->version == 5));
 
         strncpy(hdr->idtag, tmphdr->idtag, sizeof(hdr->idtag));
         hdr->version = tmphdr->version;
@@ -241,7 +248,8 @@ void xJSP_MultiStreamRead(void* data, U32 size, xJSPHeader** jsp, U32 assetID)
         rwmem.length = size;
 
         RwStream* stream = RwStreamOpen(rwSTREAMMEMORY, rwSTREAMREAD, &rwmem);
-        RwStreamFindChunk(stream, rwID_CLUMP, NULL, NULL);
+        rwresult = RwStreamFindChunk(stream, rwID_CLUMP, NULL, NULL);
+        xASSERT(rwresult);
         clump = RpClumpStreamRead(stream);
         RwStreamClose(stream, NULL);
 
@@ -252,6 +260,7 @@ void xJSP_MultiStreamRead(void* data, U32 size, xJSPHeader** jsp, U32 assetID)
             if (atomCount) {
                 RpAtomic** atomList = (RpAtomic**)RwMalloc(atomCount * sizeof(RpAtomic*), rwMEMHINTDUR_NADURATION);
                 RpAtomic** atomCurr = atomList;
+                xASSERT(atomList);
                 RpClumpForAllAtomics(clump, ListAtomicCB, &atomCurr);
                 for (i = atomCount - 1; i >= 0; i--) {
                     RpClumpRemoveAtomic(clump, atomList[i]);
@@ -267,6 +276,8 @@ void xJSP_MultiStreamRead(void* data, U32 size, xJSPHeader** jsp, U32 assetID)
 
 void xJSP_Destroy(xJSPHeader* jsp)
 {
+    xASSERT(jsp);
+
     S32 i;
     for (i = 0; i < ((xScene*)xglobals->sceneCur)->env->geom->jsp_count; i++) {
         if (((xScene*)xglobals->sceneCur)->env->geom->jsp_list[i] == jsp) {
@@ -491,6 +502,7 @@ xJSPNodeTree* xJSPNodeTreeBuild(xJSPHeader* jsp)
 
     RpAtomic** atomList = (RpAtomic**)RwMalloc(atomCount * sizeof(RpAtomic*), rwMEMHINTDUR_NADURATION);
     RpAtomic** atomCurr = atomList;
+    xASSERT(atomList);
     RpClumpForAllAtomics(clump, ListAtomicCB, &atomCurr);
 
     xJSPNodeTreeLeaf* tleaf = (xJSPNodeTreeLeaf*)RwMalloc(atomCount * sizeof(xJSPNodeTreeLeaf), rwMEMHINTDUR_NADURATION);
@@ -549,3 +561,5 @@ xJSPNodeTree* xJSPNodeTreeBuild(xJSPHeader* jsp)
 
     return jntree;
 }
+
+static S32 JSPApplyLightCB(xJSPHeader* jsp, xJSPNodeTreeLeaf* leaf, RwBBox* box, void* data); // UNUSED

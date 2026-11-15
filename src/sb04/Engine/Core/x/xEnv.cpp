@@ -15,6 +15,7 @@ void xEnvLoadJSPList(xEnv* env, S32 dataType)
         env->geom = &env->ienv;
 
         S32 jsp_count = xSTAssetCountByType('JSP ');
+        xASSERT_FMT((jsp_count > 0), "No JSP's found in scene!");
 
         iEnvLoadBegin(env->geom, dataType, jsp_count / 2);
 
@@ -35,11 +36,15 @@ void xEnvLoadJSPList(xEnv* env, S32 dataType)
         iEnvLoadEnd(env->geom, dataType);
     }
 
+    xASSERT(env->geom);
+
     gCurXEnv = env;
 }
 
 void xEnvSetup(xEnv* env)
 {
+    xASSERT(env->geom);
+
     iEnvSetup(env->geom);
     iEnvDefaultLighting(env->geom);
 
@@ -49,7 +54,10 @@ void xEnvSetup(xEnv* env)
 
 void xEnvFree(xEnv* env)
 {
+    xASSERT(env);
+
     if (env->geom) {
+        xASSERT(env->geom == &env->ienv);
         iEnvFree(env->geom);
         env->geom = NULL;
     }
@@ -57,6 +65,8 @@ void xEnvFree(xEnv* env)
 
 void xEnvRender(xEnv* env, bool alpha)
 {
+    xASSERT(env);
+
     if (env->geom) {
         iEnvRender(env->geom, alpha);
     }

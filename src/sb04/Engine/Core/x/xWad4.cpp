@@ -13,7 +13,7 @@ void xRayHitsEnt(xScene* sc, xRay3* r, xQCData* qcr, xEnt* ent, void* colldata)
     xCollis* coll = (xCollis*)colldata;
     xCollis c;
 
-    if (ent->chkby == XENT_COLLTYPE_NONE)
+    if (ent->chkby == k_XENT_COLLTYPE_NONE)
     {
         return;
     }
@@ -44,12 +44,12 @@ void xRayHitsTikiLandableEnt(xScene* sc, xRay3* r, xQCData* qcr, xEnt* ent, void
     xCollis* coll = (xCollis*)colldata;
     xCollis c;
 
-    if (ent->chkby == XENT_COLLTYPE_NONE)
+    if (ent->chkby == k_XENT_COLLTYPE_NONE)
     {
         return;
     }
 
-    if (ent->collType == XENT_COLLTYPE_NPC)
+    if (ent->collType == k_XENT_COLLTYPE_NPC)
     {
         return;
     }
@@ -71,7 +71,7 @@ void xRayHitsTikiLandableEnt(xScene* sc, xRay3* r, xQCData* qcr, xEnt* ent, void
         return;
     }
 
-    if (ent->collLev == 0x5)
+    if (ent->collLev == k_XENT_COLLLEV_MODEL)
     {
         iRayHitsModel(r, ent->model, &c);
 
@@ -146,19 +146,19 @@ xBase* xSceneResolvID(xScene* sc, U32 id)
 
 void xSceneAddEnt(xScene* sc, xEnt* ent)
 {
-    if (ent->collType == XENT_COLLTYPE_TRIG)
+    if (ent->collType == k_XENT_COLLTYPE_TRIG)
     {
         sc->trigs[sc->num_trigs++] = ent;
     }
-    else if (ent->collType == XENT_COLLTYPE_STAT)
+    else if (ent->collType == k_XENT_COLLTYPE_STAT)
     {
         sc->stats[sc->num_stats++] = ent;
     }
-    else if (ent->collType == XENT_COLLTYPE_DYN)
+    else if (ent->collType == k_XENT_COLLTYPE_DYN)
     {
         sc->dyns[sc->num_dyns++] = ent;
     }
-    else if (ent->collType == XENT_COLLTYPE_NPC)
+    else if (ent->collType == k_XENT_COLLTYPE_NPC)
     {
         sc->npcs[sc->num_npcs++] = ent;
     }

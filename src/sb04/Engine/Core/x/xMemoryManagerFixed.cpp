@@ -13,8 +13,12 @@ void xMemoryManagerFixed::Init(void* start, U32 elements, U32 elementSize)
 
 void* xMemoryManagerFixed::DoAllocate(U32 size, U32 options)
 {
+    xASSERT((options & xMEMORYOPT_ALIGN_MASK) >> xMEMORYOPT_ALIGN_SHIFT <= 2);
+
     if (!freeList)
         return NULL;
+
+    xASSERT(size <= elementSize);
 
     FixedHeader* ret = freeList;
 
@@ -25,6 +29,9 @@ void* xMemoryManagerFixed::DoAllocate(U32 size, U32 options)
 
 void xMemoryManagerFixed::DoFree(void* pointer)
 {
+    S32 TESTVALUE = (S32)((S32)pointer - (S32)GetArenaStart());
+    xASSERT(TESTVALUE % elementSize == 0);
+
     FixedHeader* header = (FixedHeader*)pointer;
     header->next = freeList;
     this->freeList = header;
@@ -32,6 +39,7 @@ void xMemoryManagerFixed::DoFree(void* pointer)
 
 void* xMemoryManagerFixed::DoReallocate(void* pointer, U32 size, U32)
 {
+    xASSERT(size <= elementSize);
     return pointer;
 }
 

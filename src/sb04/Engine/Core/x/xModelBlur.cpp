@@ -135,6 +135,8 @@ void xModelBlur::update_all(F32 dt)
 {
     activity_data** activity = activities, **end_activity = activity + activities_used;
     while (activity != end_activity) {
+        xASSERT((*activity)->owner != 0);
+
         if ((*activity)->cfg->flags & 0x8) {
             activity++;
         }
@@ -320,6 +322,7 @@ bool xModelBlur::update(F32 dt)
 
 xModelBlur::activity_data* xModelBlur::alloc_activity()
 {
+    xASSERT(activities_used < MAX_ACTIVE);
     activity_data* activity = activities[activities_used];
     activities_used++;
     return activity;
@@ -327,6 +330,9 @@ xModelBlur::activity_data* xModelBlur::alloc_activity()
 
 void xModelBlur::free_activity(activity_data* activity)
 {
+    xASSERT(activity != 0);
+    xASSERT(activities_used > 0);
+
     activities_used--;
     activity_data** tail_activity = activities + activities_used;
     if (tail_activity != &activity) {

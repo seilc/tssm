@@ -41,5 +41,6 @@ void xPartitionVolume(Partition* part, xVolume* volume, S32 x_spaces, S32 y_spac
 void xPartitionDump(Partition* part, char* string);
 S32 xPartitionUpdate(Partition* part, void* data, S32 old_idx, xVec3* current_pos);
 S32 xPartitionInsert(Partition* part, void* insert_data, xVec3* insert_pos);
+void xPartitionSpaceMove(PartSpace* src, PartSpace* dest, U32 data); // UNUSED
 
 #endif

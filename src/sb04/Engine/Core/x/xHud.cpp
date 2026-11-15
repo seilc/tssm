@@ -53,6 +53,7 @@ struct holder
 
 void block_allocator::create(S32 block_size, S32 max_blocks)
 {
+    xASSERT(max_blocks > 0);
     this->block_size = ((block_size + 3) & ~3) + sizeof(header);
     this->max_blocks = max_blocks;
     buffer = xMEMALLOC(this->block_size * this->max_blocks, 0);
@@ -61,6 +62,7 @@ void block_allocator::create(S32 block_size, S32 max_blocks)
 
 void* block_allocator::alloc()
 {
+    xASSERT(head != 0);
     holder* obj = head;
     head = head->h.next;
     return obj->data;
@@ -75,6 +77,7 @@ void block_allocator::free(void* mem)
 
 void block_allocator::reset()
 {
+    xASSERT(buffer != 0);
     U8* mem = (U8*)buffer, *end_mem = mem + (max_blocks - 1) * block_size;
 
     for (; mem != end_mem; mem += block_size) {
@@ -472,6 +475,7 @@ void widget::clear_motives()
 
 void widget::cb_dispatch(xBase* from, xBase* to, U32 event, const F32* argf, xBase* argw, U32 argwi)
 {
+    xASSERT(to != 0);
     widget_chunk* wc = (widget_chunk*)to;
     widget* w = &wc->w;
     w->dispatch(from, event, argf, argw, argwi);
@@ -565,6 +569,7 @@ bool linear_motive_update(widget& w, motive& m, F32 dt)
         return false;
     }
 
+    xASSERT(m.value != 0);
     F32 diff = dt * m.delta;
     F32 remaining;
 
@@ -603,6 +608,7 @@ bool accelerate_motive_update(widget&, motive& m, F32 dt)
         return false;
     }
 
+    xASSERT(m.value != 0);
     F32 diff = dt * (0.5f * m.accel * dt) + m.delta * dt;
     m.delta += dt * m.accel;
     F32 remaining = m.max_offset - m.offset;

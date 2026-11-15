@@ -3,11 +3,17 @@
 
 #include <string.h>
 
+#define xMAGIC(a, b, c, d) ((((U32)a) << 0) | (((U32)b) << 8) | (((U32)c) << 16) | (((U32)d) << 24))
+
 xMorphSeqFile* xMorphSeqSetup(void* data, xMorphFindAssetCallback FindAssetCB)
 {
     S32 i, j;
     RpAtomic* model;
     xMorphTargetFile* mphtgt;
+
+    xASSERT(data);
+    xASSERT(*((U32*)data) == xMAGIC('M','P','S','Q'));
+
     xMorphSeqFile* header;
     F32* timelist;
     xMorphFrame* framelist;
@@ -34,6 +40,7 @@ xMorphSeqFile* xMorphSeqSetup(void* data, xMorphFindAssetCallback FindAssetCB)
     for (i = 0; i < (S32)header->ModelCount * 2; i++) {
         if (assetlist[i]) {
             assetPtr = FindAssetCB(assetlist[i], namelist);
+            xASSERT(assetPtr);
             assetlist[i] = (U32)assetPtr;
         }
         if (namelist) namelist = strlen(namelist) + 1 + namelist;
@@ -55,6 +62,7 @@ xMorphSeqFile* xMorphSeqSetup(void* data, xMorphFindAssetCallback FindAssetCB)
             if ((U32)framelist[i].Targets[j] + 0x10000 == 0xFFFF) {
                 framelist[i].Targets[j] = NULL;
             } else {
+                xASSERT(mphtgt);
                 skipsize = (mphtgt->NumVerts * 3 + 7) & ~7;
                 if (mphtgt->Flags & 0x1) {
                     skipsize *= 2;

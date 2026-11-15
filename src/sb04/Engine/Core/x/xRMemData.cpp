@@ -6,9 +6,15 @@
 
 #include <string.h>
 
-void* RyzMemData::operator new(size_t amt, S32, RyzMemGrow* growCtxt)
+void* RyzMemData::operator new(size_t amt, S32 who, RyzMemGrow* growCtxt)
 {
     void* mem = NULL;
+
+    xVALIDATE(who);
+
+    if (!who) who = 'RMEM';
+
+    xASSERT_MSG((amt>1), "Don't be shy");
 
     S32 dogrow = TRUE;
 
@@ -16,6 +22,8 @@ void* RyzMemData::operator new(size_t amt, S32, RyzMemGrow* growCtxt)
     else if (!growCtxt->IsEnabled()) dogrow = FALSE;
 
     if (dogrow) {
+        xASSERT_MSG(growCtxt->ptr, "Missing base address");
+
         mem = xMEMGROWALLOC(amt);
     } else {
         mem = xMEMALLOC(amt, 0);
@@ -48,8 +56,11 @@ RyzMemGrow* RyzMemGrow::Init(xBase* growuser)
     return this;
 }
 
-RyzMemGrow* RyzMemGrow::Resume(xBase*)
+RyzMemGrow* RyzMemGrow::Resume(xBase* growuser)
 {
+    xASSERT_MSG(growuser && (growuser == this->user_last), "Under New Mgmt?");
+    xASSERT_MSG(this->ptr_last, "Resume has bad last info");
+
     this->amt = this->amt_last;
     this->ptr = this->ptr_last;
     this->user = this->user_last;
@@ -60,6 +71,10 @@ RyzMemGrow* RyzMemGrow::Resume(xBase*)
 
 void RyzMemGrow::Done()
 {
+    xASSERT(this->flg_grow & RMEM_GROW_ENABLED);
+    xASSERT(this->amt==RMEM_GROWSTUB_SIZE);
+    xASSERT(this->ptr);
+
     this->amt_last = this->amt;
     this->ptr_last = this->ptr;
     this->user_last = this->user;

@@ -5,6 +5,9 @@
 
 U32 xRayHitsSphereFast(const xRay3* r, const xSphere* s)
 {
+    xASSERT(r);
+    xASSERT(s);
+
     xVec3 diff;
     xVec3Sub(&diff, &r->origin, &s->center);
 
@@ -29,6 +32,9 @@ U32 xRayHitsSphereFast(const xRay3* r, const xSphere* s)
 
 U32 xRayHitsBoxFast(const xRay3* r, const xBox* b)
 {
+    xASSERT(r);
+    xASSERT(b);
+
     xIsect isx;
     iBoxIsectRay(b, r, &isx);
 

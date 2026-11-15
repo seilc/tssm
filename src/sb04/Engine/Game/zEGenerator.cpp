@@ -46,13 +46,13 @@ void zEGenerator_Reset(zEGenerator* egen, xScene* xscn)
     {
         zEGenerator_TurnOff(egen);
     }
-    if (zasset->moreFlags & 0b100)
+    if (zasset->moreFlags & 0x4)
     {
-        egen->chkby = XENT_COLLTYPE_NONE;
+        egen->chkby = k_XENT_COLLTYPE_NONE;
     }
     else
     {
-        egen->chkby = XENT_COLLTYPE_PLYR | XENT_COLLTYPE_NPC;
+        egen->chkby = k_XENT_COLLTYPE_PC | k_XENT_COLLTYPE_NPC;
     }
     egen->bupdate((xEnt*)egen, (xVec3*)&egen->model->Mat->pos);
 }

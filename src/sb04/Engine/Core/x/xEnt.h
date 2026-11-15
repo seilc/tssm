@@ -163,13 +163,32 @@ struct xEnt : xBase
 // xEnt::flags
 #define k_XENT_IS_VISIBLE ((U8)(1 << 0))
 
+// xEnt::pflags
+#define k_XENT_IS_MOVING ((U8)(1 << 0))
+#define k_XENT_HAS_VELOCITY ((U8)(1 << 1))
+#define k_XENT_HAS_GRAVITY ((U8)(1 << 2))
+#define k_XENT_HAS_DRAG ((U8)(1 << 3))
+
 // xEnt::collType, chkby, penby; xEntCollis::chk, pen
-#define XENT_COLLTYPE_NONE 0x0
-#define XENT_COLLTYPE_TRIG 0x1 // trigger (TRIG)
-#define XENT_COLLTYPE_STAT 0x2 // static (SIMP)
-#define XENT_COLLTYPE_DYN 0x4 // dynamic (PLAT)
-#define XENT_COLLTYPE_NPC 0x8 // npc/enemy (VIL)
-#define XENT_COLLTYPE_PLYR 0x10 // player (PLYR)
+#define k_XENT_COLLTYPE_NONE ((U8)0)
+#define k_XENT_COLLTYPE_TRIG ((U8)(1 << (0)))
+#define k_XENT_COLLTYPE_STAT ((U8)(1 << (1)))
+#define k_XENT_COLLTYPE_DYN ((U8)(1 << (2)))
+#define k_XENT_COLLTYPE_NPC ((U8)(1 << (3)))
+#define k_XENT_COLLTYPE_PC ((U8)(1 << (4)))
+#define k_XENT_COLLTYPE_ENV ((U8)(1 << (5)))
+
+// xEnt::collLev
+#define k_XENT_COLLLEV_FASTEST 0
+#define k_XENT_COLLLEV_AABB 1
+#define k_XENT_COLLLEV_SPH 2
+#define k_XENT_COLLLEV_OBB 3
+#define k_XENT_COLLLEV_BOUND 4
+#define k_XENT_COLLLEV_MODEL 5
+
+// xEnt::moreFlags
+#define k_MORE_FLAGS_ANIM_COLL ((U8)1<<5)
+#define k_MORE_FLAGS_HITTABLE ((U8)1<<4)
 
 // Size: 0x40
 struct xEntShadow

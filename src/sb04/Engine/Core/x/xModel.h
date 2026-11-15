@@ -22,6 +22,14 @@ struct xModelPool
     xModelInstance* List;
 };
 
+// xModelInstance::Flags
+enum
+{
+    ModelInstance_Render = 0x1,
+    ModelInstance_ChildTransform = 0x40,
+    ModelInstance_NoRender = 0x400
+};
+
 struct xModelInstance
 {
     struct _class_6

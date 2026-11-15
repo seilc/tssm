@@ -35,6 +35,8 @@ void xGroupInit(xBase* b, xGroupAsset* asset)
 
 void xGroupSetup(xGroup* g)
 {
+    xASSERT(g);
+
     if (g->flg_group & 0x1) return;
 
     U32 count = xGroupGetCount(g);
@@ -53,26 +55,42 @@ void xGroupSetup(xGroup* g)
     }
 
     g->flg_group |= 0x1;
+
+    xASSERT_FMT(((XGRP_FLG_HASWIDGET|XGRP_FLG_HASASSET) & g->flg_group) != (
+                       XGRP_FLG_HASWIDGET|XGRP_FLG_HASASSET),
+                 "ERROR:  Group 0x%08x  \"%s\" has both widgets and assets!\n",
+                 g->id, xSTAssetName(g->id));
 }
 
 void xGroupSave(xGroup* ent, xSerial* s)
 {
     xBaseSave(ent, s);
+
+    xASSERT(ent);
+    xASSERT(s);
 }
 
 void xGroupLoad(xGroup* ent, xSerial* s)
 {
     xBaseLoad(ent, s);
+
+    xASSERT(ent);
+    xASSERT(s);
 }
 
 void xGroupReset(xGroup* ent)
 {
+    xASSERT(ent);
+    xASSERT(ent->asset);
+
     xBaseReset(ent, ent->asset);
 }
 
 void xGroupEventCB(xBase* from, xBase* to, U32 toEvent, const F32* toParam, xBase* toParamWidget, U32 toParamWidgetID)
 {
     xGroup* g = (xGroup*)to;
+    xASSERT(g);
+    xASSERT(g->asset);
 
     switch (toEvent) {
     case eEventReset:
@@ -139,11 +157,16 @@ void xGroupEventCB(xBase* from, xBase* to, U32 toEvent, const F32* toParam, xBas
 
 U32 xGroupGetCount(xGroup* g)
 {
+    xASSERT(g);
+    xASSERT(g->asset);
+
     return g->asset->itemCount;
 }
 
 xBase* xGroupGetItemPtr(xGroup* g, U32 index)
 {
+    xASSERT(g);
+
     if (!(g->flg_group & 0x1)) {
         xGroupSetup(g);
     }
@@ -153,13 +176,19 @@ xBase* xGroupGetItemPtr(xGroup* g, U32 index)
 
 U32 xGroupGetItem(xGroup* g, U32 index)
 {
+    xASSERT(g);
+    xASSERT(g->asset);
+    xASSERT(index < g->asset->itemCount);
+
     U32* idx = (U32*)((U8*)g->asset + sizeof(xGroupAsset));
     return idx[index];
 }
 
 U32 xGroup::get_any()
 {
+    xASSERT(asset);
     if (asset->itemCount == 0) return 0;
+    xASSERT(last_index < asset->itemCount);
 
     U32* ids = (U32*)((U8*)asset + sizeof(xGroupAsset));
     U32 id = ids[last_index];

@@ -7,6 +7,9 @@
 
 void xIMLock(xIMLockContext& context, xIMFormat format, S32 vertCount)
 {
+    xASSERT(vertCount > 0);
+    xASSERT(!((format == XIM_TRILIST) && ((vertCount % 3) != 0)));
+
     S32 pos_qwords = (vertCount * sizeof(xVec3) + (16-1)) / 16;
     S32 uv_qwords = (vertCount * sizeof(xVec2) + (16-1)) / 16;
     S32 color_qwords = (vertCount * sizeof(xColor) + (16-1)) / 16;
@@ -24,6 +27,8 @@ void xIMLock(xIMLockContext& context, xIMFormat format, S32 vertCount)
 
     context.color = (xColor*)data_buffer;
     data_buffer += color_qwords*16;
+
+    xASSERT(((U32)data_buffer - (U32)context.data) == (alloc_qwords*16));
 
     context.vertCount = vertCount;
     context.format = format;

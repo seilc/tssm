@@ -17,17 +17,23 @@ void xVolume::Init(xVolumeAsset* asset)
 
 void xVolume::Reset()
 {
+    xASSERT(this->asset);
+
     xBaseReset(this, this->asset);
 }
 
 void xVolume::Save(xSerial* s)
 {
     xBaseSave(this, s);
+
+    xASSERT(s);
 }
 
 void xVolume::Load(xSerial* s)
 {
     xBaseLoad(this, s);
+
+    xASSERT(s);
 }
 
 xBound* xVolume::GetBound()

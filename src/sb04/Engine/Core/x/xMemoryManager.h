@@ -3,6 +3,8 @@
 
 #include "xMemory.h"
 
+enum { xMEMORYOPT_ALIGN_MASK = 0x3C, xMEMORYOPT_ALIGN_SHIFT = 2 };
+
 class xMemoryManager
 {
 public:

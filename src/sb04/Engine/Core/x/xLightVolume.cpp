@@ -29,6 +29,7 @@ void xLightVolume::reset_all()
     activity_type* act = activities, *end_act = act + activities_used;
 
     for (; act != end_act; act++) {
+        xASSERT(act->owner != 0);
         act->owner->activity = 0;
     }
 
@@ -42,6 +43,8 @@ void xLightVolume::create()
 
 bool xLightVolume::activate()
 {
+    xASSERT(activity == 0);
+
     if (activities_used >= MAX_ACTIVE) {
         return false;
     }
@@ -55,6 +58,10 @@ bool xLightVolume::activate()
 
 void xLightVolume::deactivate()
 {
+    xASSERT(activity != 0);
+    xASSERT((activity >= activities) && (activity < (activities + activities_used)));
+    xASSERT(activity->owner == this);
+
     activities_used--;
 
     activity_type* tail_activity = &activities[activities_used];

@@ -27,6 +27,8 @@ void* xMemoryManagerGeneral::DoAllocate(U32 size, U32 options)
 {
     size = (size + 15) & ~15;
 
+    xASSERT((options & xMEMORYOPT_ALIGN_MASK) >> xMEMORYOPT_ALIGN_SHIFT <= 4);
+
     FreeNode* node;
 
     if ((dir == Up && (options & 0x6) != 0x2) || dir == Down && (options & 0x6) != 0x4) {
@@ -62,6 +64,7 @@ void* xMemoryManagerGeneral::DoAllocate(U32 size, U32 options)
             node->size = size;
 
             FreeNode* next = NextBlockOfMemory(node);
+            xASSERT(next == newNode);
 
             if (node == freeEnd) {
                 freeEnd = newNode;
@@ -102,6 +105,7 @@ void* xMemoryManagerGeneral::DoAllocate(U32 size, U32 options)
             node->size -= size + sizeof(FreeNode);
 
             FreeNode* next = NextBlockOfMemory(node);
+            xASSERT(next == newNode);
 
             if (node == freeEnd) {
                 freeEnd = newNode;
@@ -111,6 +115,8 @@ void* xMemoryManagerGeneral::DoAllocate(U32 size, U32 options)
             node = newNode;
         }
     }
+
+    xASSERT(node->size >= size);
 
     if (node->prev)
         node->prev->next = node->next;
@@ -238,6 +244,7 @@ void* xMemoryManagerGeneral::DoReallocate(void* pointer, U32 size, U32 options)
 
     const void* dataStart = allocatedNode + 1;
 
+    xASSERT(size > nodeSize);
     U32 neededSize = size - nodeSize;
 
     if ((sizeAfterNode != 0 && dir == Up) || (sizeBeforeNode != 0 && dir == Down)) {

@@ -5,6 +5,7 @@
 
 void XOrdInit(st_XORDEREDARRAY* array, S32 size, S32 tempAlloc)
 {
+    xVALIDATE(size>0);
     size = (size<1) ? 1 : size;
 
     if (tempAlloc) {
@@ -40,6 +41,8 @@ void XOrdDone(st_XORDEREDARRAY* array, S32 wasTempAlloc)
 
 void XOrdAppend(st_XORDEREDARRAY* array, void* elt)
 {
+    xASSERT(array->cnt < array->max);
+
     if (array->cnt >= array->max) {
         return;
     }
@@ -50,6 +53,9 @@ void XOrdAppend(st_XORDEREDARRAY* array, void* elt)
 void XOrdInsert(st_XORDEREDARRAY* array, void* elt, XOrdCompareCallback compare)
 {
     S32 i = 0;
+
+    xVALIDATE(compare);
+    xASSERT(array->cnt <= (array->max-1));
 
     if (array->cnt >= array->max) {
         return;

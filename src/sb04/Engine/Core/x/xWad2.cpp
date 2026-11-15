@@ -2841,7 +2841,7 @@ void xEntCollideWalls(xEnt* p, xScene* sc, F32 dt)
         sbr = 0.7f;
     }
 
-    if (p->collis->pen & 0x8)
+    if (p->collis->pen & k_XENT_COLLTYPE_NPC)
     {
         idx = p->collis->npc_eidx;
         sidx = p->collis->npc_sidx;
@@ -2867,7 +2867,7 @@ void xEntCollideWalls(xEnt* p, xScene* sc, F32 dt)
         }
     }
 
-    if (p->collis->pen & 0x4)
+    if (p->collis->pen & k_XENT_COLLTYPE_DYN)
     {
         idx = p->collis->dyn_eidx;
         sidx = p->collis->dyn_sidx;
@@ -2890,7 +2890,7 @@ void xEntCollideWalls(xEnt* p, xScene* sc, F32 dt)
         }
     }
 
-    if (p->collis->pen & 0x2)
+    if (p->collis->pen & k_XENT_COLLTYPE_STAT)
     {
         idx = p->collis->stat_eidx;
         sidx = p->collis->stat_sidx;
@@ -2913,7 +2913,7 @@ void xEntCollideWalls(xEnt* p, xScene* sc, F32 dt)
         }
     }
 
-    if (p->collis->pen & 0x20)
+    if (p->collis->pen & k_XENT_COLLTYPE_ENV)
     {
         idx = p->collis->env_eidx;
         sidx = p->collis->env_sidx;
@@ -2970,7 +2970,7 @@ void xEntCollideFloor(xEnt* p, xScene* sc, F32 dt)
 
             if (fent)
             {
-                if ((fent->collType == XENT_COLLTYPE_DYN || fent->collType == XENT_COLLTYPE_STAT) ||
+                if ((fent->collType == k_XENT_COLLTYPE_DYN || fent->collType == k_XENT_COLLTYPE_STAT) ||
                     (fent->pflags & 0x20 && 0.0f == mf->hdng.x && 0.0f == mf->hdng.z))
                 {
                     if (!((p->collis->depenq) ?
@@ -2985,7 +2985,7 @@ void xEntCollideFloor(xEnt* p, xScene* sc, F32 dt)
                     continue;
                 }
             }
-            else if (!(p->collis->pen & 0x20))
+            else if (!(p->collis->pen & k_XENT_COLLTYPE_ENV))
             {
                 continue;
             }
@@ -3065,7 +3065,7 @@ xEnt* xEntCollCheckOneEntNoDepen(xEnt* ent, xScene* sc, void* data)
 
     coll = &p->collis->colls[p->collis->idx];
 
-    if (ent->collLev == 5 && p->collType & (XENT_COLLTYPE_NPC | XENT_COLLTYPE_PLYR))
+    if (ent->collLev == k_XENT_COLLLEV_MODEL && p->collType & (k_XENT_COLLTYPE_NPC | k_XENT_COLLTYPE_PC))
     {
         modl_coll = 1;
     }
@@ -3359,29 +3359,29 @@ void xEntCollide(xEnt* ent, xScene* sc, F32 dt)
 {
     if (ent->model)
     {
-        if (ent->collis->chk & 0x2E)
+        if (ent->collis->chk & (k_XENT_COLLTYPE_STAT | k_XENT_COLLTYPE_DYN | k_XENT_COLLTYPE_NPC | k_XENT_COLLTYPE_ENV))
         {
             xEntBeginCollide(ent, sc, dt);
         }
 
-        if (ent->collis->chk & 0x8)
+        if (ent->collis->chk & k_XENT_COLLTYPE_NPC)
         {
             xEntCollCheckNPCsByGrid(ent, sc, xEntCollCheckOneEntNoDepen);
         }
 
-        if (ent->collis->chk & 0x6)
+        if (ent->collis->chk & (k_XENT_COLLTYPE_STAT | k_XENT_COLLTYPE_DYN))
         {
             xEntCollCheckByGrid(ent, sc, xEntCollCheckOneEntNoDepen);
         }
 
-        if (ent->collis->chk & 0x20)
+        if (ent->collis->chk & k_XENT_COLLTYPE_ENV)
         {
             xEntCollCheckEnv(ent, sc);
         }
 
         xCollis* coll = &ent->collis->colls[0];
 
-        if (ent->collis->chk & 0x2E)
+        if (ent->collis->chk & (k_XENT_COLLTYPE_STAT | k_XENT_COLLTYPE_DYN | k_XENT_COLLTYPE_NPC | k_XENT_COLLTYPE_ENV))
         {
             F32 h_dot_n;
 
@@ -3433,7 +3433,7 @@ void xEntApplyPhysics(xEnt* ent, xScene* sc, F32 dt)
 {
     xVec3 dposvel = { 0, 0, 0 };
 
-    if (ent->pflags & 0x4 && sc->flags & 0x1)
+    if (ent->pflags & k_XENT_HAS_GRAVITY && sc->flags & 0x1)
     {
         ent->frame->vel.y += sc->gravity * dt;
     }
@@ -3444,7 +3444,7 @@ void xEntApplyPhysics(xEnt* ent, xScene* sc, F32 dt)
         xVec3SMulBy(&ent->frame->vel, tfric);
     }
 
-    if (ent->pflags & 0x8 && sc->flags & 0x4)
+    if (ent->pflags & k_XENT_HAS_DRAG && sc->flags & 0x4)
     {
         F32 tdrag = -(sc->drag * dt - 1.0f);
         xVec3SMulBy(&ent->frame->vel, tdrag);
@@ -3476,7 +3476,7 @@ void xEntApplyPhysics(xEnt* ent, xScene* sc, F32 dt)
 
 void xEntMove(xEnt* ent, xScene* sc, F32 dt)
 {
-    if (ent->moreFlags & 0x20)
+    if (ent->moreFlags & k_MORE_FLAGS_ANIM_COLL)
     {
         //anim_coll::pre_move(*ent);
     }
@@ -3510,7 +3510,7 @@ void xEntMove(xEnt* ent, xScene* sc, F32 dt)
         }
     }
 
-    if (ent->moreFlags & 0x20)
+    if (ent->moreFlags & k_MORE_FLAGS_ANIM_COLL)
     {
         //anim_coll::post_move(*ent);
     }
@@ -3623,7 +3623,7 @@ void xEntEndUpdate(xEnt* ent, xScene* sc, F32 dt)
 
         xModelEval(ent->model);
 
-        if (ent->moreFlags & 0x20)
+        if (ent->moreFlags & k_MORE_FLAGS_ANIM_COLL)
         {
             //anim_coll::refresh(*ent);
         }
@@ -3718,7 +3718,7 @@ namespace
 
         coll.flags = 0x100;
 
-        xRayHitsSceneFlags(&s, &ray, &coll, XENT_COLLTYPE_PLYR, 0x26);
+        xRayHitsSceneFlags(&s, &ray, &coll, k_XENT_COLLTYPE_PC, k_XENT_COLLTYPE_STAT | k_XENT_COLLTYPE_DYN | k_XENT_COLLTYPE_ENV);
 
         ent.bound.type = old_bound_type;
         ent.bound.sph.r = old_bound_radius;
@@ -3747,7 +3747,7 @@ namespace
 
     void mount_stacked_entity(xEnt& ent, xEnt& driver)
     {
-        if (driver.collType == XENT_COLLTYPE_DYN)
+        if (driver.collType == k_XENT_COLLTYPE_DYN)
         {
             if (ent.driver)
             {
@@ -3784,13 +3784,13 @@ namespace
 
     void setup_stacked_entity(xEnt& ent)
     {
-        ent.pflags = 0x4;
+        ent.pflags = k_XENT_HAS_GRAVITY;
     }
 
     // Inlining issue
     void drop_stacked_entity(xEnt& ent)
     {
-        ent.pflags = 0x4;
+        ent.pflags = k_XENT_HAS_GRAVITY;
 
         dismount_stacked_entity(ent);
     }
@@ -3827,12 +3827,12 @@ void xEntUpdate(xEnt* ent, xScene* sc, F32 dt)
 {
     xEntBeginUpdate(ent, sc, dt);
 
-    if (ent->pflags & 0x2)
+    if (ent->pflags & k_XENT_HAS_VELOCITY)
     {
         xEntApplyPhysics(ent, sc, dt);
     }
 
-    if (ent->pflags & 0x1)
+    if (ent->pflags & k_XENT_IS_MOVING)
     {
         xEntMove(ent, sc, dt);
     }
@@ -3844,7 +3844,7 @@ void xEntUpdate(xEnt* ent, xScene* sc, F32 dt)
         xEntCollide(ent, sc, dt);
     }
 
-    if (ent->flags & 0x2 && ent->pflags & 0x4)
+    if (ent->flags & 0x2 && ent->pflags & k_XENT_HAS_GRAVITY)
     {
         update_stacked_entity(*sc, *ent, dt);
     }

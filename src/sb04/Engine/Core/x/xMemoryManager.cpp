@@ -142,6 +142,15 @@ void* xMemoryManager::SetupDebugBlock(void* memory, U32 size, const char* file, 
 void* xMemoryManager::RemoveDebugBlock(void* memory, U32* size)
 {
     DebugAllocationHeader* header = (DebugAllocationHeader*)((U32)memory - sizeof(DebugAllocationHeader));
+    DebugAllocationTrailer* trailer = (DebugAllocationTrailer*)xMEMADVANCE(memory, header->size);
+
+    xASSERT(header->manager == this);
+
+    for (S32 i = 0; i < header->NUM_MAGIC; i++)
+        xASSERT(header->magic[i] == header->MAGIC);
+
+    for (S32 i = 0; i < trailer->NUM_MAGIC; i++)
+        xASSERT(trailer->magic[i] == trailer->MAGIC);
 
     if (header->prev)
         header->prev->next = header->next;

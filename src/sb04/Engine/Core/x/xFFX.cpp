@@ -9,6 +9,8 @@ static xFFX* alist;
 
 void xFFXPoolInit(U32 num_ffx)
 {
+    xASSERT(num_ffx);
+
     psize = num_ffx;
     pool = (xFFX*)xMEMALLOC(sizeof(xFFX) * psize, 0);
 
@@ -33,12 +35,17 @@ xFFX* xFFXAlloc()
 
 void xFFXFree(xFFX* f)
 {
+    xASSERT(f);
+
     f->next = alist;
     alist = f;
 }
 
 S16 xFFXAddEffect(xEnt* ent, xFFX* f)
 {
+    xASSERT(ent);
+    xASSERT(f);
+
     f->next = ent->ffx;
     f->flags |= 0x1;
 
@@ -61,6 +68,8 @@ S16 xFFXAddEffect(xEnt* ent, xFFXEffectCallback dof, void* fd)
 
 U32 xFFXRemoveEffectByFData(xEnt* ent, void* fdata)
 {
+    xASSERT(ent);
+
     xFFX** ffxh = &ent->ffx;
     while (*ffxh) {
         if (fdata == (*ffxh)->fdata) {
@@ -78,6 +87,8 @@ U32 xFFXRemoveEffectByFData(xEnt* ent, void* fdata)
 
 static void xFFXApplyOne(xFFX* ffx, xEnt* ent, xScene* sc, F32 dt)
 {
+    xASSERT(ffx);
+
     if (ffx->next) {
         xFFXApplyOne(ffx->next, ent, sc, dt);
     }
@@ -88,6 +99,8 @@ static void xFFXApplyOne(xFFX* ffx, xEnt* ent, xScene* sc, F32 dt)
 
 void xFFXApply(xEnt* ent, xScene* sc, F32 dt)
 {
+    xASSERT(ent);
+
     if (ent->ffx) {
         xFFXApplyOne(ent->ffx, ent, sc, dt);
     }
@@ -95,6 +108,10 @@ void xFFXApply(xEnt* ent, xScene* sc, F32 dt)
 
 void xFFXShakeUpdateEnt(xEnt* ent, xScene* sc, F32 dt, void* fdata)
 {
+    xASSERT(ent);
+    xASSERT(sc);
+    xASSERT(fdata);
+
     xFFXShakeState* ss = (xFFXShakeState*)fdata;
     F32 tnext = ss->tmr + dt;
     xVec3 dpos;
@@ -120,6 +137,8 @@ static xFFXShakeState* shake_alist;
 
 void xFFXShakePoolInit(U32 num)
 {
+    xASSERT(num);
+
     shake_psize = num;
     shake_pool = (xFFXShakeState*)xMEMALLOC(sizeof(xFFXShakeState) * shake_psize, 0);
 
@@ -144,6 +163,8 @@ xFFXShakeState* xFFXShakeAlloc()
 
 void xFFXShakeFree(xFFXShakeState* s)
 {
+    xASSERT(s);
+
     s->next = shake_alist;
     shake_alist = s;
 }
@@ -154,6 +175,8 @@ static xFFXRotMatchState* rot_match_alist;
 
 void xFFXRotMatchPoolInit(U32 num)
 {
+    xASSERT(num);
+
     rot_match_psize = num;
     rot_match_pool = (xFFXRotMatchState*)xMEMALLOC(sizeof(xFFXRotMatchState) * rot_match_psize, 0);
 

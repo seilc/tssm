@@ -13,6 +13,7 @@ void xSurfaceInit(U16 num_surfs)
 
     if (nsurfs) {
         surfs = (xSurface*)xMEMALLOC(nsurfs * sizeof(xSurface), 0);
+        xASSERT(surfs);
 
         for (U16 i = 0; i < nsurfs; i++) {
             surfs[i].idx = i;
@@ -29,11 +30,17 @@ void xSurfaceExit()
 void xSurfaceSave(xSurface* ent, xSerial* s)
 {
     xBaseSave(ent, s);
+
+    xASSERT(ent);
+    xASSERT(s);
 }
 
 void xSurfaceLoad(xSurface* ent, xSerial* s)
 {
     xBaseLoad(ent, s);
+
+    xASSERT(ent);
+    xASSERT(s);
 }
 
 void xSurfaceReset(xSurface*)
@@ -50,6 +57,8 @@ xSurface* xSurfaceGetByIdx(U16 n)
     if (!surfs) {
         return NULL;
     }
+
+    xASSERT(n < nsurfs);
 
     return &surfs[n];
 }
