@@ -295,7 +295,7 @@ void iSGAutoSave_Startup()
 {
 }
 
-U8 iSGCheckMemoryCard(st_ISGSESSION* isgdata, S32 index)
+bool iSGCheckMemoryCard(st_ISGSESSION* isgdata, S32 index)
 {
     s32 memSize;
     s32 sectorSize;
@@ -303,9 +303,9 @@ U8 iSGCheckMemoryCard(st_ISGSESSION* isgdata, S32 index)
     switch (CARDProbeEx(index, &memSize, &sectorSize))
     {
     case CARD_RESULT_READY:
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 static S32 iSG_curKosher(CARDStat* stat, CARDFileInfo* info) // FIX
@@ -554,7 +554,7 @@ static S32 iSG_fileKosher(st_ISG_MEMCARD_DATA* mcdata, const char* param2, int p
     return rc;
 }
 
-S32 iSGCheckForCorruptFiles(st_ISGSESSION* isgdata, char files[][64])
+bool iSGCheckForCorruptFiles(st_ISGSESSION* isgdata, char files[][64])
 {
     if (isgdata->slot < 0)
     {

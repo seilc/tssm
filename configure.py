@@ -388,7 +388,7 @@ config.libs = [
         "cflags": cflags_tssm,
         "progress_category": "game",
         "objects": [
-            Object(NonMatching, "sb04/Engine/Core/x/xWad4.cpp", extra_cflags=["-sym on"]),
+            Object(NonMatching, "sb04/Engine/Core/x/xWad4.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/x/xWad2.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/x/xWad3.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/x/xWad1.cpp", extra_cflags=["-sym on", "-inline deferred"]),

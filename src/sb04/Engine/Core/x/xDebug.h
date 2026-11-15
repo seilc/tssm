@@ -4,6 +4,10 @@
 #include "iDebug.h"
 #include "xString.h"
 
+#define xVALIDATE(cond) do { if (0) { (void)(cond); } } while (0)
+
+#define xASSERT(cond) do { if (0) { (void)(cond); } } while (0)
+
 struct uint_data
 {
     U32 value_def;

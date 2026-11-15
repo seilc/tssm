@@ -31,12 +31,10 @@ enum en_ASYNC_OPCODE
     ISG_OPER_LOAD
 };
 
-// This enum might be incorrect. The tooling choked on the enum values
-// being 0xFFFFFFFF
 enum en_ASYNC_OPSTAT
 {
-    ISG_OPSTAT_FAILURE = 0xFFFFFFFF,
-    ISG_OPSTAT_INPROG = 0,
+    ISG_OPSTAT_FAILURE = -1,
+    ISG_OPSTAT_INPROG,
     ISG_OPSTAT_SUCCESS
 };
 
@@ -72,6 +70,8 @@ enum en_CHGCODE
     ISG_CHG_TARGET,
     ISG_CHG_GAMELIST
 };
+
+typedef void(*ISGChangeCallback)(void* cltdata, en_CHGCODE what);
 
 /* DWARF Definitions (PS2)
 
@@ -132,7 +132,7 @@ struct st_ISGSESSION
     en_ASYNC_OPERR unk_268;
     en_ASYNC_OPSTAT unk_26c;
     S32 unk_270;
-    void (*chgfunc)(void*, en_CHGCODE); // 0x274
+    ISGChangeCallback chgfunc;
     void* cltdata; // 0x278
     S32 unk_27c;
 };
@@ -148,7 +148,7 @@ enum en_NAMEGEN_TYPE
 S32 iSGStartup();
 S32 iSGShutdown();
 char* iSGMakeName(en_NAMEGEN_TYPE type, const char* base, S32 idx);
-st_ISGSESSION* iSGSessionBegin(void* cltdata, void (*chgfunc)(void*, en_CHGCODE), S32 monitor);
+st_ISGSESSION* iSGSessionBegin(void* cltdata, ISGChangeCallback chgfunc, S32 monitor);
 void iSGSessionEnd(st_ISGSESSION* isgdata);
 S32 iSGTgtCount(st_ISGSESSION* isgdata, S32* max);
 S32 iSGTgtPhysSlotIdx(st_ISGSESSION* isgdata, S32 tidx);
@@ -159,7 +159,7 @@ S32 iSGTgtHaveRoom(st_ISGSESSION* isgdata, S32 tidx, S32 fsize, const char* dpat
                    const char* fname, S32* bytesNeeded, S32* availOnDisk, S32* needFile);
 S32 iSGTgtHaveRoomStartup(st_ISGSESSION* isgdata, S32 tidx, S32 fsize, const char* dpath,
                           const char* fname, S32* bytesNeeded, S32* availOnDisk, S32* needFile);
-U8 iSGCheckMemoryCard(st_ISGSESSION* isgdata, S32 index);
+bool iSGCheckMemoryCard(st_ISGSESSION* isgdata, S32 index);
 S32 iSGFileSize(st_ISGSESSION* isgdata, const char* fname);
 char* iSGFileModDate(st_ISGSESSION* isgdata, const char* fname);
 char* iSGFileModDate(st_ISGSESSION* isgdata, const char* fname, S32* sec, S32* min, S32* hr,
@@ -175,10 +175,10 @@ S32 iSGSaveFile(st_ISGSESSION* isgdata, const char* fname, char* data, S32 n, S3
 S32 iSGLoadFile(st_ISGSESSION* isgdata, const char* fname, char* databuf, S32 async);
 S32 iSG_mcidx2slot(S32 param1, S32* out_slot, S32* param3);
 void iSGAutoSave_Startup();
-st_ISGSESSION* iSGAutoSave_Connect(S32 idx_target, void* cltdata, void (*chg)(void*, en_CHGCODE));
+st_ISGSESSION* iSGAutoSave_Connect(S32 idx_target, void* cltdata, ISGChangeCallback chg);
 void iSGAutoSave_Disconnect(st_ISGSESSION* isg);
 S32 iSGAutoSave_Monitor(st_ISGSESSION* isg, S32 idx_target);
 S32 iSGCheckForWrongDevice();
-S32 iSGCheckForCorruptFiles(st_ISGSESSION*, char files[][64]);
+bool iSGCheckForCorruptFiles(st_ISGSESSION* isgdata, char (*fileName)[64]);
 
 #endif

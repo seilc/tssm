@@ -3,6 +3,7 @@
 
 #include "zEntPlayer.h"
 #include "zGameState.h"
+#include "iTime.h"
 
 //extern eSNDCurrentPlayer gPendingPlayer;
 extern F32 sTimeElapsed;
