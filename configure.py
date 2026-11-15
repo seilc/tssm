@@ -282,7 +282,6 @@ cflags_tssm = [
     "-use_lmw_stmw on",
     '-pragma "cpp_extensions on"',
     "-inline auto",
-    "-gccinc",
     "-i include/bink",
     "-i include/inline",
     "-i include/rwsdk",
