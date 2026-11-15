@@ -200,6 +200,7 @@ cflags_base = [
     "-i include",
     "-i src/PowerPC_EABI_Support/include",
     "-i src/PowerPC_EABI_Support/include/PowerPC_EABI_Support/MSL_C/PPC_EABI",
+    "-i src/PowerPC_EABI_Support/include/PowerPC_EABI_Support/MSL_C++/MSL_Common/Include",
     "-i src/dolphin/include",
     "-i src/dolphin/src",
     "-i src",

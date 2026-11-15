@@ -1,18 +1,26 @@
 #include "xCommon.h"
 #include "zUIController.h"
 
-void zUIController_Init(zUIController*, zUIControllerAsset*)
-{
-}
+#include <new>
 
-// Inlining issue
-void zUIController_Init(xBase&, xDynAsset&, unsigned long)
+void zUIController::DoInit()
 {
-    zUIController* UIControl = 0;
-    zUIControllerAsset* UIControlAsset = 0;
-    zUIController_Init(UIControl, UIControlAsset);
+    zUI::DoInit();
+    if (linkCount)
+        link = (xLinkAsset*)(GetAsset() + 1);
 }
 
 void zUIController::DoRender() const
 {
+}
+
+void zUIController_Init(xBase& data, xDynAsset& asset, size_t)
+{
+    zUIController_Init((zUIController*)&data, (zUIControllerAsset*)&asset);
+}
+
+void zUIController_Init(zUIController* text, zUIControllerAsset* asset)
+{
+    new (text) zUIController();
+    zUI_Init(text, asset);
 }

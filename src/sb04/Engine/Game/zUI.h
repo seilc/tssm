@@ -8,27 +8,7 @@
 #include "zEnt.h"
 #include "zTextbox.h"
 #include "zWadUI.h"
-
-struct zUIAsset : xDynAsset
-{
-    F32 x;
-    F32 y;
-    F32 z;
-    F32 width;
-    F32 height;
-    S32 flags;
-    U32 color;
-    U32 selectedMotion;
-    U32 unselectedMotion;
-    U8 brightness;
-    U8 pad[3];
-    U32 autoMenuUp;
-    U32 autoMenuDown;
-    U32 autoMenuLeft;
-    U32 autoMenuRight;
-    U32 custom;
-    U32 customWidget;
-};
+#include "zUIAsset.h"
 
 struct zUIMotionAsset : xBaseAsset
 {
@@ -40,7 +20,7 @@ struct zUIMotionAsset : xBaseAsset
     F32 loopTime;
 };
 
-struct zUI;
+class zUI;
 
 struct zUIMotionFrame
 {
@@ -94,59 +74,69 @@ struct zUICustomConditionallyDisabled : zUICustom
     void PreUpdate();
 };
 
-struct State
+class zUI : public xBase
 {
-    F32 x;
-    F32 y;
-    F32 width;
-    F32 height;
-    xColor color;
-    U8 brightness;
-    U8 pad[3];
-};
+public:
+    struct State
+    {
+        F32 x;
+        F32 y;
+        F32 width;
+        F32 height;
+        xColor color;
+        U8 brightness;
+        U8 pad[3];
+    };
 
-struct zUI : xBase
-{
-    zUIAsset* asset;
+    const zUIAsset* asset;
     State current;
     State startMovement;
     F32 z;
     zUIMotionAsset* selectedMotion;
     zUIMotionAsset* unselectedMotion;
     zUICustom* custom;
-    U8 visible;
-    U8 focus;
-    U8 lastFocus;
-    U8 selected;
-    U8 brighten;
-    U8 hdrPass;
-    U8 locked;
-    zUIMotionAsset* motion;
-    F32 motionTime;
-    U8 motionFiredEvent;
-    U8 motionLoop;
+    bool visible;
+    bool focus;
+    bool lastFocus;
+    bool selected;
+    bool brighten;
+    bool hdrPass;
+    bool locked;
 
-    void Unselect();
-    void Select();
-    void Invisible();
-    void Visible();
-    void FocusOff();
-    void FocusOn();
-    void AutoMenu(void* item, U32 event);
-    void DoApplyMotionFrame(zUIMotionFrame* frame);
-    void DoInitMotion();
+    zUIAsset* GetAsset() const { return (zUIAsset*)asset; }
+
+    virtual U32 GetSortKey() const = 0;
+    virtual bool Blends() const;
+    virtual bool IsUIText() { return false; }
+    virtual void DoInit();
+    virtual void DoSetup();
+    virtual void DoReset();
+    virtual void DoResetMotion();
+    virtual void DoHandleEvent(xBase* from, U32 toEvent, const F32* toParam, xBase* toParamWidget, U32 toParamWidgetID);
+    virtual void DoRender() const = 0;
+    virtual void DoUpdate(F32 dt, U32 buttonsPressed);
+    virtual void DoExit();
+    virtual void DoInitMotion();
+    virtual void DoApplyMotionFrame(const zUIMotionFrame* frame);
+    virtual void FocusOn();
+    virtual void FocusOff();
+    virtual void Select();
+    virtual void Unselect();
+    virtual void Visible();
+    virtual void Invisible();
+
+    void AutoMenu(U32 zUIAsset::*item, U32 event);
     void ApplyMotion();
     F32 CalcAcceleratedDistance(F32 totalDistance, F32 startTime, F32 endTime, F32 accelTime,
                                 F32 decelTime);
-    void RunMotion(zUIMotionAsset* asset, U8 loop, U8 reset);
-    void DoExit();
-    void DoUpdate(F32 dt, U32 buttonsPressed);
-    void DoHandleEvent(U32 toEvent, F32* toParam, xBase* toParamWidget);
-    void DoResetMotion();
-    void DoReset();
-    void DoSetup();
-    void Signal(xBase* from, U32 event);
-    U8 IsUIText();
+    void RunMotion(zUIMotionAsset* asset, bool loop, bool reset);
+    void Signal(U32 event);
+
+private:
+    zUIMotionAsset* motion;
+    F32 motionTime;
+    bool motionFiredEvent;
+    bool motionLoop;
 };
 
 struct zUICustomImageSlideshow : zUICustom
@@ -159,17 +149,6 @@ struct zUICustomImageSlideshow : zUICustom
     void SetTextureList(xGroup* textureList);
     U8 HandleEvent(U32 toEvent);
     void Reset();
-};
-
-struct zUIControllerAsset : zUIAsset
-{
-};
-
-struct zUIController : zUI
-{
-    void DoInit();
-    U32 GetSortKey();
-    void DoRender() const;
 };
 
 struct zUITextAsset : zUIAsset
@@ -212,7 +191,7 @@ struct zUIText : zUI
     void setup_textbox(xtextbox& tb, zUITextAsset* asset);
     void DoReset();
     void DoInit();
-    U8 IsUIText();
+    bool IsUIText();
     U32 GetSortKey();
 };
 
@@ -267,6 +246,7 @@ extern S32 bad_card_available;
 _zUI* sSorted[768];
 zUIMgr gUIMgr;
 
+void zUI_Init(zUI* text, zUIAsset* asset);
 void zUI_Init();
 void zUI_Init(void* ent, void* asset);
 void zUI_Init(_zUI* ent, xEntAsset* asset);
