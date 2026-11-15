@@ -14,12 +14,6 @@ extern U32 gBusStopIsRunning;
 extern U32 gSoak;
 extern char** soaklevels;
 
-typedef enum _tagGameVidMode
-{
-    eGameVidModeNTSC,
-    eGameVidModePAL
-} GameVidMode;
-
 enum eGameWhereAmI
 {
     eGameWhere_NA,

@@ -296,7 +296,7 @@ xGlobals* xglobals;
 S32 (*MVPT_dflt_chklos)(void*, xVec3*, zMovePoint*);
 //void (*zMovePointEventCB)(xBase*, xBase*, U32, F32*, xBase*, U32);
 U32 gActiveHeap;
-GameVidMode gVidMode;
+eGameVidMode gVidMode;
 //_anon6 __vt__22zUICustomPalRedirector;
 //_anon40 __vt__9zUICustom;
 //_anon36 __vt__21zUICustomDialogPlayer;

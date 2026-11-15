@@ -36,7 +36,7 @@
 #include "iCollide.h"
 #include "zEntDestructObj.h"
 
-static st_HIPLOADDATA* HIPLCreate(const char* filename, char* dblbuf, S32 bufsize);
+static st_HIPLOADDATA* HIPLCreate(const char* filename, char* dblbuf, S32 bufsize, S32);
 static void HIPLDestroy(st_HIPLOADDATA* lddata);
 static U32 HIPLBaseSector(st_HIPLOADDATA* lddata);
 static S32 HIPLSetBypass(st_HIPLOADDATA* lddata, S32 enable, S32 use_async);

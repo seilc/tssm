@@ -13,6 +13,7 @@
 #include "zLight.h"
 #include "zLightning.h"
 #include "zLOD.h"
+#include "zMain.h"
 #include "zMusic.h"
 #include "zNMECommon.h"
 #include "zUI.h"

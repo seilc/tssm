@@ -1,10 +1,21 @@
 #ifndef ZMAIN_H
 #define ZMAIN_H
 
-#include <types.h>
+#include "types.h"
 
-F32 SECS_PER_VBLANK;
-F32 gSkipTimeCutscene = 1.0f;
-F32 gSkipTimeFlythrough = 1.0f;
+typedef enum _tagGameVidMode
+{
+    eGameVidModeNTSC,
+    eGameVidModePAL
+} eGameVidMode;
+
+extern F32 SECS_PER_VBLANK;
+extern eGameVidMode gVidMode;
+extern F32 gSkipTimeCutscene;
+extern F32 gSkipTimeFlythrough;
+
+inline bool zMainIsPAL() { return gVidMode == eGameVidModePAL; }
+
+inline bool zMainIsNTSC() { return gVidMode == eGameVidModeNTSC; }
 
 #endif

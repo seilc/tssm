@@ -346,7 +346,7 @@ U32 xStrHash(const char* str)
 
 static st_STRAN_DATA g_xstdata = {};
 static S32 g_straninit;
-static st_PACKER_READ_FUNCS* g_pkrf;
+static PKRReadFuncs* g_pkrf;
 static PKRAssetType* g_typeHandlers;
 
 static S32 XST_cnt_locked()
@@ -481,14 +481,14 @@ void* xSTFindAsset(U32 aid, U32* size)
         return memloc;
     }
 
-    S32 ready;
+    S32 asssize;
     S32 scncount = XST_cnt_locked();
     for (S32 i = 0; i < scncount; i++)
     {
         st_STRAN_SCENE* sdata = XST_nth_locked(i);
         if (g_pkrf->PkgHasAsset(sdata->spkg, aid))
         {
-            memloc = g_pkrf->LoadAsset(sdata->spkg, aid, NULL, NULL);
+            memloc = g_pkrf->LoadAsset(sdata->spkg, aid, NULL, NULL, &asssize);
             if (!g_pkrf->IsAssetReady(sdata->spkg, aid))
             {
                 memloc = NULL;
@@ -512,7 +512,7 @@ void* xSTFindAsset(U32 aid, U32* size)
 
 const char* xSTAssetName(void* raw_HIP_asset)
 {
-    char* aname = NULL;
+    const char* aname = NULL;
 
     S32 cnt = XST_cnt_locked();
     for (int i = 0; i < cnt; i++)
@@ -530,7 +530,7 @@ const char* xSTAssetName(void* raw_HIP_asset)
 
 const char* xSTAssetName(U32 aid)
 {
-    char* aname = NULL;
+    const char* aname = NULL;
 
     S32 cnt = XST_cnt_locked();
     for (int i = 0; i < cnt; i++)
