@@ -6,440 +6,325 @@
 #include "zScene.h"
 #include <math.h>
 
-//                                              xRay / xScene
+//                                      xPad
 
-void xRayHitsEnt(xScene* sc, xRay3* r, xQCData* qcr, xEnt* ent, void* colldata)
+void xPadKill()
 {
-    xCollis* coll = (xCollis*)colldata;
-    xCollis c;
-
-    if (ent->chkby == k_XENT_COLLTYPE_NONE)
-    {
-        return;
-    }
-
-    if (qcr && !xQuickCullIsects(qcr, &ent->bound.qcd))
-    {
-        return;
-    }
-
-    xRayHitsBound(r, &ent->bound, &c);
-
-    if (!(c.flags & 0x1))
-    {
-        return;
-    }
-
-    if (c.dist < coll->dist)
-    {
-        coll->dist = c.dist;
-        coll->oid = ent->id;
-        coll->optr = ent;
-        coll->mptr = ent->model;
-    }
+    iPadKill();
 }
 
-void xRayHitsTikiLandableEnt(xScene* sc, xRay3* r, xQCData* qcr, xEnt* ent, void* colldata)
+void xPadRumbleEnable(S32 idx, S32 enable)
 {
-    xCollis* coll = (xCollis*)colldata;
-    xCollis c;
-
-    if (ent->chkby == k_XENT_COLLTYPE_NONE)
+    xPad* p = &mPad[idx];
+    if (p->state != ePad_Enabled)
     {
-        return;
+        enable = 0;
     }
-
-    if (ent->collType == k_XENT_COLLTYPE_NPC)
+    if (enable)
     {
-        return;
-    }
-
-    if (ent->baseType == eBaseTypeBoulder)
-    {
-        return;
-    }
-
-    if (qcr && !xQuickCullIsects(qcr, &ent->bound.qcd))
-    {
-        return;
-    }
-
-    xRayHitsBound(r, &ent->bound, &c);
-
-    if (!(c.flags & 0x1))
-    {
-        return;
-    }
-
-    if (ent->collLev == k_XENT_COLLLEV_MODEL)
-    {
-        iRayHitsModel(r, ent->model, &c);
-
-        if (!(c.flags & 0x1))
+        if (p->flags & ePadInit_EnableRumble4)
         {
-            return;
+            p->flags |= ePadInit_Complete8a;
         }
-    }
-
-    if (c.dist < coll->dist)
-    {
-        coll->dist = c.dist;
-        coll->oid = ent->id;
-        coll->optr = ent;
-        coll->mptr = ent->model;
-    }
-}
-
-void xSceneForAllNPCs(xScene* sc, xSceneEntCallback func, void* data)
-{
-    for (U16 i = 0; i < sc->num_npcs; i++)
-    {
-        if (!func(sc->npcs[i], sc, data))
-        {
-            break;
-        }
-    }
-}
-
-void xSceneForAllDynamics(xScene* sc, xSceneEntCallback func, void* data)
-{
-    for (U16 i = 0; i < sc->num_dyns; i++)
-    {
-        if (!func(sc->dyns[i], sc, data))
-        {
-            break;
-        }
-    }
-}
-
-void xSceneForAllStatics(xScene* sc, xSceneEntCallback func, void* data)
-{
-    for (U16 i = 0; i < sc->num_stats; i++)
-    {
-        if (!func(sc->stats[i], sc, data))
-        {
-            break;
-        }
-    }
-}
-
-void xSceneForAllEnts(xScene* sc, xSceneEntCallback func, void* data)
-{
-    for (U16 i = 0; i < sc->num_act_ents; i++)
-    {
-        if (!func(sc->act_ents[i], sc, data))
-        {
-            break;
-        }
-    }
-}
-
-xBase* xSceneResolvID(xScene* sc, U32 id)
-{
-    if (sc->resolvID)
-    {
-        return sc->resolvID(id);
-    }
-
-    return NULL;
-}
-
-void xSceneAddEnt(xScene* sc, xEnt* ent)
-{
-    if (ent->collType == k_XENT_COLLTYPE_TRIG)
-    {
-        sc->trigs[sc->num_trigs++] = ent;
-    }
-    else if (ent->collType == k_XENT_COLLTYPE_STAT)
-    {
-        sc->stats[sc->num_stats++] = ent;
-    }
-    else if (ent->collType == k_XENT_COLLTYPE_DYN)
-    {
-        sc->dyns[sc->num_dyns++] = ent;
-    }
-    else if (ent->collType == k_XENT_COLLTYPE_NPC)
-    {
-        sc->npcs[sc->num_npcs++] = ent;
-    }
-
-    sc->act_ents[sc->num_act_ents++] = ent;
-}
-
-void xSceneSetup(xScene* sc)
-{
-    xEnvSetup(sc->env);
-}
-
-void xSceneLoad(xScene* sc, xSerial* s)
-{
-}
-
-void xSceneSave(xScene* sc, xSerial* s)
-{
-}
-
-void xSceneExit(xScene* sc)
-{
-}
-
-void xSceneInit(xScene* sc, U16 num_trigs, U16 num_stats, U16 num_dyns, U16 num_npcs)
-{
-    sc->flags = 0;
-    sc->num_trigs_allocd = num_trigs;
-    sc->trigs = (xEnt**)xMEMALLOC(num_trigs * sizeof(xEnt*), 0);
-    sc->num_stats_allocd = num_stats;
-    sc->stats = (xEnt**)xMEMALLOC(num_stats * sizeof(xEnt*), 0);
-    sc->num_dyns_allocd = num_dyns;
-    sc->dyns = (xEnt**)xMEMALLOC(num_dyns * sizeof(xEnt*), 0);
-    sc->num_npcs_allocd = num_npcs;
-    sc->npcs = (xEnt**)xMEMALLOC(num_npcs * sizeof(xEnt*), 0);
-    sc->num_ents_allocd = (U32)num_trigs + (U32)num_stats + (U32)num_dyns + (U32)num_npcs;
-    sc->num_act_ents = 0;
-    sc->act_ents = (xEnt**)xMEMALLOC(sc->num_ents_allocd * sizeof(xEnt*), 0);
-    sc->num_trigs = 0;
-    sc->num_stats = 0;
-    sc->num_dyns = 0;
-    sc->num_npcs = 0;
-
-    sc->resolvID = NULL;
-
-    xAnimInit();
-    xModelInit();
-    xAnimPoolInit(&sc->mempool, 50, 1, 0x1, 4);
-    xModelPoolInit(49, 64);
-    xModelPoolInit(74, 8);
-    xModelPoolInit(324, 1);
-}
-
-//                                      xQuickCull WEAK
-
-//                                              xSG
-
-#include "xsavegame.cpp"
-
-//                                              xRumble
-
-#include "xRMemData.cpp"
-
-//                                                xRender
-
-//                                                xRenderState
-
-#include "xRenderState.cpp"
-
-//                                                xRenderBuffer
-
-void xRenderBufferInit()
-{
-    gRenderBuffer.m_mode = 0;
-    gRenderBuffer.m_indexCount = 0;
-    gRenderBuffer.m_vertexCount = 0;
-    gRenderBuffer.m_vertexTypeSize = 36;
-    gRenderBuffer.m_index = gRenderArr.m_index;
-    gRenderBuffer.m_vertex = gRenderArr.m_vertex;
-    gRenderBuffer.m_vertexTZ = gRenderArr.m_vertexTZ;
-}
-
-//                                              xQuickCull cont.
-
-//                                                  xPTank
-
-//                                                  PKR
-
-#include "xpkrsvc.cpp"
-
-#include "xPartition.cpp"
-
-//                                                  xParticle
-
-//                                                  xPar
-
-volatile static U32 sFrameCount;
-static S32 sParMgrInit;
-
-#define REG_TABLE_SIZE 255
-
-extern F32 _708;
-extern F32 _709;
-
-S32 sParGroupRegTableInit = 0;
-S32 sParGroupRegTableCount = 0;
-extern xParGroup* sParGroupRegTable[REG_TABLE_SIZE]; // todo: move from bss.s
-
-void xParMgrRender()
-{
-    iParMgrRender();
-}
-
-void xParMgrUpdate(F32 elapsedTime)
-{
-    iParMgrUpdate(elapsedTime);
-
-    sFrameCount++;
-
-    if (sFrameCount > 10)
-    {
-        sFrameCount = 1;
-    }
-
-    U32 i;
-    for (i = sFrameCount; i >= 1; i--)
-        ;
-    sFrameCount = i;
-}
-
-void xParMgrInit()
-{
-    if (sParMgrInit == 0)
-    {
-        xParMemInit();
-        iParMgrInit();
-        sParMgrInit = 1;
     }
     else
     {
-        xParMgrKillAllParticles();
-        iParMgrInit();
+        if (p->flags & ePadInit_Complete8a)
+        {
+            p->flags ^= ePadInit_Complete8a;
+            //xPadDestroyRumbleChain(mPad + idx);
+        }
     }
 }
 
-void xParGroupKillPar(xParGroup* ps, xPar* p)
+// WIP.
+xPad* xPadEnable(S32 idx)
 {
-    if (p == ps->m_root)
+    xPad* p = &mPad[idx];
+    if (p->state == ePad_Disabled && idx == 0)
     {
-        ps->m_root = p->m_next;
-
-        if (ps->m_root)
+        p = iPadEnable(&mPad[0], 0);
+        if (p->state == ePad_Enabled || p->state != ePad_Disabled)
         {
-            ps->m_root->m_prev = NULL;
-        }
-
-        p->m_next = NULL;
-        p->m_prev = NULL;
-    }
-    else
-    {
-        if (p->m_next)
-        {
-            p->m_next->m_prev = p->m_prev;
-        }
-
-        if (p->m_prev)
-        {
-            p->m_prev->m_next = p->m_next;
-        }
-
-        p->m_prev = NULL;
-        p->m_next = NULL;
-    }
-
-    ps->m_num_of_particles--;
-
-    if (ps->m_flags & XPARGROUP_ALLOCPARS)
-    {
-        xParFree(p);
-    }
-    else
-    {
-        xParGroupAddParToDeadList(ps, p);
-    }
-}
-
-xPar* xParGroupAddPar(xParGroup* ps)
-{
-    xPar* p;
-
-    if (ps->m_flags & XPARGROUP_ALLOCPARS)
-    {
-        p = xParAlloc();
-
-        if (!p)
-        {
-            S32 myPriority = ps->m_priority;
-
-            for (U8 i = 0; i < REG_TABLE_SIZE; i++)
+            if (p->flags & ePadInit_EnableRumble4)
             {
-                if (sParGroupRegTable[i] && sParGroupRegTable[i] != ps &&
-                    (sParGroupRegTable[i]->m_flags & XPARGROUP_ALLOCPARS) &&
-                    !(sParGroupRegTable[i]->m_flags & XPARGROUP_UNK10) &&
-                    sParGroupRegTable[i]->m_priority < myPriority && sParGroupRegTable[i]->m_root)
-                {
-                    xParGroupKillPar(sParGroupRegTable[i], sParGroupRegTable[i]->m_root);
-
-                    p = xParAlloc();
-
-                    break;
-                }
+                p->flags |= ePadInit_Complete8a;
+            }
+            else if (p->flags & ePadInit_Complete8a)
+            {
+                p->flags ^= ePadInit_Complete8a;
             }
         }
     }
-    else if (ps->m_dead)
-    {
-        p = ps->m_dead;
-        ps->m_dead = p->m_next;
-
-        if (ps->m_dead)
-        {
-            ps->m_dead->m_prev = NULL;
-        }
-    }
-    else
-    {
-        p = NULL;
-    }
-
-    if (p)
-    {
-        xParInit(p);
-        xParGroupAddParP(ps, p);
-    }
-
     return p;
 }
 
-#define CLAMP_COLOR(x,a,b) ((x) < (a) ? (a) : ((x) > (b) ? (b) : (x)))
-
-void xParGroupAnimate(xParGroup* ps, F32 dt)
+S32 xPadInit()
 {
-    xPar* i = ps->m_root;
-    xPar* tmp;
-    F32 age = dt;
-
-    if (ps->m_flags & XPARGROUP_NOAGING)
+    memset(mPad, 0, sizeof(mPad));
+    //memset(mRumbleList, 0, sizeof(mRumbleList));
+    S32 code = iPadInit();
+    if (!code)
     {
-        age = _708;
+        return 0;
     }
+    //gPlayerPad = mPad;
+    return 1;
+}
 
-    if (!ps->m_root)
-    {
-        ps->m_alive = 0;
-    }
+// WIP.
+S32 xPadUpdate(S32 idx, F32 time_passed)
+{
+    U32 new_on;
+    xPad* p = &mPad[idx];
+    S32 ret;
+    U32 fake_dpad;
+    S32 i;
 
-    while (i)
+    if (idx == 0)
     {
-        if (i->m_lifetime < _708)
+        if (zScene_ScreenAdjustMode() == 0)
         {
-            tmp = i;
-
-            i = i->m_next;
-
-            xParGroupKillPar(ps, tmp);
+            // not yet implemented
+            if (/*!zMenuRunning() &&*/ !zGameIsPaused())
+            {
+                p->flags &= ~0x10; // unknown flag 0x10
+            }
+            else
+            {
+                p->flags |= 0x10;
+            }
         }
         else
         {
-            // non-matching: stack isn't resizing for each float-to-U8 conversion
-            i->m_c[0] = i->m_cfl[0] = CLAMP_COLOR(i->m_cvel[0] * dt + i->m_cfl[0], _708, _709);
-            i->m_c[1] = i->m_cfl[1] = CLAMP_COLOR(i->m_cvel[1] * dt + i->m_cfl[1], _708, _709);
-            i->m_c[2] = i->m_cfl[2] = CLAMP_COLOR(i->m_cvel[2] * dt + i->m_cfl[2], _708, _709);
-            i->m_c[3] = i->m_cfl[3] = CLAMP_COLOR(i->m_cvel[3] * dt + i->m_cfl[3], _708, _709);
-            i->m_size += i->m_sizeVel * dt;
-            i->m_lifetime -= age;
+            p->flags &= ~0x10;
+        }
 
-            i = i->m_next;
+        if (p->al2d_timer >= 0.35f)
+            p->al2d_timer = 0.35f;
+        if (p->ar2d_timer >= 0.35f)
+            p->ar2d_timer = 0.35f;
+        if (p->d_timer >= 0.35f)
+            p->d_timer = 0.35f;
+
+        fake_dpad = 0;
+        ret = iPadUpdate(&mPad[idx], &new_on);
+
+        if (!ret)
+        {
+            p->pressed = 0;
+            p->released = 0;
+            return 1;
+        }
+
+        if (p->flags & 0x10)
+        {
+            if (p->flags & ePadInit_WaitStable2)
+            {
+                if (p->analog1.x < 50)
+                    fake_dpad |= XPAD_BUTTON_LEFT;
+                else if (p->analog1.x > 49)
+                    fake_dpad |= XPAD_BUTTON_RIGHT;
+
+                if (p->analog1.y < 50)
+                    fake_dpad |= XPAD_BUTTON_UP;
+                else if (p->analog1.y > 49)
+                    fake_dpad |= XPAD_BUTTON_DOWN;
+
+                if (fake_dpad == 0)
+                {
+                    p->al2d_timer = 0.0f;
+                }
+                else
+                {
+                    p->al2d_timer -= time_passed;
+                    if (p->al2d_timer <= 0.0f)
+                    {
+                        new_on |= fake_dpad;
+                        p->al2d_timer = 0.35f;
+                    }
+                }
+            }
+
+            if (p->flags & ePadInit_EnableAnalog3)
+            {
+                S32 a2x = p->analog2.x;
+                S32 a2y = p->analog2.y;
+                if (a2x <= 50 || a2x >= 207 || a2y <= 50 || a2y >= 207)
+                {
+                    p->ar2d_timer -= time_passed;
+                    if (p->ar2d_timer <= 0.0f)
+                    {
+                        p->ar2d_timer = 0.35f;
+
+                        if (a2x < 50)
+                            new_on |= XPAD_BUTTON_LEFT;
+                        else if (a2x > 49)
+                            new_on |= XPAD_BUTTON_RIGHT;
+
+                        if (a2y < 50)
+                            new_on |= XPAD_BUTTON_UP;
+                        else if (a2y > 49)
+                            new_on |= XPAD_BUTTON_DOWN;
+                    }
+                }
+                else
+                {
+                    p->ar2d_timer = 0.0f;
+                }
+            }
+        }
+
+        p->pressed = new_on & ~p->on;
+        p->released = p->on & ~new_on;
+        p->on = new_on;
+
+        for (i = 0; i < 22; i += 2)
+        {
+            U32 mask0 = 1 << i;
+            U32 mask1 = 1 << (i + 1);
+
+            if (p->pressed & mask0)
+                p->down_tmr[0] = 0.0f;
+            else if (p->released & mask0)
+                p->up_tmr[0] = 0.0f;
+
+            if (p->on & mask0)
+                p->down_tmr[0] += time_passed;
+            else
+                p->up_tmr[0] += time_passed;
+
+            if (p->pressed & mask1)
+                p->down_tmr[1] = 0.0f;
+            else if (p->released & mask1)
+                p->up_tmr[1] = 0.0f;
+
+            if (p->on & mask1)
+                p->down_tmr[1] += time_passed;
+            else
+                p->up_tmr[1] += time_passed;
+
+            p = (xPad*)(p->value + 8);
+        }
+
+        if (p->flags & 0x10)
+        {
+            if (!(p->on &
+                  (XPAD_BUTTON_UP | XPAD_BUTTON_DOWN | XPAD_BUTTON_LEFT | XPAD_BUTTON_RIGHT)))
+            {
+                p->d_timer = 0.0f;
+            }
+            else
+            {
+                p->d_timer -= time_passed;
+                if (p->d_timer <= 0.0f)
+                {
+                    p->d_timer = 0.35f;
+
+                    if (p->on & XPAD_BUTTON_UP)
+                        p->pressed |= XPAD_BUTTON_UP;
+                    else if (p->on & XPAD_BUTTON_DOWN)
+                        p->pressed |= XPAD_BUTTON_DOWN;
+
+                    if (p->on & XPAD_BUTTON_LEFT)
+                        p->pressed |= XPAD_BUTTON_LEFT;
+                    else if (p->on & XPAD_BUTTON_RIGHT)
+                        p->pressed |= XPAD_BUTTON_RIGHT;
+                }
+            }
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
+
+void xPadNormalizeAnalog(xPad& pad, S32 inner_zone, S32 outer_zone)
+{
+    PadAnalog* src = &pad.analog1;
+
+    for (S32 i = 0; i < 2; i++, src++)
+    {
+        analog_data* data = &pad.analog[i];
+        S8 x = src->x;
+        F32 normX = 0.0f;
+
+        if (x <= 1)
+        {
+            if ((x <= -inner_zone) && (-outer_zone <= x))
+            {
+                normX = F32(x + inner_zone) / F32(outer_zone - inner_zone);
+            }
+        }
+        else if ((inner_zone <= x) && (x <= outer_zone))
+        {
+            normX = F32(x - inner_zone) / F32(outer_zone - inner_zone);
+        }
+        data->offset.x = normX;
+
+        S8 y = src->y;
+        F32 normY = 0.0f;
+        if (y <= 1)
+        {
+            if ((y <= -inner_zone) && (-outer_zone <= y))
+            {
+                normY = F32(y + inner_zone) / F32(outer_zone - inner_zone);
+            }
+        }
+        else if ((inner_zone <= y) && (y <= outer_zone))
+        {
+            normY = F32(y - inner_zone) / F32(outer_zone - inner_zone);
+        }
+        data->offset.y = normY;
+
+        if ((data->offset.x == 0.0f) && (data->offset.y == 0.0f))
+        {
+            data->mag = 0.0f;
+            data->dir.x = 1.0f;
+            data->dir.y = 0.0f;
+            data->ang = 0.0f;
+        }
+        else
+        {
+            if (data->offset.x > 1.0f)
+                data->offset.x = 1.0f;
+            else if (data->offset.x < -1.0f)
+                data->offset.x = -1.0f;
+
+            if (data->offset.y > 1.0f)
+                data->offset.y = 1.0f;
+            else if (data->offset.y < -1.0f)
+                data->offset.y = -1.0f;
+
+            F32 mag = data->offset.x * data->offset.x + data->offset.y * data->offset.y;
+
+            if (mag >= 0.0f)
+            {
+                if (!isinf(mag))
+                {
+                    F32 inv_sqrt = 1.0 / sqrt(mag);
+                    F32 val = -(inv_sqrt * inv_sqrt * mag - 3.0f) * inv_sqrt * 0.5f;
+                    mag = 100000.0f;
+                    if (val > 0.0000099999997f)
+                    {
+                        mag = 1.0f / val;
+                    }
+                }
+            }
+
+            data->mag = mag;
+
+            F32 inv_mag = 1.0f / data->mag;
+            data->dir.x = data->offset.x * inv_mag;
+            data->dir.y = data->offset.y * inv_mag;
+
+            data->ang = xAngleClampFast(atan2(data->dir.y, data->dir.x));
         }
     }
 }
+
+//                                                  xPar
 
 struct xCmdInfo
 {
@@ -1190,320 +1075,435 @@ void xParCmdInit()
                     xParCmd_DampenSpeed_Update);
 }
 
-//                                      xPad
+#define REG_TABLE_SIZE 255
 
-void xPadKill()
+extern F32 _708;
+extern F32 _709;
+
+S32 sParGroupRegTableInit = 0;
+S32 sParGroupRegTableCount = 0;
+extern xParGroup* sParGroupRegTable[REG_TABLE_SIZE]; // todo: move from bss.s
+
+void xParGroupKillPar(xParGroup* ps, xPar* p)
 {
-    iPadKill();
+    if (p == ps->m_root)
+    {
+        ps->m_root = p->m_next;
+
+        if (ps->m_root)
+        {
+            ps->m_root->m_prev = NULL;
+        }
+
+        p->m_next = NULL;
+        p->m_prev = NULL;
+    }
+    else
+    {
+        if (p->m_next)
+        {
+            p->m_next->m_prev = p->m_prev;
+        }
+
+        if (p->m_prev)
+        {
+            p->m_prev->m_next = p->m_next;
+        }
+
+        p->m_prev = NULL;
+        p->m_next = NULL;
+    }
+
+    ps->m_num_of_particles--;
+
+    if (ps->m_flags & XPARGROUP_ALLOCPARS)
+    {
+        xParFree(p);
+    }
+    else
+    {
+        xParGroupAddParToDeadList(ps, p);
+    }
 }
 
-void xPadRumbleEnable(S32 idx, S32 enable)
+xPar* xParGroupAddPar(xParGroup* ps)
 {
-    xPad* p = &mPad[idx];
-    if (p->state != ePad_Enabled)
+    xPar* p;
+
+    if (ps->m_flags & XPARGROUP_ALLOCPARS)
     {
-        enable = 0;
-    }
-    if (enable)
-    {
-        if (p->flags & ePadInit_EnableRumble4)
+        p = xParAlloc();
+
+        if (!p)
         {
-            p->flags |= ePadInit_Complete8a;
+            S32 myPriority = ps->m_priority;
+
+            for (U8 i = 0; i < REG_TABLE_SIZE; i++)
+            {
+                if (sParGroupRegTable[i] && sParGroupRegTable[i] != ps &&
+                    (sParGroupRegTable[i]->m_flags & XPARGROUP_ALLOCPARS) &&
+                    !(sParGroupRegTable[i]->m_flags & XPARGROUP_UNK10) &&
+                    sParGroupRegTable[i]->m_priority < myPriority && sParGroupRegTable[i]->m_root)
+                {
+                    xParGroupKillPar(sParGroupRegTable[i], sParGroupRegTable[i]->m_root);
+
+                    p = xParAlloc();
+
+                    break;
+                }
+            }
+        }
+    }
+    else if (ps->m_dead)
+    {
+        p = ps->m_dead;
+        ps->m_dead = p->m_next;
+
+        if (ps->m_dead)
+        {
+            ps->m_dead->m_prev = NULL;
         }
     }
     else
     {
-        if (p->flags & ePadInit_Complete8a)
-        {
-            p->flags ^= ePadInit_Complete8a;
-            //xPadDestroyRumbleChain(mPad + idx);
-        }
+        p = NULL;
     }
-}
 
-// WIP.
-xPad* xPadEnable(S32 idx)
-{
-    xPad* p = &mPad[idx];
-    if (p->state == ePad_Disabled && idx == 0)
+    if (p)
     {
-        p = iPadEnable(&mPad[0], 0);
-        if (p->state == ePad_Enabled || p->state != ePad_Disabled)
-        {
-            if (p->flags & ePadInit_EnableRumble4)
-            {
-                p->flags |= ePadInit_Complete8a;
-            }
-            else if (p->flags & ePadInit_Complete8a)
-            {
-                p->flags ^= ePadInit_Complete8a;
-            }
-        }
+        xParInit(p);
+        xParGroupAddParP(ps, p);
     }
+
     return p;
 }
 
-S32 xPadInit()
+#define CLAMP_COLOR(x,a,b) ((x) < (a) ? (a) : ((x) > (b) ? (b) : (x)))
+
+void xParGroupAnimate(xParGroup* ps, F32 dt)
 {
-    memset(mPad, 0, sizeof(mPad));
-    //memset(mRumbleList, 0, sizeof(mRumbleList));
-    S32 code = iPadInit();
-    if (!code)
+    xPar* i = ps->m_root;
+    xPar* tmp;
+    F32 age = dt;
+
+    if (ps->m_flags & XPARGROUP_NOAGING)
     {
-        return 0;
+        age = _708;
     }
-    //gPlayerPad = mPad;
-    return 1;
-}
 
-// WIP.
-S32 xPadUpdate(S32 idx, F32 time_passed)
-{
-    U32 new_on;
-    xPad* p = &mPad[idx];
-    S32 ret;
-    U32 fake_dpad;
-    S32 i;
-
-    if (idx == 0)
+    if (!ps->m_root)
     {
-        if (zScene_ScreenAdjustMode() == 0)
+        ps->m_alive = 0;
+    }
+
+    while (i)
+    {
+        if (i->m_lifetime < _708)
         {
-            // not yet implemented
-            if (/*!zMenuRunning() &&*/ !zGameIsPaused())
-            {
-                p->flags &= ~0x10; // unknown flag 0x10
-            }
-            else
-            {
-                p->flags |= 0x10;
-            }
+            tmp = i;
+
+            i = i->m_next;
+
+            xParGroupKillPar(ps, tmp);
         }
         else
         {
-            p->flags &= ~0x10;
+            // non-matching: stack isn't resizing for each float-to-U8 conversion
+            i->m_c[0] = i->m_cfl[0] = CLAMP_COLOR(i->m_cvel[0] * dt + i->m_cfl[0], _708, _709);
+            i->m_c[1] = i->m_cfl[1] = CLAMP_COLOR(i->m_cvel[1] * dt + i->m_cfl[1], _708, _709);
+            i->m_c[2] = i->m_cfl[2] = CLAMP_COLOR(i->m_cvel[2] * dt + i->m_cfl[2], _708, _709);
+            i->m_c[3] = i->m_cfl[3] = CLAMP_COLOR(i->m_cvel[3] * dt + i->m_cfl[3], _708, _709);
+            i->m_size += i->m_sizeVel * dt;
+            i->m_lifetime -= age;
+
+            i = i->m_next;
         }
-
-        if (p->al2d_timer >= 0.35f)
-            p->al2d_timer = 0.35f;
-        if (p->ar2d_timer >= 0.35f)
-            p->ar2d_timer = 0.35f;
-        if (p->d_timer >= 0.35f)
-            p->d_timer = 0.35f;
-
-        fake_dpad = 0;
-        ret = iPadUpdate(&mPad[idx], &new_on);
-
-        if (!ret)
-        {
-            p->pressed = 0;
-            p->released = 0;
-            return 1;
-        }
-
-        if (p->flags & 0x10)
-        {
-            if (p->flags & ePadInit_WaitStable2)
-            {
-                if (p->analog1.x < 50)
-                    fake_dpad |= XPAD_BUTTON_LEFT;
-                else if (p->analog1.x > 49)
-                    fake_dpad |= XPAD_BUTTON_RIGHT;
-
-                if (p->analog1.y < 50)
-                    fake_dpad |= XPAD_BUTTON_UP;
-                else if (p->analog1.y > 49)
-                    fake_dpad |= XPAD_BUTTON_DOWN;
-
-                if (fake_dpad == 0)
-                {
-                    p->al2d_timer = 0.0f;
-                }
-                else
-                {
-                    p->al2d_timer -= time_passed;
-                    if (p->al2d_timer <= 0.0f)
-                    {
-                        new_on |= fake_dpad;
-                        p->al2d_timer = 0.35f;
-                    }
-                }
-            }
-
-            if (p->flags & ePadInit_EnableAnalog3)
-            {
-                S32 a2x = p->analog2.x;
-                S32 a2y = p->analog2.y;
-                if (a2x <= 50 || a2x >= 207 || a2y <= 50 || a2y >= 207)
-                {
-                    p->ar2d_timer -= time_passed;
-                    if (p->ar2d_timer <= 0.0f)
-                    {
-                        p->ar2d_timer = 0.35f;
-
-                        if (a2x < 50)
-                            new_on |= XPAD_BUTTON_LEFT;
-                        else if (a2x > 49)
-                            new_on |= XPAD_BUTTON_RIGHT;
-
-                        if (a2y < 50)
-                            new_on |= XPAD_BUTTON_UP;
-                        else if (a2y > 49)
-                            new_on |= XPAD_BUTTON_DOWN;
-                    }
-                }
-                else
-                {
-                    p->ar2d_timer = 0.0f;
-                }
-            }
-        }
-
-        p->pressed = new_on & ~p->on;
-        p->released = p->on & ~new_on;
-        p->on = new_on;
-
-        for (i = 0; i < 22; i += 2)
-        {
-            U32 mask0 = 1 << i;
-            U32 mask1 = 1 << (i + 1);
-
-            if (p->pressed & mask0)
-                p->down_tmr[0] = 0.0f;
-            else if (p->released & mask0)
-                p->up_tmr[0] = 0.0f;
-
-            if (p->on & mask0)
-                p->down_tmr[0] += time_passed;
-            else
-                p->up_tmr[0] += time_passed;
-
-            if (p->pressed & mask1)
-                p->down_tmr[1] = 0.0f;
-            else if (p->released & mask1)
-                p->up_tmr[1] = 0.0f;
-
-            if (p->on & mask1)
-                p->down_tmr[1] += time_passed;
-            else
-                p->up_tmr[1] += time_passed;
-
-            p = (xPad*)(p->value + 8);
-        }
-
-        if (p->flags & 0x10)
-        {
-            if (!(p->on &
-                  (XPAD_BUTTON_UP | XPAD_BUTTON_DOWN | XPAD_BUTTON_LEFT | XPAD_BUTTON_RIGHT)))
-            {
-                p->d_timer = 0.0f;
-            }
-            else
-            {
-                p->d_timer -= time_passed;
-                if (p->d_timer <= 0.0f)
-                {
-                    p->d_timer = 0.35f;
-
-                    if (p->on & XPAD_BUTTON_UP)
-                        p->pressed |= XPAD_BUTTON_UP;
-                    else if (p->on & XPAD_BUTTON_DOWN)
-                        p->pressed |= XPAD_BUTTON_DOWN;
-
-                    if (p->on & XPAD_BUTTON_LEFT)
-                        p->pressed |= XPAD_BUTTON_LEFT;
-                    else if (p->on & XPAD_BUTTON_RIGHT)
-                        p->pressed |= XPAD_BUTTON_RIGHT;
-                }
-            }
-        }
-
-        return 1;
     }
-
-    return 0;
 }
 
-void xPadNormalizeAnalog(xPad& pad, S32 inner_zone, S32 outer_zone)
+volatile static U32 sFrameCount;
+static S32 sParMgrInit;
+
+void xParMgrRender()
 {
-    PadAnalog* src = &pad.analog1;
+    iParMgrRender();
+}
 
-    for (S32 i = 0; i < 2; i++, src++)
+void xParMgrUpdate(F32 elapsedTime)
+{
+    iParMgrUpdate(elapsedTime);
+
+    sFrameCount++;
+
+    if (sFrameCount > 10)
     {
-        analog_data* data = &pad.analog[i];
-        S8 x = src->x;
-        F32 normX = 0.0f;
+        sFrameCount = 1;
+    }
 
-        if (x <= 1)
+    U32 i;
+    for (i = sFrameCount; i >= 1; i--)
+        ;
+    sFrameCount = i;
+}
+
+void xParMgrInit()
+{
+    if (sParMgrInit == 0)
+    {
+        xParMemInit();
+        iParMgrInit();
+        sParMgrInit = 1;
+    }
+    else
+    {
+        xParMgrKillAllParticles();
+        iParMgrInit();
+    }
+}
+
+//                                                  xParticle
+
+#include "xPartition.cpp"
+
+//                                                  PKR
+
+#include "xpkrsvc.cpp"
+
+//                                                  xPTank
+
+//                                              xQuickCull
+
+//                                                xRender
+
+//                                                xRenderBuffer
+
+void xRenderBufferInit()
+{
+    gRenderBuffer.m_mode = 0;
+    gRenderBuffer.m_indexCount = 0;
+    gRenderBuffer.m_vertexCount = 0;
+    gRenderBuffer.m_vertexTypeSize = 36;
+    gRenderBuffer.m_index = gRenderArr.m_index;
+    gRenderBuffer.m_vertex = gRenderArr.m_vertex;
+    gRenderBuffer.m_vertexTZ = gRenderArr.m_vertexTZ;
+}
+
+//                                                xRenderState
+
+#include "xRenderState.cpp"
+
+#include "xRMemData.cpp"
+
+//                                              xRumble
+
+//                                              xSG
+
+#include "xsavegame.cpp"
+
+//                                      xQuickCull WEAK
+
+//                                              xRay / xScene
+
+void xRayHitsEnt(xScene* sc, xRay3* r, xQCData* qcr, xEnt* ent, void* colldata)
+{
+    xCollis* coll = (xCollis*)colldata;
+    xCollis c;
+
+    if (ent->chkby == k_XENT_COLLTYPE_NONE)
+    {
+        return;
+    }
+
+    if (qcr && !xQuickCullIsects(qcr, &ent->bound.qcd))
+    {
+        return;
+    }
+
+    xRayHitsBound(r, &ent->bound, &c);
+
+    if (!(c.flags & 0x1))
+    {
+        return;
+    }
+
+    if (c.dist < coll->dist)
+    {
+        coll->dist = c.dist;
+        coll->oid = ent->id;
+        coll->optr = ent;
+        coll->mptr = ent->model;
+    }
+}
+
+void xRayHitsTikiLandableEnt(xScene* sc, xRay3* r, xQCData* qcr, xEnt* ent, void* colldata)
+{
+    xCollis* coll = (xCollis*)colldata;
+    xCollis c;
+
+    if (ent->chkby == k_XENT_COLLTYPE_NONE)
+    {
+        return;
+    }
+
+    if (ent->collType == k_XENT_COLLTYPE_NPC)
+    {
+        return;
+    }
+
+    if (ent->baseType == eBaseTypeBoulder)
+    {
+        return;
+    }
+
+    if (qcr && !xQuickCullIsects(qcr, &ent->bound.qcd))
+    {
+        return;
+    }
+
+    xRayHitsBound(r, &ent->bound, &c);
+
+    if (!(c.flags & 0x1))
+    {
+        return;
+    }
+
+    if (ent->collLev == k_XENT_COLLLEV_MODEL)
+    {
+        iRayHitsModel(r, ent->model, &c);
+
+        if (!(c.flags & 0x1))
         {
-            if ((x <= -inner_zone) && (-outer_zone <= x))
-            {
-                normX = F32(x + inner_zone) / F32(outer_zone - inner_zone);
-            }
-        }
-        else if ((inner_zone <= x) && (x <= outer_zone))
-        {
-            normX = F32(x - inner_zone) / F32(outer_zone - inner_zone);
-        }
-        data->offset.x = normX;
-
-        S8 y = src->y;
-        F32 normY = 0.0f;
-        if (y <= 1)
-        {
-            if ((y <= -inner_zone) && (-outer_zone <= y))
-            {
-                normY = F32(y + inner_zone) / F32(outer_zone - inner_zone);
-            }
-        }
-        else if ((inner_zone <= y) && (y <= outer_zone))
-        {
-            normY = F32(y - inner_zone) / F32(outer_zone - inner_zone);
-        }
-        data->offset.y = normY;
-
-        if ((data->offset.x == 0.0f) && (data->offset.y == 0.0f))
-        {
-            data->mag = 0.0f;
-            data->dir.x = 1.0f;
-            data->dir.y = 0.0f;
-            data->ang = 0.0f;
-        }
-        else
-        {
-            if (data->offset.x > 1.0f)
-                data->offset.x = 1.0f;
-            else if (data->offset.x < -1.0f)
-                data->offset.x = -1.0f;
-
-            if (data->offset.y > 1.0f)
-                data->offset.y = 1.0f;
-            else if (data->offset.y < -1.0f)
-                data->offset.y = -1.0f;
-
-            F32 mag = data->offset.x * data->offset.x + data->offset.y * data->offset.y;
-
-            if (mag >= 0.0f)
-            {
-                if (!isinf(mag))
-                {
-                    F32 inv_sqrt = 1.0 / sqrt(mag);
-                    F32 val = -(inv_sqrt * inv_sqrt * mag - 3.0f) * inv_sqrt * 0.5f;
-                    mag = 100000.0f;
-                    if (val > 0.0000099999997f)
-                    {
-                        mag = 1.0f / val;
-                    }
-                }
-            }
-
-            data->mag = mag;
-
-            F32 inv_mag = 1.0f / data->mag;
-            data->dir.x = data->offset.x * inv_mag;
-            data->dir.y = data->offset.y * inv_mag;
-
-            data->ang = xAngleClampFast(atan2(data->dir.y, data->dir.x));
+            return;
         }
     }
+
+    if (c.dist < coll->dist)
+    {
+        coll->dist = c.dist;
+        coll->oid = ent->id;
+        coll->optr = ent;
+        coll->mptr = ent->model;
+    }
+}
+
+void xSceneForAllNPCs(xScene* sc, xSceneEntCallback func, void* data)
+{
+    for (U16 i = 0; i < sc->num_npcs; i++)
+    {
+        if (!func(sc->npcs[i], sc, data))
+        {
+            break;
+        }
+    }
+}
+
+void xSceneForAllDynamics(xScene* sc, xSceneEntCallback func, void* data)
+{
+    for (U16 i = 0; i < sc->num_dyns; i++)
+    {
+        if (!func(sc->dyns[i], sc, data))
+        {
+            break;
+        }
+    }
+}
+
+void xSceneForAllStatics(xScene* sc, xSceneEntCallback func, void* data)
+{
+    for (U16 i = 0; i < sc->num_stats; i++)
+    {
+        if (!func(sc->stats[i], sc, data))
+        {
+            break;
+        }
+    }
+}
+
+void xSceneForAllEnts(xScene* sc, xSceneEntCallback func, void* data)
+{
+    for (U16 i = 0; i < sc->num_act_ents; i++)
+    {
+        if (!func(sc->act_ents[i], sc, data))
+        {
+            break;
+        }
+    }
+}
+
+xBase* xSceneResolvID(xScene* sc, U32 id)
+{
+    if (sc->resolvID)
+    {
+        return sc->resolvID(id);
+    }
+
+    return NULL;
+}
+
+void xSceneAddEnt(xScene* sc, xEnt* ent)
+{
+    if (ent->collType == k_XENT_COLLTYPE_TRIG)
+    {
+        sc->trigs[sc->num_trigs++] = ent;
+    }
+    else if (ent->collType == k_XENT_COLLTYPE_STAT)
+    {
+        sc->stats[sc->num_stats++] = ent;
+    }
+    else if (ent->collType == k_XENT_COLLTYPE_DYN)
+    {
+        sc->dyns[sc->num_dyns++] = ent;
+    }
+    else if (ent->collType == k_XENT_COLLTYPE_NPC)
+    {
+        sc->npcs[sc->num_npcs++] = ent;
+    }
+
+    sc->act_ents[sc->num_act_ents++] = ent;
+}
+
+void xSceneSetup(xScene* sc)
+{
+    xEnvSetup(sc->env);
+}
+
+void xSceneLoad(xScene* sc, xSerial* s)
+{
+}
+
+void xSceneSave(xScene* sc, xSerial* s)
+{
+}
+
+void xSceneExit(xScene* sc)
+{
+}
+
+void xSceneInit(xScene* sc, U16 num_trigs, U16 num_stats, U16 num_dyns, U16 num_npcs)
+{
+    sc->flags = 0;
+    sc->num_trigs_allocd = num_trigs;
+    sc->trigs = (xEnt**)xMEMALLOC(num_trigs * sizeof(xEnt*), 0);
+    sc->num_stats_allocd = num_stats;
+    sc->stats = (xEnt**)xMEMALLOC(num_stats * sizeof(xEnt*), 0);
+    sc->num_dyns_allocd = num_dyns;
+    sc->dyns = (xEnt**)xMEMALLOC(num_dyns * sizeof(xEnt*), 0);
+    sc->num_npcs_allocd = num_npcs;
+    sc->npcs = (xEnt**)xMEMALLOC(num_npcs * sizeof(xEnt*), 0);
+    sc->num_ents_allocd = (U32)num_trigs + (U32)num_stats + (U32)num_dyns + (U32)num_npcs;
+    sc->num_act_ents = 0;
+    sc->act_ents = (xEnt**)xMEMALLOC(sc->num_ents_allocd * sizeof(xEnt*), 0);
+    sc->num_trigs = 0;
+    sc->num_stats = 0;
+    sc->num_dyns = 0;
+    sc->num_npcs = 0;
+
+    sc->resolvID = NULL;
+
+    xAnimInit();
+    xModelInit();
+    xAnimPoolInit(&sc->mempool, 50, 1, 0x1, 4);
+    xModelPoolInit(49, 64);
+    xModelPoolInit(74, 8);
+    xModelPoolInit(324, 1);
 }
