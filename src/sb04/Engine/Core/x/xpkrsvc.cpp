@@ -5,14 +5,12 @@
 #include "xMemMgr.h"
 #include "xOutputMgr.h"
 #include "xutil.h"
+#include "zHashes.h"
 #include "zMain.h"
 
 #include <rwcore.h>
 #include <string.h>
 #include <time.h>
-
-#define SIMPLE_SHADOW_TABLE_ID 0x98A3F56C // xStrHash("simple shadow table")
-#define SOUND_INFO_ID 0x7AB6743A // xStrHash("sound_info")
 
 #define PKR_MAX_NAMLEN 128
 #define PKR_MAX_ARRAY 4096
@@ -822,7 +820,7 @@ static void PKR_xform_asset(st_PACKER_ATOC_NODE* assnode, S32 dumpable_layer)
     xformloc = (char*)atype->readXForm(assnode->ownpr->userdata, assnode->aid, assnode->memloc, assnode->d_size,
                                        (U32*)&assnode->x_size);
 
-    if (assnode->aid != SOUND_INFO_ID && assnode->d_size != 0) {
+    if (assnode->aid != HASH_sound_info && assnode->d_size != 0) {
         xASSERT_FMT(assnode->x_size, "AID: 0x%08X - bad transform size\n", assnode->aid);
         if (dumpable_layer) {
             xASSERT_FMT((assnode->memloc != xformloc), "AID: 0x%08X - bad transform memory location\n", assnode->aid);
@@ -1109,7 +1107,7 @@ static S32 PKR_FRIEND_assetIsGameDup(U32 aid, const st_PACKER_READ_DATA* skippr,
     S32 idx = -1;
     S32 is_a_sound = FALSE;
 
-    if (aid == SIMPLE_SHADOW_TABLE_ID) return is_dup;
+    if (aid == HASH_simple_shadow_table) return is_dup;
 
     for (i = 0; i < PKR_MAX_INSTANCES; i++) {
         if (!(g_loadlock & (1 << i))) {

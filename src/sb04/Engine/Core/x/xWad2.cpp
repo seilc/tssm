@@ -848,10 +848,6 @@ st_HIPLOADFUNCS* get_HIPLFuncs()
 
 //                                              xFX
 
-/* boot.HIP texture IDs */
-#define GLOSS_EDGE_ID 0xB8C2351E // xStrHash("gloss_edge")
-#define RAINBOWFILM_SMOOTH32_ID 0x741B0566 // xStrHash("rainbowfilm_smooth32")
-
 extern const char _stringBase0_7[];
 
 extern F32 _957_0;

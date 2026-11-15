@@ -8,14 +8,13 @@
 #include "xCollideFast.h"
 #include "xScrFx.h"
 #include "zGlobals.h"
+#include "zHashes.h"
 #include "zMain.h"
 
 #include "iMath.h"
 
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\cmath>
 #include <PowerPC_EABI_Support\MSL_C\MSL_Common\cstring>
-
-#define INVISIBLE_WALL_ID 0xB8895D14 // xStrHash("invisible_wall")
 
 struct cameraFXShake
 {
@@ -1058,7 +1057,7 @@ static void xCam_buildbasis(xCamera* cam)
 
 void xCameraReset(xCamera* cam, F32 d, F32 h, F32 pitch)
 {
-    sInvisWallHack = (RpAtomic*)xSTFindAsset(INVISIBLE_WALL_ID, NULL);
+    sInvisWallHack = (RpAtomic*)xSTFindAsset(HASH_invisible_wall, NULL);
 
     xMat4x3Identity(&cam->mat);
 
