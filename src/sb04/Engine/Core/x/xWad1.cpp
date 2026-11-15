@@ -3,1571 +3,320 @@
 #include <dolphin.h>
 #include <PowerPC_EABI_Support\include\math.h>
 
-#include "xCutscene.cpp"
+//                                              iCamera
 
-//                                              xCounter
+extern F32 sCameraNearClip;
+extern F32 sCameraFarClip;
+extern RwCamera* sMainGameCamera;
 
-int xCounterEventCB(xBase*, xBase* to, U32 toEvent, const F32*, xBase*, U32)
+extern F32 _640_0;
+extern F32 _706_0;
+extern F32 _707_1;
+extern F32 _708_3;
+extern F32 _709_1;
+extern F32 _741_3;
+extern F32 _742_1;
+extern F32 _743_1;
+extern F64 _769_1;
+extern F64 _826_0;
+
+void iCameraSetFogRenderStates()
 {
-    xCounter* t = (xCounter*)to;
+    RwCamera* pCamera;
+    iFogParams* pFogParams;
+    U32 bite_me;
 
-    switch (toEvent)
+    pCamera = RwCameraGetCurrentCamera();
+    pFogParams = &xglobals->fog;
+
+    if (pFogParams->type == rwFOGTYPENAFOGTYPE)
     {
-    case eEventDecrement:
-    {
-        if (t->state != 1 && (!(t->counterFlags & 0x1) || t->count != 2))
-        {
-            t->count--;
+        RwRenderStateSet(rwRENDERSTATEFOGENABLE, (void*)FALSE);
 
-            if (t->count == 0)
-            {
-                zEntEvent(t, t, eEventExpired);
-            }
-            else if (t->count > 0 && t->count <= 20)
-            {
-                zEntEvent(t, t, t->count + (eEventCount1 - 1));
-            }
-        }
-        break;
-    }
-    case eEventIncrement:
-    {
-        if (t->state != 1)
-        {
-            t->count++;
-
-            if (t->count == 0)
-            {
-                zEntEvent(t, t, eEventExpired);
-            }
-            else if (t->count > 0 && t->count <= 20)
-            {
-                zEntEvent(t, t, t->count + (eEventCount1 - 1));
-            }
-        }
-        break;
-    }
-    case eEventReset:
-    {
-        t->state = 0;
-        t->count = t->asset->count;
-        break;
-    }
-    case eEventExpired:
-    {
-        if (!(t->counterFlags & 0x1) || t->count != 2)
-        {
-            t->count = 0;
-            t->state = 1;
-        }
-        break;
-    }
-    default:
-    {
-        if (t->state != 1 && toEvent >= eEventCount1 && toEvent <= eEventCount20)
-        {
-            S16 newCount = toEvent - (eEventCount1 - 1);
-
-            if (!(t->counterFlags & 0x1) || t->count != 2)
-            {
-                t->count = newCount;
-            }
-        }
-    }
-    }
-
-    return 1;
-}
-
-void xCounterLoad(xCounter* ent, xSerial* s)
-{
-    xBaseLoad(ent, s);
-
-    s->Read(&ent->state);
-    s->Read(&ent->count);
-}
-
-void xCounterSave(xCounter* ent, xSerial* s)
-{
-    xBaseSave(ent, s);
-
-    s->Write(ent->state);
-    s->Write(ent->count);
-}
-
-void xCounterReset(xBase* b)
-{
-    xCounter* t = (xCounter*)b;
-
-    xBaseInit(t, t->asset);
-
-    if (t->linkCount)
-    {
-        t->link = (xLinkAsset*)(t->asset + 1);
+        RwCameraSetFarClipPlane(pCamera, sCameraFarClip);
     }
     else
     {
-        t->link = 0;
-    }
+        bite_me = (pFogParams->fogcolor.alpha << 24) | (pFogParams->fogcolor.red << 16) |
+                  (pFogParams->fogcolor.green << 8) | pFogParams->fogcolor.blue;
 
-    t->count = t->asset->count;
-    t->state = 0;
-}
+        RwRenderStateSet(rwRENDERSTATEFOGENABLE, (void*)TRUE);
+        RwRenderStateSet(rwRENDERSTATEFOGTYPE, (void*)pFogParams->type);
+        RwRenderStateSet(rwRENDERSTATEFOGCOLOR, (void*)bite_me);
+        RwRenderStateSet(rwRENDERSTATEFOGDENSITY, (void*)&pFogParams->density);
 
-void xCounterInit(void* b, void* asset)
-{
-    xCounterInit((xBase*)b, (xCounterAsset*)asset);
-}
-
-void xCounterInit()
-{
-}
-
-//                                         xSwept
-
-#include "xCollideFast.cpp"
-
-//                                          xSphere
-
-//                                          xCM
-
-volatile static F32 credits_time;
-static xCreditsData* credits_data;
-static U32 credits_parentID;
-
-F32 dtscale;
-
-// Equivalent: scheduling
-void xCMstop()
-{
-    credits_time = 10000.0f;
-    credits_data = NULL;
-    if (credits_parentID != 0)
-    {
-        zEntEvent(credits_parentID, 0x212);
+        RwCameraSetFogDistance(pCamera, pFogParams->start);
+        RwCameraSetFarClipPlane(pCamera, pFogParams->stop);
     }
 }
 
-void xCMstart(xCreditsData* data, F32 time, xBase* parent)
+void iCameraSetFogParams(iFogParams* fp, F32 time)
 {
-    if ((credits_data = data) != NULL)
+    if (!fp || fp->type == rwFOGTYPENAFOGTYPE)
     {
-        credits_time = 0.0f;
-
-        if (parent != NULL)
-        {
-            credits_parentID = parent->id;
-        }
+        xglobals->fog.type = rwFOGTYPENAFOGTYPE;
+        xglobals->fogA.type = rwFOGTYPENAFOGTYPE;
     }
-}
-
-void xCMrender()
-{
-    xCMrender(credits_time, credits_data);
-}
-
-void xCMupdate(F32 time)
-{
-    if (credits_data != 0)
+    else if (_742_1 == time || fp->type != xglobals->fogA.type)
     {
-        credits_time += (time * dtscale);
-        if (credits_time >= *(F32*)((int)&credits_data->dummy + 0x10))
-        {
-            xCMstop();
-        }
-    }
-}
-
-static void xCMprep(xCreditsData* data)
-{
-    /*
-        data seems to point to this general structure:
-        0x00 - xCMheader
-        0x18 - xCMcredits
-        0x50 - xCMpreset* presets_array[xCMcredits.num_presets]
-             - xCMhunk* hunk_array[?]
-    */
-
-    char* dp; // In the DWARF. Don't know what this is used for.
-    xCMheader* hdr = (xCMheader*)data;
-
-    if (hdr->magic != 0xBEEEEEEF)
-    {
-        return;
-    }
-
-    xCMcredits* cp = (xCMcredits*)(&hdr[1]);
-    while ((int)cp - (int)data < hdr->total_size)
-    {
-        xCMpreset* pp = (xCMpreset*)(&cp[1]);
-        xCMhunk* hp = (xCMhunk*)(&pp[cp->num_presets]);
-
-        for (; (int)hp - (int)cp < cp->credits_size; hp = (xCMhunk*)((int)hp + hp->hunk_size))
-        {
-            switch (pp[hp->preset].align)
-            {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-
-                if (hdr->state == 0)
-                {
-                    if (hp->text1 != NULL)
-                    {
-                        hp->text1 -= (int)data;
-                    }
-                    if (hp->text2 != NULL)
-                    {
-                        hp->text2 -= (int)data;
-                    }
-                }
-                else
-                {
-                    if (hp->text1 != NULL)
-                    {
-                        hp->text1 += (int)data;
-                    }
-                    if (hp->text2 != NULL)
-                    {
-                        hp->text2 += (int)data;
-                    }
-                }
-                break;
-            }
-        }
-        cp = (xCMcredits*)hp;
-    }
-
-    hdr->state = hdr->state == 0 ? 1 : 0;
-}
-
-//                                              xClump
-
-//                                              xClimate
-
-Climate* sClimate;
-
-const float snow_life = 3.0f;
-const xVec3 snow_vel = { 0.0f, -2.0f, 0.0f };
-const xVec3 snow_dvel = { 0.1f, 0.1f, 0.1f };
-
-void xClimateVecFromAngle(F32 angleDegrees, xVec3* vec)
-{
-    xMat3x3 Mat;
-
-    xMat3x3Identity(&Mat);
-    xMat3x3Euler(&Mat, (PI * angleDegrees) / ONEEIGHTY, 0.0f, 0.0f);
-    xVec3Init(vec, 0.0f, 0.0f, 1.0f);
-    xMat3x3LMulVec(vec, &Mat, vec);
-}
-
-void xClimateUpdate(Climate* climate, F32 seconds)
-{
-    UpdateRain(climate, seconds);
-    UpdateWind(climate, seconds);
-}
-
-void xClimateSetRain(F32 stre)
-{
-    sClimate->rain.rain = 1;
-    sClimate->rain.strength = stre;
-}
-
-void xClimateSetSnow(F32 stre)
-{
-    sClimate->rain.rain = 0;
-    sClimate->rain.strength = stre;
-}
-
-// Equivalent
-// float ops are being optimized more aggressively
-void xClimateInitAsset(Climate* climate, xEnvAsset* asset)
-{
-    sClimate = climate;
-    climate->wind.strength = 0.0f;
-    xClimateVecFromAngle(climate->wind.angle, &climate->wind.dir);
-
-    if (asset->climateFlags == 0)
-    {
-        climate->wind.strength = 0.0f;
-        climate->rain.strength = 0.0f;
-        return;
-    }
-    if (asset->climateFlags & 1)
-    {
-        climate->rain.rain = 1.0f;
-        climate->rain.strength = 0.5f * (asset->climateStrengthMax - asset->climateStrengthMin);
-        climate->rain.strength += asset->climateStrengthMin;
-    }
-    else if (asset->climateFlags & 2)
-    {
-        climate->rain.rain = 0.0f;
-        climate->rain.strength = 0.5f * (asset->climateStrengthMax - asset->climateStrengthMin);
-        climate->rain.strength += asset->climateStrengthMin;
-    }
-}
-
-void xClimateInit(Climate* climate)
-{
-    climate->rain.strength = 0.0f;
-
-    climate->rain.rain_emitter = zParEmitterFind(xStrHash("PAREMIT_RAIN"));
-    climate->rain.rain_emitter->emit_flags &= 0xfe;
-
-    climate->rain.snow_emitter = zParEmitterFind(xStrHash("PAREMIT_SNOW"));
-    climate->rain.snow_emitter->emit_flags &= 0xfe;
-}
-
-//                                              xCam
-
-//                                              xBound
-
-extern F32 _571;
-extern F32 _640;
-extern F32 _641;
-extern F32 _642;
-extern F32 _643;
-extern F32 _644;
-
-void xBoundUpdate(xBound* b)
-{
-    if (b->type == k_XBOUNDTYPE_BOX)
-    {
-        xVec3Add(&b->box.center, &b->box.box.lower, &b->box.box.upper);
-        xVec3SMul(&b->box.center, &b->box.center, _571);
-    }
-    else if (b->type == k_XBOUNDTYPE_OBB)
-    {
-        xVec3Add(&b->box.center, &b->box.box.lower, &b->box.box.upper);
-        xVec3SMul(&b->box.center, &b->box.center, _571);
-        xMat4x3Toworld(&b->box.center, b->mat, &b->box.center);
-    }
-
-    if (b->type != k_XBOUNDTYPE_NONE)
-    {
-        xQuickCullForBound(&b->qcd, b);
-    }
-}
-
-void xBoundGetBox(xBox& box, const xBound& bound)
-{
-    switch (bound.type)
-    {
-    case k_XBOUNDTYPE_SPHERE:
-    {
-        const xSphere& o = bound.sph;
-
-        box.upper.assign(o.center.x + o.r, o.center.y + o.r, o.center.z + o.r);
-        box.lower.assign(o.center.x - o.r, o.center.y - o.r, o.center.z - o.r);
-
-        break;
-    }
-    case k_XBOUNDTYPE_BOX:
-    {
-        box = bound.box.box;
-
-        break;
-    }
-    case k_XBOUNDTYPE_OBB:
-    {
-        xBoxInitBoundOBB(&box, &bound.box.box, bound.mat);
-
-        break;
-    }
-    }
-}
-
-void xBoundGetSphere(xSphere& o, const xBound& bound)
-{
-    switch (bound.type)
-    {
-    case k_XBOUNDTYPE_SPHERE:
-    {
-        o = bound.sph;
-
-        break;
-    }
-    case k_XBOUNDTYPE_BOX:
-    {
-        o.center = bound.box.center;
-        o.r = (bound.box.box.upper - bound.box.center).length();
-
-        break;
-    }
-    case k_XBOUNDTYPE_OBB:
-    {
-        const xMat4x3& mat = *bound.mat;
-        xVec3 v = (bound.box.box.upper - bound.box.box.lower) * _571;
-
-        o.r = xsqrt(SQR(v.x) * mat.right.length2() + SQR(v.y) * mat.up.length2() +
-                    SQR(v.z) * mat.at.length2());
-        o.center = bound.box.center;
-
-        break;
-    }
-    }
-}
-
-U32 xBoundSphereHitsOBB(const xSphere* s, const xBox* b, const xMat4x3* m, xCollis* coll)
-{
-    return xSphereHitsOBB_nu(s, b, m, coll);
-}
-
-void xBoundHitsBound(const xBound* a, const xBound* b, xCollis* c)
-{
-    if (!xQuickCullIsects(&a->qcd, &b->qcd))
-    {
-        c->flags &= ~0x1;
+        xglobals->fog = *fp;
+        xglobals->fogA = *fp;
+        xglobals->fog_t0 = 0;
     }
     else
     {
-        // non-matching: jumptable
+        xglobals->fogA = xglobals->fog;
+        xglobals->fogB = *fp;
 
-        switch (a->type | (b->type << k_XBOUNDTYPE_SHIFT))
-        {
-        case (k_XBOUNDTYPE_SPHERE | (k_XBOUNDTYPE_SPHERE << k_XBOUNDTYPE_SHIFT)):
-        {
-            xSphereHitsSphere(&a->sph, &b->sph, c);
-            break;
-        }
-        case (k_XBOUNDTYPE_SPHERE | (k_XBOUNDTYPE_OBB << k_XBOUNDTYPE_SHIFT)):
-        {
-            xBoundSphereHitsOBB(&a->sph, &b->box.box, b->mat, c);
-            break;
-        }
-        case (k_XBOUNDTYPE_SPHERE | (k_XBOUNDTYPE_BOX << k_XBOUNDTYPE_SHIFT)):
-        {
-            xSphereHitsBox(&a->sph, &b->box.box, c);
-            break;
-        }
-        case (k_XBOUNDTYPE_BOX | (k_XBOUNDTYPE_SPHERE << k_XBOUNDTYPE_SHIFT)):
-        {
-            xBoxHitsSphere(&a->box.box, &b->sph, c);
-            break;
-        }
-        case (k_XBOUNDTYPE_BOX | (k_XBOUNDTYPE_OBB << k_XBOUNDTYPE_SHIFT)):
-        {
-            xBoxHitsObb(&a->box.box, &b->box.box, b->mat, c);
-            break;
-        }
-        case (k_XBOUNDTYPE_OBB | (k_XBOUNDTYPE_OBB << k_XBOUNDTYPE_SHIFT)):
-        {
-            break;
-        }
-        }
+        // todo
     }
 }
 
-static void xBoundOBBIsectRay(const xBox* b, const xMat4x3* m, const xRay3* r, xIsect* isect)
+void iCameraSetNearFarClip(F32 nearPlane, F32 farPlane)
 {
-    xRay3 xfr;
-    xBox sbox;
-    xVec3 scale;
-    xMat4x3 mnormal;
-
+    if (nearPlane <= *(const F32*)&_742_1)
     {
-        F32 len2 = SQR(m->right.x) + SQR(m->right.y) + SQR(m->right.z);
-
-        if ((F32)iabs(len2 - _642) <= _644)
-        {
-            // non-matching: incorrect instruction + order
-
-            scale.x = *(const F32*)&_642;
-
-            mnormal.right.x = m->right.x;
-            mnormal.right.y = m->right.y;
-            mnormal.right.z = m->right.z;
-        }
-        else if ((F32)iabs(len2) <= _644)
-        {
-            // non-matching: incorrect order
-
-            scale.x = _641;
-
-            mnormal.right.x = _641;
-            mnormal.right.y = _642;
-            mnormal.right.z = _641;
-        }
-        else
-        {
-            scale.x = xsqrt(len2);
-
-            F32 len_inv = _642 / scale.x;
-
-            mnormal.right.x = m->right.x * len_inv;
-            mnormal.right.y = m->right.y * len_inv;
-            mnormal.right.z = m->right.z * len_inv;
-        }
+        nearPlane = _741_3;
     }
 
+    sCameraNearClip = nearPlane;
+
+    // non-matching: _742_1 is loaded too early
+
+    if (farPlane <= *(const F32*)&_742_1)
     {
-        F32 len2 = SQR(m->up.x) + SQR(m->up.y) + SQR(m->up.z);
-
-        if ((F32)iabs(len2 - _642) <= _644)
-        {
-            // non-matching: incorrect instruction + order
-
-            scale.y = *(const F32*)&_642;
-
-            mnormal.up.x = m->up.x;
-            mnormal.up.y = m->up.y;
-            mnormal.up.z = m->up.z;
-        }
-        else if ((F32)iabs(len2) <= _644)
-        {
-            // non-matching: incorrect order
-
-            scale.y = _641;
-
-            mnormal.up.x = _641;
-            mnormal.up.y = _642;
-            mnormal.up.z = _641;
-        }
-        else
-        {
-            scale.y = xsqrt(len2);
-
-            F32 len_inv = _642 / scale.y;
-
-            mnormal.up.x = m->up.x * len_inv;
-            mnormal.up.y = m->up.y * len_inv;
-            mnormal.up.z = m->up.z * len_inv;
-        }
+        farPlane = _743_1;
     }
 
-    {
-        F32 len2 = SQR(m->at.x) + SQR(m->at.y) + SQR(m->at.z);
-
-        if ((F32)iabs(len2 - _642) <= _644)
-        {
-            // non-matching: incorrect instruction + order
-
-            scale.z = *(const F32*)&_642;
-
-            mnormal.at.x = m->at.x;
-            mnormal.at.y = m->at.y;
-            mnormal.at.z = m->at.z;
-        }
-        else if ((F32)iabs(len2) <= _644)
-        {
-            // non-matching: incorrect order
-
-            scale.z = _641;
-
-            mnormal.at.x = _641;
-            mnormal.at.y = _642;
-            mnormal.at.z = _641;
-        }
-        else
-        {
-            scale.z = xsqrt(len2);
-
-            F32 len_inv = _642 / scale.z;
-
-            mnormal.at.x = m->at.x * len_inv;
-            mnormal.at.y = m->at.y * len_inv;
-            mnormal.at.z = m->at.z * len_inv;
-        }
-    }
-
-    mnormal.pos = m->pos;
-
-    sbox.upper.x = b->upper.x * scale.x;
-    sbox.upper.y = b->upper.y * scale.y;
-    sbox.upper.z = b->upper.z * scale.z;
-    sbox.lower.x = b->lower.x * scale.x;
-    sbox.lower.y = b->lower.y * scale.y;
-    sbox.lower.z = b->lower.z * scale.z;
-
-    xMat4x3Tolocal(&xfr.origin, &mnormal, &r->origin);
-    xMat3x3Tolocal(&xfr.dir, &mnormal, &r->dir);
-
-    xfr.min_t = r->min_t;
-    xfr.max_t = r->max_t;
-    xfr.flags = r->flags;
-
-    iBoxIsectRay(&sbox, &xfr, isect);
+    sCameraFarClip = farPlane;
 }
 
-void xRayHitsBound(const xRay3* r, const xBound* b, xCollis* c)
+void iCamGetViewMatrix(RwCamera* camera, xMat4x3* view_matrix)
 {
-    xIsect isect;
+    RwMatrix* rw_view;
 
-    if (b->type == k_XBOUNDTYPE_SPHERE)
-    {
-        iSphereIsectRay(&b->sph, r, &isect);
-    }
-    else if (b->type == k_XBOUNDTYPE_OBB)
-    {
-        xBoundOBBIsectRay(&b->box.box, b->mat, r, &isect);
-    }
-    else if (b->type == k_XBOUNDTYPE_BOX)
-    {
-        iBoxIsectRay(&b->box.box, r, &isect);
-    }
+    memset(view_matrix, 0, sizeof(xMat4x3));
 
-    if (isect.penned <= _641)
-    {
-        c->flags |= 0x1;
-        c->dist = isect.dist;
-    }
-    else
-    {
-        c->flags &= ~0x1;
-    }
+    rw_view = RwCameraGetViewMatrix(camera);
+
+    view_matrix->right.x = rw_view->right.x;
+    view_matrix->right.y = rw_view->right.y;
+    view_matrix->right.z = rw_view->right.z;
+    view_matrix->up.x = rw_view->up.x;
+    view_matrix->up.y = rw_view->up.y;
+    view_matrix->up.z = rw_view->up.z;
+    view_matrix->at.x = rw_view->at.x;
+    view_matrix->at.y = rw_view->at.y;
+    view_matrix->at.z = rw_view->at.z;
+    view_matrix->pos.x = rw_view->pos.x;
+    view_matrix->pos.y = rw_view->pos.y;
+    view_matrix->pos.z = rw_view->pos.z;
 }
 
-void xSphereHitsBound(const xSphere* o, const xBound* b, xCollis* c)
+void iCameraAssignEnv(RwCamera* camera, iEnv* env_geom)
 {
-    switch (b->type)
-    {
-    case k_XBOUNDTYPE_SPHERE:
-    {
-        xSphereHitsSphere(o, &b->sph, c);
-        break;
-    }
-    case k_XBOUNDTYPE_OBB:
-    {
-        xBoundSphereHitsOBB(o, &b->box.box, b->mat, c);
-        break;
-    }
-    case k_XBOUNDTYPE_BOX:
-    {
-        xSphereHitsBox(o, &b->box.box, c);
-        break;
-    }
-    }
+    globalCamera = camera;
+
+    RpWorldAddCamera(env_geom->world, camera);
+    xShadowSetWorld(env_geom->world);
 }
 
-void xVecHitsBound(const xVec3* v, const xBound* b, xCollis* c)
+void iCameraSetFOV(RwCamera* cam, F32 fov)
 {
-    xIsect isect;
+    RwV2d vw;
 
-    if (b->type == k_XBOUNDTYPE_SPHERE)
-    {
-        iSphereIsectVec(&b->sph, v, &isect);
-    }
-    else if (b->type == k_XBOUNDTYPE_OBB)
-    {
-        xVec3 lv;
+    vw.x = itan(_706_0 * (_707_1 * fov) / _708_3);
 
-        xMat4x3Tolocal(&lv, b->mat, v);
-        iBoxIsectVec(&b->box.box, &lv, &isect);
-    }
-    else if (b->type == k_XBOUNDTYPE_BOX)
-    {
-        iBoxIsectVec(&b->box.box, v, &isect);
-    }
+    // non-matching: frsp instruction is here for some reason
+    vw.y = _709_1 * vw.x;
 
-    if (isect.penned <= _641)
-    {
-        c->flags |= 0x1;
-    }
-    else
-    {
-        c->flags &= ~0x1;
-    }
+    RwCameraSetViewWindow(cam, &vw);
 }
 
-void xDrawBox(const xBox*)
+void iCameraUpdatePos(RwCamera* cam, xMat4x3* pos)
 {
+    RwFrame* f;
+    RwMatrix* m;
+
+    f = RwCameraGetFrame(cam);
+    m = RwFrameGetMatrix(f);
+
+    xMat4x3Copy((xMat4x3*)m, pos);
+
+    m = RwFrameGetLTM(f);
+
+    xMat4x3Copy((xMat4x3*)m, pos);
+
+    RwFrameOrthoNormalize(f);
+    RwFrameUpdateObjects(f);
 }
 
-void xDrawOBB(const xBox*, const xMat4x3*)
+void iCameraFrustumPlanes(RwCamera* cam, xVec4* frustplane)
 {
+    RwFrustumPlane* rwPlane;
+
+    rwPlane = &cam->frustumPlanes[2];
+    frustplane[0].x = rwPlane->plane.normal.x;
+    frustplane[1].x = rwPlane->plane.normal.y;
+    frustplane[2].x = rwPlane->plane.normal.z;
+    frustplane[3].x = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[4];
+    frustplane[0].y = rwPlane->plane.normal.x;
+    frustplane[1].y = rwPlane->plane.normal.y;
+    frustplane[2].y = rwPlane->plane.normal.z;
+    frustplane[3].y = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[5];
+    frustplane[0].z = rwPlane->plane.normal.x;
+    frustplane[1].z = rwPlane->plane.normal.y;
+    frustplane[2].z = rwPlane->plane.normal.z;
+    frustplane[3].z = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[3];
+    frustplane[0].w = rwPlane->plane.normal.x;
+    frustplane[1].w = rwPlane->plane.normal.y;
+    frustplane[2].w = rwPlane->plane.normal.z;
+    frustplane[3].w = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[1];
+    frustplane[4].x = rwPlane->plane.normal.x;
+    frustplane[5].x = rwPlane->plane.normal.y;
+    frustplane[6].x = rwPlane->plane.normal.z;
+    frustplane[7].x = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[0];
+    frustplane[4].y = rwPlane->plane.normal.x;
+    frustplane[5].y = rwPlane->plane.normal.y;
+    frustplane[6].y = rwPlane->plane.normal.z;
+    frustplane[7].y = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[2];
+    frustplane[4].z = rwPlane->plane.normal.x;
+    frustplane[5].z = rwPlane->plane.normal.y;
+    frustplane[6].z = rwPlane->plane.normal.z;
+    frustplane[7].z = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[4];
+    frustplane[4].w = rwPlane->plane.normal.x;
+    frustplane[5].w = rwPlane->plane.normal.y;
+    frustplane[6].w = rwPlane->plane.normal.z;
+    frustplane[7].w = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[2];
+    frustplane[8].x = rwPlane->plane.normal.x;
+    frustplane[9].x = rwPlane->plane.normal.y;
+    frustplane[10].x = rwPlane->plane.normal.z;
+    frustplane[11].x = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[4];
+    frustplane[8].y = rwPlane->plane.normal.x;
+    frustplane[9].y = rwPlane->plane.normal.y;
+    frustplane[10].y = rwPlane->plane.normal.z;
+    frustplane[11].y = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[5];
+    frustplane[8].z = rwPlane->plane.normal.x;
+    frustplane[9].z = rwPlane->plane.normal.y;
+    frustplane[10].z = rwPlane->plane.normal.z;
+    frustplane[11].z = rwPlane->plane.distance;
+
+    rwPlane = &cam->frustumPlanes[3];
+    frustplane[8].w = rwPlane->plane.normal.x;
+    frustplane[9].w = rwPlane->plane.normal.y;
+    frustplane[10].w = rwPlane->plane.normal.z;
+    frustplane[11].w = rwPlane->plane.distance;
 }
 
-void xDrawSphere2(const xSphere*, U32)
+void iCameraShowRaster(RwCamera* cam)
 {
+    RwCameraShowRaster(cam, NULL, 0);
 }
 
-void xBoundDraw(const xBound* b)
+void iCameraEnd(RwCamera* cam)
 {
-    if (b->type == k_XBOUNDTYPE_SPHERE)
-    {
-        xDrawSphere2(&b->sph, 12);
-    }
-    else if (b->type == k_XBOUNDTYPE_OBB)
-    {
-        xDrawOBB(&b->box.box, b->mat);
-    }
-    else if (b->type == k_XBOUNDTYPE_BOX)
-    {
-        xDrawBox(&b->box.box);
-    }
+    iScrFxCameraEndScene(cam);
+    RwCameraEndUpdate(cam);
+    iScrFxPostCameraEnd(cam);
 }
 
-//                                      BFD / Async / Read
-
-static U32 g_loadlock = 0xFFFFFF00;
-static st_FILELOADINFO g_loadinst[8] = {};
-static xFile g_xfload[8] = {};
-static st_BINIO_XTRADATA g_xtraload[8] = {};
-static st_BINIO_XTRADATA* g_async_context = NULL;
-
-#define LITTLE_ENDIAN 0
-#define BIG_ENDIAN 1
-
-#ifdef GAMECUBE
-#define ENDIAN BIG_ENDIAN
-#else
-#define ENDIAN LITTLE_ENDIAN
-#endif
-
-static void BFD_cb_GCP2_readasync(xFile* bffp)
+void iCameraDestroy(RwCamera* camera)
 {
-}
+    RpWorld* pWorld;
+    RwRaster* raster;
+    RwFrame* frame;
 
-static S32 BFD_AsyncRead(st_FILELOADINFO* fli, S32 pos, void* data, S32 size, S32 n, S32 endian)
-{
-    xFile* file = (xFile*)fli->privdata;
-    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)fli->xtradata;
+    _rwFrameSyncDirty();
 
-    if (fli->error != FIOERR_NONE)
+    pWorld = RwCameraGetWorld(camera);
+
+    if (pWorld)
     {
-        return 0;
+        RpWorldRemoveCamera(pWorld, camera);
     }
 
-    if (g_async_context)
+    if (camera == sMainGameCamera)
     {
-        return 0;
+        iScrFxCameraDestroyed(camera);
+        sMainGameCamera = NULL;
     }
 
-    g_async_context = xtra;
-
-    xtra->asyn_status = BINIO_ASYNC_INPROG;
-    xtra->asyn_data = (char*)data;
-    xtra->asyn_elesize = size;
-    xtra->asyn_amt = n;
-    xtra->asyn_ismot = 1;
-
-    iFileSeek(file, pos, IFILE_SEEK_SET);
-    xFileSetUserData(file, fli);
-
-    S32 result = iFileReadAsync(file, data, size * n, BFD_cb_GCP2_readasync, 0);
-    S32 rc;
-
-    if (result < 0)
+    if (camera)
     {
-        rc = 0;
-    }
-    else
-    {
-        xtra->gcaskey = result;
-        rc = 1;
-    }
+        frame = RwCameraGetFrame(camera);
 
-    if (rc == 0)
-    {
-        g_async_context = NULL;
-        xtra->asyn_status = BINIO_ASYNC_NOOP;
-    }
-
-    return 1;
-}
-
-static S32 BFD_read(void* data, S32 elesize, S32 elecnt, xFile* bffp, void* xtradata)
-{
-    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
-    char* dest = (char*)data;
-    S32 readbeg;
-    S32 refill = 0;
-    S32 remain;
-    S32 actual;
-    U32 holdpos;
-    U32 numBytes = 0;
-    U32 safety = 0;
-    S32 r26 = elesize * elecnt;
-
-    if (r26 == 0)
-    {
-        return 0;
-    }
-
-    if (!xtra->dbl_buf || xtra->dblbuf_size < 1 || r26 > xtra->dblbuf_size)
-    {
-        iFileSeek(bffp, xtra->fpos, IFILE_SEEK_SET);
-        numBytes = iFileRead(bffp, dest, r26);
-
-        xtra->fpos += numBytes;
-    }
-    else
-    {
-        remain = r26;
-
-        while (true)
+        if (frame)
         {
-            if (xtra->fpos < xtra->dbl_beg)
-            {
-                refill = 1;
-
-                xtra->dbl_beg = xtra->fpos - (xtra->fpos % xtra->dblbuf_size);
-                xtra->dbl_end = xtra->dbl_beg + xtra->dblbuf_size;
-                xtra->dbl_amt = 0;
-            }
-            else if (xtra->fpos >= xtra->dbl_end)
-            {
-                refill = 1;
-
-                xtra->dbl_beg = xtra->fpos - (xtra->fpos % xtra->dblbuf_size);
-                xtra->dbl_end = xtra->dbl_beg + xtra->dblbuf_size;
-                xtra->dbl_amt = 0;
-            }
-
-            if (refill)
-            {
-                holdpos = xtra->fpos;
-
-                iFileSeek(bffp, xtra->dbl_beg, IFILE_SEEK_SET);
-
-                xtra->fpos = holdpos;
-                xtra->dbl_amt = iFileRead(bffp, xtra->dbl_buf, xtra->dblbuf_size);
-            }
-
-            readbeg = xtra->fpos - xtra->dbl_beg;
-
-            if (xtra->dbl_amt > readbeg)
-            {
-                actual = MIN(remain, xtra->dbl_amt - readbeg);
-
-                memcpy(dest + numBytes, xtra->dbl_buf + readbeg, actual);
-
-                numBytes += actual;
-                remain -= actual;
-
-                xtra->fpos += actual;
-            }
-
-            if (numBytes == r26 || xtra->dbl_amt < 1 || safety++ > 60000)
-            {
-                break;
-            }
-        }
-    }
-
-    return (S32)numBytes / elesize;
-}
-
-static xFile* BFD_open(const char* filename, const char* mode, U32 lockid, S32, void* xtradata,
-                       S32)
-{
-    xFile* bffp;
-    U32 orc; // open return code
-    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
-    S32 xfflg = IFILE_OPEN_READ;
-
-    if (strcmp(mode, "rb") == 0)
-    {
-        bffp = &g_xfload[lockid];
-        xfflg = IFILE_OPEN_READ;
-    }
-    else if (strcmp(mode, "wb") == 0)
-    {
-        bffp = NULL;
-        xfflg = IFILE_OPEN_WRITE;
-    }
-    else
-    {
-        bffp = NULL;
-    }
-
-    if (bffp)
-    {
-        strncpy(bffp->relname, filename, sizeof(bffp->relname) - 1);
-        bffp->relname[sizeof(bffp->relname) - 1] = '\0';
-
-        orc = iFileOpen(filename, xfflg, bffp);
-
-        if (orc != 0)
-        {
-            bffp = NULL;
-        }
-        else
-        {
-            xtra->fpos = 0;
-            xtra->dbl_buf = NULL;
-            xtra->dblbuf_size = 0;
-            xtra->dbl_beg = 0;
-            xtra->dbl_end = 0;
-            xtra->dbl_amt = 0;
-        }
-    }
-
-    return bffp;
-}
-
-static en_BIO_ASYNC_ERRCODES BFD_AsyncReadStatus(st_FILELOADINFO* fli)
-{
-    en_BIO_ASYNC_ERRCODES status;
-    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)fli->xtradata;
-
-    if (!g_async_context)
-    {
-        status = BINIO_ASYNC_NOOP;
-    }
-    else if (xtra != g_async_context)
-    {
-        status = BINIO_ASYNC_INPROG;
-    }
-    else
-    {
-        if (xtra->asyn_status == BINIO_ASYNC_INPROG)
-        {
-            XFILE_READSECTOR_STATUS xrdstat;
-            S32 amtsofar = 0;
-
-            xrdstat = xFileReadAsyncStatus(xtra->gcaskey, &amtsofar);
-
-            switch (xrdstat)
-            {
-            case XFILE_RDSTAT_INPROG:
-            case XFILE_RDSTAT_QUEUED:
-            {
-                xtra->asyn_status = BINIO_ASYNC_INPROG;
-                break;
-            }
-            case XFILE_RDSTAT_DONE:
-            {
-                xtra->asyn_status = BINIO_ASYNC_DONE;
-                break;
-            }
-            case XFILE_RDSTAT_FAIL:
-            case XFILE_RDSTAT_EXPIRED:
-            default:
-            {
-                xtra->asyn_status = BINIO_ASYNC_FAIL;
-                break;
-            }
-            }
+            RwCameraSetFrame(camera, NULL);
+            RwFrameDestroy(frame);
         }
 
-        status = xtra->asyn_status;
+        raster = RwCameraGetRaster(camera);
 
-        if (status == BINIO_ASYNC_FAIL || status == BINIO_ASYNC_DONE)
+        if (raster)
         {
-            xtra->asyn_status = BINIO_ASYNC_NOOP;
-            g_async_context = NULL;
-        }
-    }
-
-    return status;
-}
-
-static en_BIO_ASYNC_ERRCODES AsyncReadStatus(st_FILELOADINFO* fli)
-{
-    return BFD_AsyncReadStatus(fli);
-}
-
-// Inlining issue
-static S32 AsyncIRead(st_FILELOADINFO* fli, S32 offset, char* data, S32 size, S32 n)
-{
-    return BFD_AsyncRead(fli, offset, data, size, n, LITTLE_ENDIAN);
-}
-
-static S32 AsyncMRead(st_FILELOADINFO* fli, S32 offset, char* data, S32 size, S32 n)
-{
-    return BFD_AsyncRead(fli, offset, data, size, n, BIG_ENDIAN);
-}
-
-static S32 ReadRaw(st_FILELOADINFO* fli, void* data, S32 size, S32 count)
-{
-    xFile* file = (xFile*)fli->privdata;
-
-    if (fli->error != FIOERR_NONE)
-    {
-        return 0;
-    }
-
-    S32 amt = (size * count > fli->remain) ? fli->remain / size : count;
-
-    if (amt)
-    {
-        S32 n = BFD_read(data, size, amt, file, fli->xtradata);
-
-        if (n != amt)
-        {
-            fli->error = FIOERR_READFAIL;
+            RwRasterDestroy(raster);
+            RwCameraSetRaster(camera, NULL);
         }
 
-        fli->remain -= size * amt;
-        fli->position += size * amt;
-    }
+        raster = RwCameraGetZRaster(camera);
 
-    return amt;
-}
-
-static void Swap8(char* d, S32 n)
-{
-    char t;
-
-    while (n--)
-    {
-        t = d[0];
-        d[0] = d[7];
-        d[7] = t;
-
-        t = d[1];
-        d[1] = d[6];
-        d[6] = t;
-
-        t = d[2];
-        d[2] = d[5];
-        d[5] = t;
-
-        t = d[3];
-        d[3] = d[4];
-        d[4] = t;
-
-        d += 8;
-    }
-}
-
-static S32 ReadIDoubles(st_FILELOADINFO* fli, F64* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(F64), count);
-
-#if ENDIAN == BIG_ENDIAN
-    Swap8((char*)data, act);
-#endif
-
-    return act;
-}
-
-static void Swap4(char* d, S32 n)
-{
-    char t;
-
-    while (n--)
-    {
-        t = d[0];
-        d[0] = d[3];
-        d[3] = t;
-
-        t = d[1];
-        d[1] = d[2];
-        d[2] = t;
-
-        d += 4;
-    }
-}
-
-static S32 ReadIFloats(st_FILELOADINFO* fli, F32* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(F32), count);
-
-#if ENDIAN == BIG_ENDIAN
-    Swap4((char*)data, act);
-#endif
-
-    return act;
-}
-
-static S32 ReadILongs(st_FILELOADINFO* fli, S32* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(S32), count);
-
-#if ENDIAN == BIG_ENDIAN
-    Swap4((char*)data, act);
-#endif
-
-    return act;
-}
-
-static void Swap2(char* d, S32 n)
-{
-    char t;
-
-    while (n--)
-    {
-        t = d[0];
-        d[0] = d[1];
-        d[1] = t;
-
-        d += 2;
-    }
-}
-
-static S32 ReadIShorts(st_FILELOADINFO* fli, S16* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(S16), count);
-
-#if ENDIAN == BIG_ENDIAN
-    Swap2((char*)data, act);
-#endif
-
-    return act;
-}
-
-static S32 ReadMDoubles(st_FILELOADINFO* fli, F64* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(F64), count);
-
-#if ENDIAN == LITTLE_ENDIAN
-    Swap8((char*)data, act);
-#endif
-
-    return act;
-}
-
-static S32 ReadMFloats(st_FILELOADINFO* fli, F32* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(F32), count);
-
-#if ENDIAN == LITTLE_ENDIAN
-    Swap4((char*)data, act);
-#endif
-
-    return act;
-}
-
-static S32 ReadMLongs(st_FILELOADINFO* fli, S32* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(S32), count);
-
-#if ENDIAN == LITTLE_ENDIAN
-    Swap4((char*)data, act);
-#endif
-
-    return act;
-}
-
-static S32 ReadMShorts(st_FILELOADINFO* fli, S16* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(S16), count);
-
-#if ENDIAN == LITTLE_ENDIAN
-    Swap2((char*)data, act);
-#endif
-
-    return act;
-}
-
-static S32 ReadBytes(st_FILELOADINFO* fli, char* data, S32 count)
-{
-    S32 act = ReadRaw(fli, data, sizeof(char), count);
-    return act;
-}
-
-static void SetBuffer(st_FILELOADINFO* fli, char* dblbuffer, S32 bufsize)
-{
-    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)fli->xtradata;
-
-    if (xtra)
-    {
-        xtra->dbl_buf = dblbuffer;
-        xtra->dblbuf_size = bufsize;
-        xtra->dbl_beg = 0;
-        xtra->dbl_end = 0;
-        xtra->dbl_amt = 0;
-    }
-}
-
-static void DiscardBuffer(st_FILELOADINFO* fli)
-{
-    SetBuffer(fli, NULL, 0);
-}
-
-static S32 BFD_seek(xFile* bffp, S32 offset, S32 whence, void* xtradata)
-{
-    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
-    S32 pos = iFileSeek(bffp, offset, whence);
-
-    xtra->fpos = offset;
-
-    if (pos == -1)
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-static S32 ReadSeek(st_FILELOADINFO* fli, S32 pos)
-{
-    xFile* file = (xFile*)fli->privdata;
-
-    if (fli->error != FIOERR_NONE)
-    {
-        return 0;
-    }
-
-    pos = MIN(pos, fli->filesize);
-
-    if (BFD_seek(file, pos, IFILE_SEEK_SET, fli->xtradata) != 0)
-    {
-        fli->error = FIOERR_SEEKFAIL;
-    }
-    else
-    {
-        fli->position = pos;
-        fli->remain = fli->filesize - pos;
-    }
-
-    if (fli->error != FIOERR_NONE)
-    {
-        return 0;
-    }
-
-    return 1;
-}
-
-static S32 SkipBytes(st_FILELOADINFO* fli, S32 fwd)
-{
-    xFile* file = (xFile*)fli->privdata;
-
-    if (fli->error != FIOERR_NONE)
-    {
-        return 0;
-    }
-
-    if (fwd == 0)
-    {
-        return 1;
-    }
-
-    if (fwd < 0)
-    {
-        fwd = 0;
-    }
-
-    if (BFD_seek(file, fli->position + fwd, IFILE_SEEK_SET, fli->xtradata) != 0)
-    {
-        fli->error = FIOERR_SEEKFAIL;
-    }
-    else
-    {
-        fli->remain -= fwd;
-        fli->position += fwd;
-    }
-
-    if (fli->error != FIOERR_NONE)
-    {
-        return 0;
-    }
-
-    return 1;
-}
-
-static void BFD_close(xFile* bffp, void* xtradata)
-{
-    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
-
-    iFileClose(bffp);
-
-    xtra->fpos = 0;
-    xtra->dbl_buf = NULL;
-    xtra->dblbuf_size = 0;
-    xtra->dbl_beg = 0;
-    xtra->dbl_end = 0;
-    xtra->dbl_amt = 0;
-}
-
-static void LoadDestroy(st_FILELOADINFO* fli)
-{
-    xFile* fp = (xFile*)fli->privdata;
-
-    if (fp)
-    {
-        BFD_close(fp, fli->xtradata);
-    }
-
-    U32 lockid = fli->lockid;
-
-    memset(fli, 0, sizeof(st_FILELOADINFO));
-
-    g_loadlock &= ~(1 << lockid);
-}
-
-static S32 BFD_startSector(const char* filename)
-{
-    xFile file = {};
-    U32 addr = 0;
-    U32 length = 0;
-
-    if (!iFileFind(filename, 0, &file))
-    {
-        iFileGetInfo(&file, &addr, &length);
-    }
-
-    iFileClose(&file);
-
-    return addr;
-}
-
-static S32 BFD_getLength(xFile* bffp, void* xtradata)
-{
-    return iFileGetSize(bffp);
-}
-
-// Inlining issue
-st_FILELOADINFO* xBinioLoadCreate(const char* filename, S32)
-{
-    st_FILELOADINFO* fli = NULL;
-    xFile* tmp_fp;
-    S32 i;
-    S32 uselock = -1;
-
-    for (i = 0; i < 8; i++)
-    {
-        if (!(g_loadlock & (1 << i)))
+        if (raster)
         {
-            g_loadlock |= 1 << i;
-
-            uselock = i;
-            fli = &g_loadinst[i];
-
-            break;
+            RwRasterDestroy(raster);
+            RwCameraSetZRaster(camera, NULL);
         }
-    }
 
-    if (fli)
+        RwCameraDestroy(camera);
+    }
+}
+
+RwCamera* iCameraCreate(S32 width, S32 height, S32 mainGameCamera)
+{
+    RwV2d vw;
+    RwCamera* camera;
+
+    camera = RwCameraCreate();
+
+    RwCameraSetFrame(camera, RwFrameCreate());
+    RwCameraSetRaster(camera, RwRasterCreate(width, height, 0, rwRASTERTYPECAMERA));
+    RwCameraSetZRaster(camera, RwRasterCreate(width, height, 0, rwRASTERTYPEZBUFFER));
+    RwCameraSetFarClipPlane(camera, sCameraFarClip);
+    RwCameraSetNearClipPlane(camera, sCameraNearClip);
+
+    vw.x = _640_0;
+    vw.y = _640_0;
+
+    RwCameraSetViewWindow(camera, &vw);
+
+    if (mainGameCamera)
     {
-        memset(fli, 0, sizeof(st_FILELOADINFO));
-
-        fli->lockid = uselock & ~(uselock >> 31);
-        fli->xtradata = &g_xtraload[uselock];
-        fli->destroy = LoadDestroy;
-        fli->readBytes = ReadBytes;
-        fli->readMShorts = ReadMShorts;
-        fli->readMLongs = ReadMLongs;
-        fli->readMFloats = ReadMFloats;
-        fli->readMDoubles = ReadMDoubles;
-        fli->readIShorts = ReadIShorts;
-        fli->readILongs = ReadILongs;
-        fli->readIFloats = ReadIFloats;
-        fli->readIDoubles = ReadIDoubles;
-        fli->asyncIRead = AsyncIRead;
-        fli->asyncMRead = AsyncMRead;
-        fli->asyncReadStatus = AsyncReadStatus;
-        fli->skipBytes = SkipBytes;
-        fli->seekSpot = ReadSeek;
-        fli->setDoubleBuf = SetBuffer;
-        fli->discardDblBuf = DiscardBuffer;
-        fli->error = FIOERR_NONE;
-        fli->remain = 0;
-        fli->basesector = 0;
-        fli->filesize = 0;
-        fli->position = 0;
-        fli->basesector = 0;
-
-        tmp_fp = BFD_open(filename, "rb", uselock, 0, fli->xtradata, 0);
-
-        if (tmp_fp)
-        {
-            fli->basesector = BFD_startSector(filename);
-            fli->privdata = tmp_fp;
-            fli->filesize = BFD_getLength(tmp_fp, fli->xtradata);
-            fli->remain = fli->filesize;
-        }
-        else
-        {
-            LoadDestroy(fli);
-            fli = NULL;
-        }
+        iScrFxCameraCreated(camera);
+        sMainGameCamera = camera;
     }
 
-    return fli;
+    return camera;
 }
-
-//                                                  xGoal
-
-extern S32 g_modinit_xBehaveMgr;
-extern xBehaveMgr* g_behavmgr;
-
-xFactory* xBehaveMgr_GoalFactory()
-{
-    return g_behavmgr->GetFactory();
-}
-
-void xPsyche::BrainEnd()
-{
-    xBehaveMgr_GoalFactory()->GrowDataDisable();
-    this->psystat = PSY_STAT_THINK;
-}
-
-void xPsyche::BrainBegin()
-{
-    xFactory* factory = xBehaveMgr_GoalFactory();
-    this->psystat = PSY_STAT_GROW;
-    factory->GrowDataEnable(&this->fakebase, false);
-}
-
-void xBehaveMgr::UnSubscribe(xPsyche* psy)
-{
-    psy->KillBrain(this->goalFactory);
-    XOrdRemove(&this->psylist, psy, -1);
-}
-
-xPsyche* xBehaveMgr::Subscribe(xBase* owner, S32 i)
-{
-    xPsyche* psyche = &this->psypool[this->psylist.cnt];
-    XOrdAppend(&this->psylist, psyche);
-    psyche->FreshWipe();
-    psyche->SetOwner(owner, NULL);
-    return psyche;
-}
-
-xBehaveMgr* xBehaveMgr_GetSelf()
-{
-    return g_behavmgr;
-}
-
-void xBehaveMgr_Shutdown()
-{
-    g_modinit_xBehaveMgr--;
-    if (g_modinit_xBehaveMgr == 0)
-    {
-        if (g_behavmgr != NULL)
-        {
-            delete g_behavmgr;
-        }
-        g_behavmgr = NULL;
-    }
-}
-
-void xBehaveMgr_Startup()
-{
-    if (g_modinit_xBehaveMgr++ == 0)
-    {
-        g_behavmgr = new ('BMGR', NULL) xBehaveMgr();
-        g_behavmgr->Startup(0xfa, 0xfa);
-    }
-}
-
-//                                            xGoalGeneric
-
-S32 xGoalGeneric::SysEvent(xBase* from, xBase* to, U32 toEvent, const F32* toParam,
-                           xBase* toParamWidget, S32* handled)
-{
-    if (this->fun_sysevent)
-    {
-        return this->fun_sysevent(this, this->usrData, from, to, toEvent, toParam, toParamWidget,
-                                  handled);
-    }
-
-    return xGoal::SysEvent(from, to, toEvent, toParam, toParamWidget, handled);
-}
-
-S32 xGoalGeneric::Resume(F32 dt, void* updCtxt)
-{
-    if (this->fun_resume)
-    {
-        return this->fun_resume(this, this->usrData, dt, updCtxt);
-    }
-
-    return xGoal::Resume(dt, updCtxt);
-}
-
-S32 xGoalGeneric::Suspend(F32 dt, void* updCtxt)
-{
-    if (this->fun_suspend)
-    {
-        return this->fun_suspend(this, this->usrData, dt, updCtxt);
-    }
-
-    return xGoal::Suspend(dt, updCtxt);
-}
-
-S32 xGoalGeneric::Exit(F32 dt, void* updCtxt)
-{
-    if (this->fun_exit)
-    {
-        return this->fun_exit(this, this->usrData, dt, updCtxt);
-    }
-
-    return xGoal::Exit(dt, updCtxt);
-}
-
-S32 xGoalGeneric::Enter(F32 dt, void* updCtxt)
-{
-    if (this->fun_enter)
-    {
-        return this->fun_enter(this, this->usrData, dt, updCtxt);
-    }
-
-    return xGoal::Enter(dt, updCtxt);
-}
-
-void GOALDestroy_Generic(xFactoryInst* item)
-{
-    delete item;
-}
-
-xFactoryInst* GOALCreate_Generic(S32 who, RyzMemGrow* growCtxt, void*)
-{
-    xGoal* goal = NULL;
-
-    switch (who)
-    {
-    case 'GSM\x00':
-    {
-        goal = new (who, growCtxt) xGoalGeneric(who);
-        break;
-    }
-    case 'GSM\x01':
-    {
-        goal = new (who, growCtxt) xGoalEmpty(who);
-        break;
-    }
-    }
-
-    return goal;
-}
-
-//                                              xBase
-
-void xBaseReset(xBase* xb, xBaseAsset* asset)
-{
-    xb->baseFlags = (xb->baseFlags & 0x10) | (asset->baseFlags & ~0x10);
-
-    xBaseValidate(xb);
-}
-
-void xBaseLoad(xBase* ent, xSerial* s)
-{
-    S32 b = 0;
-    s->Read_b1(&b);
-
-    if (b)
-    {
-        xBaseEnable(ent);
-    }
-    else
-    {
-        xBaseDisable(ent);
-    }
-}
-
-void xBaseSave(xBase* ent, xSerial* s)
-{
-    if (xBaseIsEnabled(ent))
-    {
-        s->Write_b1(1);
-    }
-    else
-    {
-        s->Write_b1(0);
-    }
-}
-
-void xBaseSetup(xBase* xb)
-{
-    return;
-}
-
-void xBaseInit(xBase* xb, const xBaseAsset* asset)
-{
-    xb->id = asset->id;
-    xb->baseType = asset->baseType;
-    xb->baseFlags = asset->baseFlags;
-    xb->linkCount = asset->linkCount;
-    xb->link = NULL;
-
-    xBaseValidate(xb);
-}
-
-//                                          xAntenna
 
 //                                          xAnim
 
@@ -3689,317 +2438,1568 @@ void xAnimTempTransitionInit(U32 count)
                   sizeof(xAnimTransition), count, count / 2);
 }
 
-//                                              iCamera
+//                                          xAntenna
 
-extern F32 sCameraNearClip;
-extern F32 sCameraFarClip;
-extern RwCamera* sMainGameCamera;
+//                                              xBase
 
-extern F32 _640_0;
-extern F32 _706_0;
-extern F32 _707_1;
-extern F32 _708_3;
-extern F32 _709_1;
-extern F32 _741_3;
-extern F32 _742_1;
-extern F32 _743_1;
-extern F64 _769_1;
-extern F64 _826_0;
-
-void iCameraSetFogRenderStates()
+void xBaseReset(xBase* xb, xBaseAsset* asset)
 {
-    RwCamera* pCamera;
-    iFogParams* pFogParams;
-    U32 bite_me;
+    xb->baseFlags = (xb->baseFlags & 0x10) | (asset->baseFlags & ~0x10);
 
-    pCamera = RwCameraGetCurrentCamera();
-    pFogParams = &xglobals->fog;
+    xBaseValidate(xb);
+}
 
-    if (pFogParams->type == rwFOGTYPENAFOGTYPE)
+void xBaseLoad(xBase* ent, xSerial* s)
+{
+    S32 b = 0;
+    s->Read_b1(&b);
+
+    if (b)
     {
-        RwRenderStateSet(rwRENDERSTATEFOGENABLE, (void*)FALSE);
-
-        RwCameraSetFarClipPlane(pCamera, sCameraFarClip);
+        xBaseEnable(ent);
     }
     else
     {
-        bite_me = (pFogParams->fogcolor.alpha << 24) | (pFogParams->fogcolor.red << 16) |
-                  (pFogParams->fogcolor.green << 8) | pFogParams->fogcolor.blue;
-
-        RwRenderStateSet(rwRENDERSTATEFOGENABLE, (void*)TRUE);
-        RwRenderStateSet(rwRENDERSTATEFOGTYPE, (void*)pFogParams->type);
-        RwRenderStateSet(rwRENDERSTATEFOGCOLOR, (void*)bite_me);
-        RwRenderStateSet(rwRENDERSTATEFOGDENSITY, (void*)&pFogParams->density);
-
-        RwCameraSetFogDistance(pCamera, pFogParams->start);
-        RwCameraSetFarClipPlane(pCamera, pFogParams->stop);
+        xBaseDisable(ent);
     }
 }
 
-void iCameraSetFogParams(iFogParams* fp, F32 time)
+void xBaseSave(xBase* ent, xSerial* s)
 {
-    if (!fp || fp->type == rwFOGTYPENAFOGTYPE)
+    if (xBaseIsEnabled(ent))
     {
-        xglobals->fog.type = rwFOGTYPENAFOGTYPE;
-        xglobals->fogA.type = rwFOGTYPENAFOGTYPE;
-    }
-    else if (_742_1 == time || fp->type != xglobals->fogA.type)
-    {
-        xglobals->fog = *fp;
-        xglobals->fogA = *fp;
-        xglobals->fog_t0 = 0;
+        s->Write_b1(1);
     }
     else
     {
-        xglobals->fogA = xglobals->fog;
-        xglobals->fogB = *fp;
-
-        // todo
+        s->Write_b1(0);
     }
 }
 
-void iCameraSetNearFarClip(F32 nearPlane, F32 farPlane)
+void xBaseSetup(xBase* xb)
 {
-    if (nearPlane <= *(const F32*)&_742_1)
+    return;
+}
+
+void xBaseInit(xBase* xb, const xBaseAsset* asset)
+{
+    xb->id = asset->id;
+    xb->baseType = asset->baseType;
+    xb->baseFlags = asset->baseFlags;
+    xb->linkCount = asset->linkCount;
+    xb->link = NULL;
+
+    xBaseValidate(xb);
+}
+
+//                                            xGoalGeneric
+
+S32 xGoalGeneric::SysEvent(xBase* from, xBase* to, U32 toEvent, const F32* toParam,
+                           xBase* toParamWidget, S32* handled)
+{
+    if (this->fun_sysevent)
     {
-        nearPlane = _741_3;
+        return this->fun_sysevent(this, this->usrData, from, to, toEvent, toParam, toParamWidget,
+                                  handled);
     }
 
-    sCameraNearClip = nearPlane;
+    return xGoal::SysEvent(from, to, toEvent, toParam, toParamWidget, handled);
+}
 
-    // non-matching: _742_1 is loaded too early
-
-    if (farPlane <= *(const F32*)&_742_1)
+S32 xGoalGeneric::Resume(F32 dt, void* updCtxt)
+{
+    if (this->fun_resume)
     {
-        farPlane = _743_1;
+        return this->fun_resume(this, this->usrData, dt, updCtxt);
     }
 
-    sCameraFarClip = farPlane;
+    return xGoal::Resume(dt, updCtxt);
 }
 
-void iCamGetViewMatrix(RwCamera* camera, xMat4x3* view_matrix)
+S32 xGoalGeneric::Suspend(F32 dt, void* updCtxt)
 {
-    RwMatrix* rw_view;
-
-    memset(view_matrix, 0, sizeof(xMat4x3));
-
-    rw_view = RwCameraGetViewMatrix(camera);
-
-    view_matrix->right.x = rw_view->right.x;
-    view_matrix->right.y = rw_view->right.y;
-    view_matrix->right.z = rw_view->right.z;
-    view_matrix->up.x = rw_view->up.x;
-    view_matrix->up.y = rw_view->up.y;
-    view_matrix->up.z = rw_view->up.z;
-    view_matrix->at.x = rw_view->at.x;
-    view_matrix->at.y = rw_view->at.y;
-    view_matrix->at.z = rw_view->at.z;
-    view_matrix->pos.x = rw_view->pos.x;
-    view_matrix->pos.y = rw_view->pos.y;
-    view_matrix->pos.z = rw_view->pos.z;
-}
-
-void iCameraAssignEnv(RwCamera* camera, iEnv* env_geom)
-{
-    globalCamera = camera;
-
-    RpWorldAddCamera(env_geom->world, camera);
-    xShadowSetWorld(env_geom->world);
-}
-
-void iCameraSetFOV(RwCamera* cam, F32 fov)
-{
-    RwV2d vw;
-
-    vw.x = itan(_706_0 * (_707_1 * fov) / _708_3);
-
-    // non-matching: frsp instruction is here for some reason
-    vw.y = _709_1 * vw.x;
-
-    RwCameraSetViewWindow(cam, &vw);
-}
-
-void iCameraUpdatePos(RwCamera* cam, xMat4x3* pos)
-{
-    RwFrame* f;
-    RwMatrix* m;
-
-    f = RwCameraGetFrame(cam);
-    m = RwFrameGetMatrix(f);
-
-    xMat4x3Copy((xMat4x3*)m, pos);
-
-    m = RwFrameGetLTM(f);
-
-    xMat4x3Copy((xMat4x3*)m, pos);
-
-    RwFrameOrthoNormalize(f);
-    RwFrameUpdateObjects(f);
-}
-
-void iCameraFrustumPlanes(RwCamera* cam, xVec4* frustplane)
-{
-    RwFrustumPlane* rwPlane;
-
-    rwPlane = &cam->frustumPlanes[2];
-    frustplane[0].x = rwPlane->plane.normal.x;
-    frustplane[1].x = rwPlane->plane.normal.y;
-    frustplane[2].x = rwPlane->plane.normal.z;
-    frustplane[3].x = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[4];
-    frustplane[0].y = rwPlane->plane.normal.x;
-    frustplane[1].y = rwPlane->plane.normal.y;
-    frustplane[2].y = rwPlane->plane.normal.z;
-    frustplane[3].y = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[5];
-    frustplane[0].z = rwPlane->plane.normal.x;
-    frustplane[1].z = rwPlane->plane.normal.y;
-    frustplane[2].z = rwPlane->plane.normal.z;
-    frustplane[3].z = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[3];
-    frustplane[0].w = rwPlane->plane.normal.x;
-    frustplane[1].w = rwPlane->plane.normal.y;
-    frustplane[2].w = rwPlane->plane.normal.z;
-    frustplane[3].w = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[1];
-    frustplane[4].x = rwPlane->plane.normal.x;
-    frustplane[5].x = rwPlane->plane.normal.y;
-    frustplane[6].x = rwPlane->plane.normal.z;
-    frustplane[7].x = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[0];
-    frustplane[4].y = rwPlane->plane.normal.x;
-    frustplane[5].y = rwPlane->plane.normal.y;
-    frustplane[6].y = rwPlane->plane.normal.z;
-    frustplane[7].y = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[2];
-    frustplane[4].z = rwPlane->plane.normal.x;
-    frustplane[5].z = rwPlane->plane.normal.y;
-    frustplane[6].z = rwPlane->plane.normal.z;
-    frustplane[7].z = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[4];
-    frustplane[4].w = rwPlane->plane.normal.x;
-    frustplane[5].w = rwPlane->plane.normal.y;
-    frustplane[6].w = rwPlane->plane.normal.z;
-    frustplane[7].w = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[2];
-    frustplane[8].x = rwPlane->plane.normal.x;
-    frustplane[9].x = rwPlane->plane.normal.y;
-    frustplane[10].x = rwPlane->plane.normal.z;
-    frustplane[11].x = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[4];
-    frustplane[8].y = rwPlane->plane.normal.x;
-    frustplane[9].y = rwPlane->plane.normal.y;
-    frustplane[10].y = rwPlane->plane.normal.z;
-    frustplane[11].y = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[5];
-    frustplane[8].z = rwPlane->plane.normal.x;
-    frustplane[9].z = rwPlane->plane.normal.y;
-    frustplane[10].z = rwPlane->plane.normal.z;
-    frustplane[11].z = rwPlane->plane.distance;
-
-    rwPlane = &cam->frustumPlanes[3];
-    frustplane[8].w = rwPlane->plane.normal.x;
-    frustplane[9].w = rwPlane->plane.normal.y;
-    frustplane[10].w = rwPlane->plane.normal.z;
-    frustplane[11].w = rwPlane->plane.distance;
-}
-
-void iCameraShowRaster(RwCamera* cam)
-{
-    RwCameraShowRaster(cam, NULL, 0);
-}
-
-void iCameraEnd(RwCamera* cam)
-{
-    iScrFxCameraEndScene(cam);
-    RwCameraEndUpdate(cam);
-    iScrFxPostCameraEnd(cam);
-}
-
-void iCameraDestroy(RwCamera* camera)
-{
-    RpWorld* pWorld;
-    RwRaster* raster;
-    RwFrame* frame;
-
-    _rwFrameSyncDirty();
-
-    pWorld = RwCameraGetWorld(camera);
-
-    if (pWorld)
+    if (this->fun_suspend)
     {
-        RpWorldRemoveCamera(pWorld, camera);
+        return this->fun_suspend(this, this->usrData, dt, updCtxt);
     }
 
-    if (camera == sMainGameCamera)
+    return xGoal::Suspend(dt, updCtxt);
+}
+
+S32 xGoalGeneric::Exit(F32 dt, void* updCtxt)
+{
+    if (this->fun_exit)
     {
-        iScrFxCameraDestroyed(camera);
-        sMainGameCamera = NULL;
+        return this->fun_exit(this, this->usrData, dt, updCtxt);
     }
 
-    if (camera)
-    {
-        frame = RwCameraGetFrame(camera);
+    return xGoal::Exit(dt, updCtxt);
+}
 
-        if (frame)
+S32 xGoalGeneric::Enter(F32 dt, void* updCtxt)
+{
+    if (this->fun_enter)
+    {
+        return this->fun_enter(this, this->usrData, dt, updCtxt);
+    }
+
+    return xGoal::Enter(dt, updCtxt);
+}
+
+void GOALDestroy_Generic(xFactoryInst* item)
+{
+    delete item;
+}
+
+xFactoryInst* GOALCreate_Generic(S32 who, RyzMemGrow* growCtxt, void*)
+{
+    xGoal* goal = NULL;
+
+    switch (who)
+    {
+    case 'GSM\x00':
+    {
+        goal = new (who, growCtxt) xGoalGeneric(who);
+        break;
+    }
+    case 'GSM\x01':
+    {
+        goal = new (who, growCtxt) xGoalEmpty(who);
+        break;
+    }
+    }
+
+    return goal;
+}
+
+//                                                  xGoal
+
+extern S32 g_modinit_xBehaveMgr;
+extern xBehaveMgr* g_behavmgr;
+
+xFactory* xBehaveMgr_GoalFactory()
+{
+    return g_behavmgr->GetFactory();
+}
+
+void xPsyche::BrainEnd()
+{
+    xBehaveMgr_GoalFactory()->GrowDataDisable();
+    this->psystat = PSY_STAT_THINK;
+}
+
+void xPsyche::BrainBegin()
+{
+    xFactory* factory = xBehaveMgr_GoalFactory();
+    this->psystat = PSY_STAT_GROW;
+    factory->GrowDataEnable(&this->fakebase, false);
+}
+
+void xBehaveMgr::UnSubscribe(xPsyche* psy)
+{
+    psy->KillBrain(this->goalFactory);
+    XOrdRemove(&this->psylist, psy, -1);
+}
+
+xPsyche* xBehaveMgr::Subscribe(xBase* owner, S32 i)
+{
+    xPsyche* psyche = &this->psypool[this->psylist.cnt];
+    XOrdAppend(&this->psylist, psyche);
+    psyche->FreshWipe();
+    psyche->SetOwner(owner, NULL);
+    return psyche;
+}
+
+xBehaveMgr* xBehaveMgr_GetSelf()
+{
+    return g_behavmgr;
+}
+
+void xBehaveMgr_Shutdown()
+{
+    g_modinit_xBehaveMgr--;
+    if (g_modinit_xBehaveMgr == 0)
+    {
+        if (g_behavmgr != NULL)
         {
-            RwCameraSetFrame(camera, NULL);
-            RwFrameDestroy(frame);
+            delete g_behavmgr;
+        }
+        g_behavmgr = NULL;
+    }
+}
+
+void xBehaveMgr_Startup()
+{
+    if (g_modinit_xBehaveMgr++ == 0)
+    {
+        g_behavmgr = new ('BMGR', NULL) xBehaveMgr();
+        g_behavmgr->Startup(0xfa, 0xfa);
+    }
+}
+
+//                                      BFD / Async / Read
+
+static U32 g_loadlock = 0xFFFFFF00;
+static st_FILELOADINFO g_loadinst[8] = {};
+static xFile g_xfload[8] = {};
+static st_BINIO_XTRADATA g_xtraload[8] = {};
+static st_BINIO_XTRADATA* g_async_context = NULL;
+
+#define LITTLE_ENDIAN 0
+#define BIG_ENDIAN 1
+
+#ifdef GAMECUBE
+#define ENDIAN BIG_ENDIAN
+#else
+#define ENDIAN LITTLE_ENDIAN
+#endif
+
+static void BFD_cb_GCP2_readasync(xFile* bffp)
+{
+}
+
+static S32 BFD_AsyncRead(st_FILELOADINFO* fli, S32 pos, void* data, S32 size, S32 n, S32 endian)
+{
+    xFile* file = (xFile*)fli->privdata;
+    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)fli->xtradata;
+
+    if (fli->error != FIOERR_NONE)
+    {
+        return 0;
+    }
+
+    if (g_async_context)
+    {
+        return 0;
+    }
+
+    g_async_context = xtra;
+
+    xtra->asyn_status = BINIO_ASYNC_INPROG;
+    xtra->asyn_data = (char*)data;
+    xtra->asyn_elesize = size;
+    xtra->asyn_amt = n;
+    xtra->asyn_ismot = 1;
+
+    iFileSeek(file, pos, IFILE_SEEK_SET);
+    xFileSetUserData(file, fli);
+
+    S32 result = iFileReadAsync(file, data, size * n, BFD_cb_GCP2_readasync, 0);
+    S32 rc;
+
+    if (result < 0)
+    {
+        rc = 0;
+    }
+    else
+    {
+        xtra->gcaskey = result;
+        rc = 1;
+    }
+
+    if (rc == 0)
+    {
+        g_async_context = NULL;
+        xtra->asyn_status = BINIO_ASYNC_NOOP;
+    }
+
+    return 1;
+}
+
+static S32 BFD_read(void* data, S32 elesize, S32 elecnt, xFile* bffp, void* xtradata)
+{
+    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
+    char* dest = (char*)data;
+    S32 readbeg;
+    S32 refill = 0;
+    S32 remain;
+    S32 actual;
+    U32 holdpos;
+    U32 numBytes = 0;
+    U32 safety = 0;
+    S32 r26 = elesize * elecnt;
+
+    if (r26 == 0)
+    {
+        return 0;
+    }
+
+    if (!xtra->dbl_buf || xtra->dblbuf_size < 1 || r26 > xtra->dblbuf_size)
+    {
+        iFileSeek(bffp, xtra->fpos, IFILE_SEEK_SET);
+        numBytes = iFileRead(bffp, dest, r26);
+
+        xtra->fpos += numBytes;
+    }
+    else
+    {
+        remain = r26;
+
+        while (true)
+        {
+            if (xtra->fpos < xtra->dbl_beg)
+            {
+                refill = 1;
+
+                xtra->dbl_beg = xtra->fpos - (xtra->fpos % xtra->dblbuf_size);
+                xtra->dbl_end = xtra->dbl_beg + xtra->dblbuf_size;
+                xtra->dbl_amt = 0;
+            }
+            else if (xtra->fpos >= xtra->dbl_end)
+            {
+                refill = 1;
+
+                xtra->dbl_beg = xtra->fpos - (xtra->fpos % xtra->dblbuf_size);
+                xtra->dbl_end = xtra->dbl_beg + xtra->dblbuf_size;
+                xtra->dbl_amt = 0;
+            }
+
+            if (refill)
+            {
+                holdpos = xtra->fpos;
+
+                iFileSeek(bffp, xtra->dbl_beg, IFILE_SEEK_SET);
+
+                xtra->fpos = holdpos;
+                xtra->dbl_amt = iFileRead(bffp, xtra->dbl_buf, xtra->dblbuf_size);
+            }
+
+            readbeg = xtra->fpos - xtra->dbl_beg;
+
+            if (xtra->dbl_amt > readbeg)
+            {
+                actual = MIN(remain, xtra->dbl_amt - readbeg);
+
+                memcpy(dest + numBytes, xtra->dbl_buf + readbeg, actual);
+
+                numBytes += actual;
+                remain -= actual;
+
+                xtra->fpos += actual;
+            }
+
+            if (numBytes == r26 || xtra->dbl_amt < 1 || safety++ > 60000)
+            {
+                break;
+            }
+        }
+    }
+
+    return (S32)numBytes / elesize;
+}
+
+static xFile* BFD_open(const char* filename, const char* mode, U32 lockid, S32, void* xtradata,
+                       S32)
+{
+    xFile* bffp;
+    U32 orc; // open return code
+    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
+    S32 xfflg = IFILE_OPEN_READ;
+
+    if (strcmp(mode, "rb") == 0)
+    {
+        bffp = &g_xfload[lockid];
+        xfflg = IFILE_OPEN_READ;
+    }
+    else if (strcmp(mode, "wb") == 0)
+    {
+        bffp = NULL;
+        xfflg = IFILE_OPEN_WRITE;
+    }
+    else
+    {
+        bffp = NULL;
+    }
+
+    if (bffp)
+    {
+        strncpy(bffp->relname, filename, sizeof(bffp->relname) - 1);
+        bffp->relname[sizeof(bffp->relname) - 1] = '\0';
+
+        orc = iFileOpen(filename, xfflg, bffp);
+
+        if (orc != 0)
+        {
+            bffp = NULL;
+        }
+        else
+        {
+            xtra->fpos = 0;
+            xtra->dbl_buf = NULL;
+            xtra->dblbuf_size = 0;
+            xtra->dbl_beg = 0;
+            xtra->dbl_end = 0;
+            xtra->dbl_amt = 0;
+        }
+    }
+
+    return bffp;
+}
+
+static en_BIO_ASYNC_ERRCODES BFD_AsyncReadStatus(st_FILELOADINFO* fli)
+{
+    en_BIO_ASYNC_ERRCODES status;
+    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)fli->xtradata;
+
+    if (!g_async_context)
+    {
+        status = BINIO_ASYNC_NOOP;
+    }
+    else if (xtra != g_async_context)
+    {
+        status = BINIO_ASYNC_INPROG;
+    }
+    else
+    {
+        if (xtra->asyn_status == BINIO_ASYNC_INPROG)
+        {
+            XFILE_READSECTOR_STATUS xrdstat;
+            S32 amtsofar = 0;
+
+            xrdstat = xFileReadAsyncStatus(xtra->gcaskey, &amtsofar);
+
+            switch (xrdstat)
+            {
+            case XFILE_RDSTAT_INPROG:
+            case XFILE_RDSTAT_QUEUED:
+            {
+                xtra->asyn_status = BINIO_ASYNC_INPROG;
+                break;
+            }
+            case XFILE_RDSTAT_DONE:
+            {
+                xtra->asyn_status = BINIO_ASYNC_DONE;
+                break;
+            }
+            case XFILE_RDSTAT_FAIL:
+            case XFILE_RDSTAT_EXPIRED:
+            default:
+            {
+                xtra->asyn_status = BINIO_ASYNC_FAIL;
+                break;
+            }
+            }
         }
 
-        raster = RwCameraGetRaster(camera);
+        status = xtra->asyn_status;
 
-        if (raster)
+        if (status == BINIO_ASYNC_FAIL || status == BINIO_ASYNC_DONE)
         {
-            RwRasterDestroy(raster);
-            RwCameraSetRaster(camera, NULL);
+            xtra->asyn_status = BINIO_ASYNC_NOOP;
+            g_async_context = NULL;
         }
-
-        raster = RwCameraGetZRaster(camera);
-
-        if (raster)
-        {
-            RwRasterDestroy(raster);
-            RwCameraSetZRaster(camera, NULL);
-        }
-
-        RwCameraDestroy(camera);
     }
+
+    return status;
 }
 
-RwCamera* iCameraCreate(S32 width, S32 height, S32 mainGameCamera)
+static en_BIO_ASYNC_ERRCODES AsyncReadStatus(st_FILELOADINFO* fli)
 {
-    RwV2d vw;
-    RwCamera* camera;
+    return BFD_AsyncReadStatus(fli);
+}
 
-    camera = RwCameraCreate();
+// Inlining issue
+static S32 AsyncIRead(st_FILELOADINFO* fli, S32 offset, char* data, S32 size, S32 n)
+{
+    return BFD_AsyncRead(fli, offset, data, size, n, LITTLE_ENDIAN);
+}
 
-    RwCameraSetFrame(camera, RwFrameCreate());
-    RwCameraSetRaster(camera, RwRasterCreate(width, height, 0, rwRASTERTYPECAMERA));
-    RwCameraSetZRaster(camera, RwRasterCreate(width, height, 0, rwRASTERTYPEZBUFFER));
-    RwCameraSetFarClipPlane(camera, sCameraFarClip);
-    RwCameraSetNearClipPlane(camera, sCameraNearClip);
+static S32 AsyncMRead(st_FILELOADINFO* fli, S32 offset, char* data, S32 size, S32 n)
+{
+    return BFD_AsyncRead(fli, offset, data, size, n, BIG_ENDIAN);
+}
 
-    vw.x = _640_0;
-    vw.y = _640_0;
+static S32 ReadRaw(st_FILELOADINFO* fli, void* data, S32 size, S32 count)
+{
+    xFile* file = (xFile*)fli->privdata;
 
-    RwCameraSetViewWindow(camera, &vw);
-
-    if (mainGameCamera)
+    if (fli->error != FIOERR_NONE)
     {
-        iScrFxCameraCreated(camera);
-        sMainGameCamera = camera;
+        return 0;
     }
 
-    return camera;
+    S32 amt = (size * count > fli->remain) ? fli->remain / size : count;
+
+    if (amt)
+    {
+        S32 n = BFD_read(data, size, amt, file, fli->xtradata);
+
+        if (n != amt)
+        {
+            fli->error = FIOERR_READFAIL;
+        }
+
+        fli->remain -= size * amt;
+        fli->position += size * amt;
+    }
+
+    return amt;
 }
+
+static void Swap8(char* d, S32 n)
+{
+    char t;
+
+    while (n--)
+    {
+        t = d[0];
+        d[0] = d[7];
+        d[7] = t;
+
+        t = d[1];
+        d[1] = d[6];
+        d[6] = t;
+
+        t = d[2];
+        d[2] = d[5];
+        d[5] = t;
+
+        t = d[3];
+        d[3] = d[4];
+        d[4] = t;
+
+        d += 8;
+    }
+}
+
+static S32 ReadIDoubles(st_FILELOADINFO* fli, F64* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(F64), count);
+
+#if ENDIAN == BIG_ENDIAN
+    Swap8((char*)data, act);
+#endif
+
+    return act;
+}
+
+static void Swap4(char* d, S32 n)
+{
+    char t;
+
+    while (n--)
+    {
+        t = d[0];
+        d[0] = d[3];
+        d[3] = t;
+
+        t = d[1];
+        d[1] = d[2];
+        d[2] = t;
+
+        d += 4;
+    }
+}
+
+static S32 ReadIFloats(st_FILELOADINFO* fli, F32* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(F32), count);
+
+#if ENDIAN == BIG_ENDIAN
+    Swap4((char*)data, act);
+#endif
+
+    return act;
+}
+
+static S32 ReadILongs(st_FILELOADINFO* fli, S32* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(S32), count);
+
+#if ENDIAN == BIG_ENDIAN
+    Swap4((char*)data, act);
+#endif
+
+    return act;
+}
+
+static void Swap2(char* d, S32 n)
+{
+    char t;
+
+    while (n--)
+    {
+        t = d[0];
+        d[0] = d[1];
+        d[1] = t;
+
+        d += 2;
+    }
+}
+
+static S32 ReadIShorts(st_FILELOADINFO* fli, S16* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(S16), count);
+
+#if ENDIAN == BIG_ENDIAN
+    Swap2((char*)data, act);
+#endif
+
+    return act;
+}
+
+static S32 ReadMDoubles(st_FILELOADINFO* fli, F64* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(F64), count);
+
+#if ENDIAN == LITTLE_ENDIAN
+    Swap8((char*)data, act);
+#endif
+
+    return act;
+}
+
+static S32 ReadMFloats(st_FILELOADINFO* fli, F32* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(F32), count);
+
+#if ENDIAN == LITTLE_ENDIAN
+    Swap4((char*)data, act);
+#endif
+
+    return act;
+}
+
+static S32 ReadMLongs(st_FILELOADINFO* fli, S32* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(S32), count);
+
+#if ENDIAN == LITTLE_ENDIAN
+    Swap4((char*)data, act);
+#endif
+
+    return act;
+}
+
+static S32 ReadMShorts(st_FILELOADINFO* fli, S16* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(S16), count);
+
+#if ENDIAN == LITTLE_ENDIAN
+    Swap2((char*)data, act);
+#endif
+
+    return act;
+}
+
+static S32 ReadBytes(st_FILELOADINFO* fli, char* data, S32 count)
+{
+    S32 act = ReadRaw(fli, data, sizeof(char), count);
+    return act;
+}
+
+static void SetBuffer(st_FILELOADINFO* fli, char* dblbuffer, S32 bufsize)
+{
+    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)fli->xtradata;
+
+    if (xtra)
+    {
+        xtra->dbl_buf = dblbuffer;
+        xtra->dblbuf_size = bufsize;
+        xtra->dbl_beg = 0;
+        xtra->dbl_end = 0;
+        xtra->dbl_amt = 0;
+    }
+}
+
+static void DiscardBuffer(st_FILELOADINFO* fli)
+{
+    SetBuffer(fli, NULL, 0);
+}
+
+static S32 BFD_seek(xFile* bffp, S32 offset, S32 whence, void* xtradata)
+{
+    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
+    S32 pos = iFileSeek(bffp, offset, whence);
+
+    xtra->fpos = offset;
+
+    if (pos == -1)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+static S32 ReadSeek(st_FILELOADINFO* fli, S32 pos)
+{
+    xFile* file = (xFile*)fli->privdata;
+
+    if (fli->error != FIOERR_NONE)
+    {
+        return 0;
+    }
+
+    pos = MIN(pos, fli->filesize);
+
+    if (BFD_seek(file, pos, IFILE_SEEK_SET, fli->xtradata) != 0)
+    {
+        fli->error = FIOERR_SEEKFAIL;
+    }
+    else
+    {
+        fli->position = pos;
+        fli->remain = fli->filesize - pos;
+    }
+
+    if (fli->error != FIOERR_NONE)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+static S32 SkipBytes(st_FILELOADINFO* fli, S32 fwd)
+{
+    xFile* file = (xFile*)fli->privdata;
+
+    if (fli->error != FIOERR_NONE)
+    {
+        return 0;
+    }
+
+    if (fwd == 0)
+    {
+        return 1;
+    }
+
+    if (fwd < 0)
+    {
+        fwd = 0;
+    }
+
+    if (BFD_seek(file, fli->position + fwd, IFILE_SEEK_SET, fli->xtradata) != 0)
+    {
+        fli->error = FIOERR_SEEKFAIL;
+    }
+    else
+    {
+        fli->remain -= fwd;
+        fli->position += fwd;
+    }
+
+    if (fli->error != FIOERR_NONE)
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+static void BFD_close(xFile* bffp, void* xtradata)
+{
+    st_BINIO_XTRADATA* xtra = (st_BINIO_XTRADATA*)xtradata;
+
+    iFileClose(bffp);
+
+    xtra->fpos = 0;
+    xtra->dbl_buf = NULL;
+    xtra->dblbuf_size = 0;
+    xtra->dbl_beg = 0;
+    xtra->dbl_end = 0;
+    xtra->dbl_amt = 0;
+}
+
+static void LoadDestroy(st_FILELOADINFO* fli)
+{
+    xFile* fp = (xFile*)fli->privdata;
+
+    if (fp)
+    {
+        BFD_close(fp, fli->xtradata);
+    }
+
+    U32 lockid = fli->lockid;
+
+    memset(fli, 0, sizeof(st_FILELOADINFO));
+
+    g_loadlock &= ~(1 << lockid);
+}
+
+static S32 BFD_startSector(const char* filename)
+{
+    xFile file = {};
+    U32 addr = 0;
+    U32 length = 0;
+
+    if (!iFileFind(filename, 0, &file))
+    {
+        iFileGetInfo(&file, &addr, &length);
+    }
+
+    iFileClose(&file);
+
+    return addr;
+}
+
+static S32 BFD_getLength(xFile* bffp, void* xtradata)
+{
+    return iFileGetSize(bffp);
+}
+
+// Inlining issue
+st_FILELOADINFO* xBinioLoadCreate(const char* filename, S32)
+{
+    st_FILELOADINFO* fli = NULL;
+    xFile* tmp_fp;
+    S32 i;
+    S32 uselock = -1;
+
+    for (i = 0; i < 8; i++)
+    {
+        if (!(g_loadlock & (1 << i)))
+        {
+            g_loadlock |= 1 << i;
+
+            uselock = i;
+            fli = &g_loadinst[i];
+
+            break;
+        }
+    }
+
+    if (fli)
+    {
+        memset(fli, 0, sizeof(st_FILELOADINFO));
+
+        fli->lockid = uselock & ~(uselock >> 31);
+        fli->xtradata = &g_xtraload[uselock];
+        fli->destroy = LoadDestroy;
+        fli->readBytes = ReadBytes;
+        fli->readMShorts = ReadMShorts;
+        fli->readMLongs = ReadMLongs;
+        fli->readMFloats = ReadMFloats;
+        fli->readMDoubles = ReadMDoubles;
+        fli->readIShorts = ReadIShorts;
+        fli->readILongs = ReadILongs;
+        fli->readIFloats = ReadIFloats;
+        fli->readIDoubles = ReadIDoubles;
+        fli->asyncIRead = AsyncIRead;
+        fli->asyncMRead = AsyncMRead;
+        fli->asyncReadStatus = AsyncReadStatus;
+        fli->skipBytes = SkipBytes;
+        fli->seekSpot = ReadSeek;
+        fli->setDoubleBuf = SetBuffer;
+        fli->discardDblBuf = DiscardBuffer;
+        fli->error = FIOERR_NONE;
+        fli->remain = 0;
+        fli->basesector = 0;
+        fli->filesize = 0;
+        fli->position = 0;
+        fli->basesector = 0;
+
+        tmp_fp = BFD_open(filename, "rb", uselock, 0, fli->xtradata, 0);
+
+        if (tmp_fp)
+        {
+            fli->basesector = BFD_startSector(filename);
+            fli->privdata = tmp_fp;
+            fli->filesize = BFD_getLength(tmp_fp, fli->xtradata);
+            fli->remain = fli->filesize;
+        }
+        else
+        {
+            LoadDestroy(fli);
+            fli = NULL;
+        }
+    }
+
+    return fli;
+}
+
+//                                              xBound
+
+extern F32 _571;
+extern F32 _640;
+extern F32 _641;
+extern F32 _642;
+extern F32 _643;
+extern F32 _644;
+
+void xBoundUpdate(xBound* b)
+{
+    if (b->type == k_XBOUNDTYPE_BOX)
+    {
+        xVec3Add(&b->box.center, &b->box.box.lower, &b->box.box.upper);
+        xVec3SMul(&b->box.center, &b->box.center, _571);
+    }
+    else if (b->type == k_XBOUNDTYPE_OBB)
+    {
+        xVec3Add(&b->box.center, &b->box.box.lower, &b->box.box.upper);
+        xVec3SMul(&b->box.center, &b->box.center, _571);
+        xMat4x3Toworld(&b->box.center, b->mat, &b->box.center);
+    }
+
+    if (b->type != k_XBOUNDTYPE_NONE)
+    {
+        xQuickCullForBound(&b->qcd, b);
+    }
+}
+
+void xBoundGetBox(xBox& box, const xBound& bound)
+{
+    switch (bound.type)
+    {
+    case k_XBOUNDTYPE_SPHERE:
+    {
+        const xSphere& o = bound.sph;
+
+        box.upper.assign(o.center.x + o.r, o.center.y + o.r, o.center.z + o.r);
+        box.lower.assign(o.center.x - o.r, o.center.y - o.r, o.center.z - o.r);
+
+        break;
+    }
+    case k_XBOUNDTYPE_BOX:
+    {
+        box = bound.box.box;
+
+        break;
+    }
+    case k_XBOUNDTYPE_OBB:
+    {
+        xBoxInitBoundOBB(&box, &bound.box.box, bound.mat);
+
+        break;
+    }
+    }
+}
+
+void xBoundGetSphere(xSphere& o, const xBound& bound)
+{
+    switch (bound.type)
+    {
+    case k_XBOUNDTYPE_SPHERE:
+    {
+        o = bound.sph;
+
+        break;
+    }
+    case k_XBOUNDTYPE_BOX:
+    {
+        o.center = bound.box.center;
+        o.r = (bound.box.box.upper - bound.box.center).length();
+
+        break;
+    }
+    case k_XBOUNDTYPE_OBB:
+    {
+        const xMat4x3& mat = *bound.mat;
+        xVec3 v = (bound.box.box.upper - bound.box.box.lower) * _571;
+
+        o.r = xsqrt(SQR(v.x) * mat.right.length2() + SQR(v.y) * mat.up.length2() +
+                    SQR(v.z) * mat.at.length2());
+        o.center = bound.box.center;
+
+        break;
+    }
+    }
+}
+
+U32 xBoundSphereHitsOBB(const xSphere* s, const xBox* b, const xMat4x3* m, xCollis* coll)
+{
+    return xSphereHitsOBB_nu(s, b, m, coll);
+}
+
+void xBoundHitsBound(const xBound* a, const xBound* b, xCollis* c)
+{
+    if (!xQuickCullIsects(&a->qcd, &b->qcd))
+    {
+        c->flags &= ~0x1;
+    }
+    else
+    {
+        // non-matching: jumptable
+
+        switch (a->type | (b->type << k_XBOUNDTYPE_SHIFT))
+        {
+        case (k_XBOUNDTYPE_SPHERE | (k_XBOUNDTYPE_SPHERE << k_XBOUNDTYPE_SHIFT)):
+        {
+            xSphereHitsSphere(&a->sph, &b->sph, c);
+            break;
+        }
+        case (k_XBOUNDTYPE_SPHERE | (k_XBOUNDTYPE_OBB << k_XBOUNDTYPE_SHIFT)):
+        {
+            xBoundSphereHitsOBB(&a->sph, &b->box.box, b->mat, c);
+            break;
+        }
+        case (k_XBOUNDTYPE_SPHERE | (k_XBOUNDTYPE_BOX << k_XBOUNDTYPE_SHIFT)):
+        {
+            xSphereHitsBox(&a->sph, &b->box.box, c);
+            break;
+        }
+        case (k_XBOUNDTYPE_BOX | (k_XBOUNDTYPE_SPHERE << k_XBOUNDTYPE_SHIFT)):
+        {
+            xBoxHitsSphere(&a->box.box, &b->sph, c);
+            break;
+        }
+        case (k_XBOUNDTYPE_BOX | (k_XBOUNDTYPE_OBB << k_XBOUNDTYPE_SHIFT)):
+        {
+            xBoxHitsObb(&a->box.box, &b->box.box, b->mat, c);
+            break;
+        }
+        case (k_XBOUNDTYPE_OBB | (k_XBOUNDTYPE_OBB << k_XBOUNDTYPE_SHIFT)):
+        {
+            break;
+        }
+        }
+    }
+}
+
+static void xBoundOBBIsectRay(const xBox* b, const xMat4x3* m, const xRay3* r, xIsect* isect)
+{
+    xRay3 xfr;
+    xBox sbox;
+    xVec3 scale;
+    xMat4x3 mnormal;
+
+    {
+        F32 len2 = SQR(m->right.x) + SQR(m->right.y) + SQR(m->right.z);
+
+        if ((F32)iabs(len2 - _642) <= _644)
+        {
+            // non-matching: incorrect instruction + order
+
+            scale.x = *(const F32*)&_642;
+
+            mnormal.right.x = m->right.x;
+            mnormal.right.y = m->right.y;
+            mnormal.right.z = m->right.z;
+        }
+        else if ((F32)iabs(len2) <= _644)
+        {
+            // non-matching: incorrect order
+
+            scale.x = _641;
+
+            mnormal.right.x = _641;
+            mnormal.right.y = _642;
+            mnormal.right.z = _641;
+        }
+        else
+        {
+            scale.x = xsqrt(len2);
+
+            F32 len_inv = _642 / scale.x;
+
+            mnormal.right.x = m->right.x * len_inv;
+            mnormal.right.y = m->right.y * len_inv;
+            mnormal.right.z = m->right.z * len_inv;
+        }
+    }
+
+    {
+        F32 len2 = SQR(m->up.x) + SQR(m->up.y) + SQR(m->up.z);
+
+        if ((F32)iabs(len2 - _642) <= _644)
+        {
+            // non-matching: incorrect instruction + order
+
+            scale.y = *(const F32*)&_642;
+
+            mnormal.up.x = m->up.x;
+            mnormal.up.y = m->up.y;
+            mnormal.up.z = m->up.z;
+        }
+        else if ((F32)iabs(len2) <= _644)
+        {
+            // non-matching: incorrect order
+
+            scale.y = _641;
+
+            mnormal.up.x = _641;
+            mnormal.up.y = _642;
+            mnormal.up.z = _641;
+        }
+        else
+        {
+            scale.y = xsqrt(len2);
+
+            F32 len_inv = _642 / scale.y;
+
+            mnormal.up.x = m->up.x * len_inv;
+            mnormal.up.y = m->up.y * len_inv;
+            mnormal.up.z = m->up.z * len_inv;
+        }
+    }
+
+    {
+        F32 len2 = SQR(m->at.x) + SQR(m->at.y) + SQR(m->at.z);
+
+        if ((F32)iabs(len2 - _642) <= _644)
+        {
+            // non-matching: incorrect instruction + order
+
+            scale.z = *(const F32*)&_642;
+
+            mnormal.at.x = m->at.x;
+            mnormal.at.y = m->at.y;
+            mnormal.at.z = m->at.z;
+        }
+        else if ((F32)iabs(len2) <= _644)
+        {
+            // non-matching: incorrect order
+
+            scale.z = _641;
+
+            mnormal.at.x = _641;
+            mnormal.at.y = _642;
+            mnormal.at.z = _641;
+        }
+        else
+        {
+            scale.z = xsqrt(len2);
+
+            F32 len_inv = _642 / scale.z;
+
+            mnormal.at.x = m->at.x * len_inv;
+            mnormal.at.y = m->at.y * len_inv;
+            mnormal.at.z = m->at.z * len_inv;
+        }
+    }
+
+    mnormal.pos = m->pos;
+
+    sbox.upper.x = b->upper.x * scale.x;
+    sbox.upper.y = b->upper.y * scale.y;
+    sbox.upper.z = b->upper.z * scale.z;
+    sbox.lower.x = b->lower.x * scale.x;
+    sbox.lower.y = b->lower.y * scale.y;
+    sbox.lower.z = b->lower.z * scale.z;
+
+    xMat4x3Tolocal(&xfr.origin, &mnormal, &r->origin);
+    xMat3x3Tolocal(&xfr.dir, &mnormal, &r->dir);
+
+    xfr.min_t = r->min_t;
+    xfr.max_t = r->max_t;
+    xfr.flags = r->flags;
+
+    iBoxIsectRay(&sbox, &xfr, isect);
+}
+
+void xRayHitsBound(const xRay3* r, const xBound* b, xCollis* c)
+{
+    xIsect isect;
+
+    if (b->type == k_XBOUNDTYPE_SPHERE)
+    {
+        iSphereIsectRay(&b->sph, r, &isect);
+    }
+    else if (b->type == k_XBOUNDTYPE_OBB)
+    {
+        xBoundOBBIsectRay(&b->box.box, b->mat, r, &isect);
+    }
+    else if (b->type == k_XBOUNDTYPE_BOX)
+    {
+        iBoxIsectRay(&b->box.box, r, &isect);
+    }
+
+    if (isect.penned <= _641)
+    {
+        c->flags |= 0x1;
+        c->dist = isect.dist;
+    }
+    else
+    {
+        c->flags &= ~0x1;
+    }
+}
+
+void xSphereHitsBound(const xSphere* o, const xBound* b, xCollis* c)
+{
+    switch (b->type)
+    {
+    case k_XBOUNDTYPE_SPHERE:
+    {
+        xSphereHitsSphere(o, &b->sph, c);
+        break;
+    }
+    case k_XBOUNDTYPE_OBB:
+    {
+        xBoundSphereHitsOBB(o, &b->box.box, b->mat, c);
+        break;
+    }
+    case k_XBOUNDTYPE_BOX:
+    {
+        xSphereHitsBox(o, &b->box.box, c);
+        break;
+    }
+    }
+}
+
+void xVecHitsBound(const xVec3* v, const xBound* b, xCollis* c)
+{
+    xIsect isect;
+
+    if (b->type == k_XBOUNDTYPE_SPHERE)
+    {
+        iSphereIsectVec(&b->sph, v, &isect);
+    }
+    else if (b->type == k_XBOUNDTYPE_OBB)
+    {
+        xVec3 lv;
+
+        xMat4x3Tolocal(&lv, b->mat, v);
+        iBoxIsectVec(&b->box.box, &lv, &isect);
+    }
+    else if (b->type == k_XBOUNDTYPE_BOX)
+    {
+        iBoxIsectVec(&b->box.box, v, &isect);
+    }
+
+    if (isect.penned <= _641)
+    {
+        c->flags |= 0x1;
+    }
+    else
+    {
+        c->flags &= ~0x1;
+    }
+}
+
+void xDrawBox(const xBox*)
+{
+}
+
+void xDrawOBB(const xBox*, const xMat4x3*)
+{
+}
+
+void xDrawSphere2(const xSphere*, U32)
+{
+}
+
+void xBoundDraw(const xBound* b)
+{
+    if (b->type == k_XBOUNDTYPE_SPHERE)
+    {
+        xDrawSphere2(&b->sph, 12);
+    }
+    else if (b->type == k_XBOUNDTYPE_OBB)
+    {
+        xDrawOBB(&b->box.box, b->mat);
+    }
+    else if (b->type == k_XBOUNDTYPE_BOX)
+    {
+        xDrawBox(&b->box.box);
+    }
+}
+
+//                                              xCam
+
+//                                              xClimate
+
+Climate* sClimate;
+
+const float snow_life = 3.0f;
+const xVec3 snow_vel = { 0.0f, -2.0f, 0.0f };
+const xVec3 snow_dvel = { 0.1f, 0.1f, 0.1f };
+
+void xClimateVecFromAngle(F32 angleDegrees, xVec3* vec)
+{
+    xMat3x3 Mat;
+
+    xMat3x3Identity(&Mat);
+    xMat3x3Euler(&Mat, (PI * angleDegrees) / ONEEIGHTY, 0.0f, 0.0f);
+    xVec3Init(vec, 0.0f, 0.0f, 1.0f);
+    xMat3x3LMulVec(vec, &Mat, vec);
+}
+
+void xClimateUpdate(Climate* climate, F32 seconds)
+{
+    UpdateRain(climate, seconds);
+    UpdateWind(climate, seconds);
+}
+
+void xClimateSetRain(F32 stre)
+{
+    sClimate->rain.rain = 1;
+    sClimate->rain.strength = stre;
+}
+
+void xClimateSetSnow(F32 stre)
+{
+    sClimate->rain.rain = 0;
+    sClimate->rain.strength = stre;
+}
+
+// Equivalent
+// float ops are being optimized more aggressively
+void xClimateInitAsset(Climate* climate, xEnvAsset* asset)
+{
+    sClimate = climate;
+    climate->wind.strength = 0.0f;
+    xClimateVecFromAngle(climate->wind.angle, &climate->wind.dir);
+
+    if (asset->climateFlags == 0)
+    {
+        climate->wind.strength = 0.0f;
+        climate->rain.strength = 0.0f;
+        return;
+    }
+    if (asset->climateFlags & 1)
+    {
+        climate->rain.rain = 1.0f;
+        climate->rain.strength = 0.5f * (asset->climateStrengthMax - asset->climateStrengthMin);
+        climate->rain.strength += asset->climateStrengthMin;
+    }
+    else if (asset->climateFlags & 2)
+    {
+        climate->rain.rain = 0.0f;
+        climate->rain.strength = 0.5f * (asset->climateStrengthMax - asset->climateStrengthMin);
+        climate->rain.strength += asset->climateStrengthMin;
+    }
+}
+
+void xClimateInit(Climate* climate)
+{
+    climate->rain.strength = 0.0f;
+
+    climate->rain.rain_emitter = zParEmitterFind(xStrHash("PAREMIT_RAIN"));
+    climate->rain.rain_emitter->emit_flags &= 0xfe;
+
+    climate->rain.snow_emitter = zParEmitterFind(xStrHash("PAREMIT_SNOW"));
+    climate->rain.snow_emitter->emit_flags &= 0xfe;
+}
+
+//                                              xClump
+
+//                                          xCM
+
+volatile static F32 credits_time;
+static xCreditsData* credits_data;
+static U32 credits_parentID;
+
+F32 dtscale;
+
+// Equivalent: scheduling
+void xCMstop()
+{
+    credits_time = 10000.0f;
+    credits_data = NULL;
+    if (credits_parentID != 0)
+    {
+        zEntEvent(credits_parentID, 0x212);
+    }
+}
+
+void xCMstart(xCreditsData* data, F32 time, xBase* parent)
+{
+    if ((credits_data = data) != NULL)
+    {
+        credits_time = 0.0f;
+
+        if (parent != NULL)
+        {
+            credits_parentID = parent->id;
+        }
+    }
+}
+
+void xCMrender()
+{
+    xCMrender(credits_time, credits_data);
+}
+
+void xCMupdate(F32 time)
+{
+    if (credits_data != 0)
+    {
+        credits_time += (time * dtscale);
+        if (credits_time >= *(F32*)((int)&credits_data->dummy + 0x10))
+        {
+            xCMstop();
+        }
+    }
+}
+
+static void xCMprep(xCreditsData* data)
+{
+    /*
+        data seems to point to this general structure:
+        0x00 - xCMheader
+        0x18 - xCMcredits
+        0x50 - xCMpreset* presets_array[xCMcredits.num_presets]
+             - xCMhunk* hunk_array[?]
+    */
+
+    char* dp; // In the DWARF. Don't know what this is used for.
+    xCMheader* hdr = (xCMheader*)data;
+
+    if (hdr->magic != 0xBEEEEEEF)
+    {
+        return;
+    }
+
+    xCMcredits* cp = (xCMcredits*)(&hdr[1]);
+    while ((int)cp - (int)data < hdr->total_size)
+    {
+        xCMpreset* pp = (xCMpreset*)(&cp[1]);
+        xCMhunk* hp = (xCMhunk*)(&pp[cp->num_presets]);
+
+        for (; (int)hp - (int)cp < cp->credits_size; hp = (xCMhunk*)((int)hp + hp->hunk_size))
+        {
+            switch (pp[hp->preset].align)
+            {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+
+                if (hdr->state == 0)
+                {
+                    if (hp->text1 != NULL)
+                    {
+                        hp->text1 -= (int)data;
+                    }
+                    if (hp->text2 != NULL)
+                    {
+                        hp->text2 -= (int)data;
+                    }
+                }
+                else
+                {
+                    if (hp->text1 != NULL)
+                    {
+                        hp->text1 += (int)data;
+                    }
+                    if (hp->text2 != NULL)
+                    {
+                        hp->text2 += (int)data;
+                    }
+                }
+                break;
+            }
+        }
+        cp = (xCMcredits*)hp;
+    }
+
+    hdr->state = hdr->state == 0 ? 1 : 0;
+}
+
+#include "xCollideFast.cpp"
+
+//                                          xSphere
+
+//                                         xSwept
+
+//                                              xCounter
+
+int xCounterEventCB(xBase*, xBase* to, U32 toEvent, const F32*, xBase*, U32)
+{
+    xCounter* t = (xCounter*)to;
+
+    switch (toEvent)
+    {
+    case eEventDecrement:
+    {
+        if (t->state != 1 && (!(t->counterFlags & 0x1) || t->count != 2))
+        {
+            t->count--;
+
+            if (t->count == 0)
+            {
+                zEntEvent(t, t, eEventExpired);
+            }
+            else if (t->count > 0 && t->count <= 20)
+            {
+                zEntEvent(t, t, t->count + (eEventCount1 - 1));
+            }
+        }
+        break;
+    }
+    case eEventIncrement:
+    {
+        if (t->state != 1)
+        {
+            t->count++;
+
+            if (t->count == 0)
+            {
+                zEntEvent(t, t, eEventExpired);
+            }
+            else if (t->count > 0 && t->count <= 20)
+            {
+                zEntEvent(t, t, t->count + (eEventCount1 - 1));
+            }
+        }
+        break;
+    }
+    case eEventReset:
+    {
+        t->state = 0;
+        t->count = t->asset->count;
+        break;
+    }
+    case eEventExpired:
+    {
+        if (!(t->counterFlags & 0x1) || t->count != 2)
+        {
+            t->count = 0;
+            t->state = 1;
+        }
+        break;
+    }
+    default:
+    {
+        if (t->state != 1 && toEvent >= eEventCount1 && toEvent <= eEventCount20)
+        {
+            S16 newCount = toEvent - (eEventCount1 - 1);
+
+            if (!(t->counterFlags & 0x1) || t->count != 2)
+            {
+                t->count = newCount;
+            }
+        }
+    }
+    }
+
+    return 1;
+}
+
+void xCounterLoad(xCounter* ent, xSerial* s)
+{
+    xBaseLoad(ent, s);
+
+    s->Read(&ent->state);
+    s->Read(&ent->count);
+}
+
+void xCounterSave(xCounter* ent, xSerial* s)
+{
+    xBaseSave(ent, s);
+
+    s->Write(ent->state);
+    s->Write(ent->count);
+}
+
+void xCounterReset(xBase* b)
+{
+    xCounter* t = (xCounter*)b;
+
+    xBaseInit(t, t->asset);
+
+    if (t->linkCount)
+    {
+        t->link = (xLinkAsset*)(t->asset + 1);
+    }
+    else
+    {
+        t->link = 0;
+    }
+
+    t->count = t->asset->count;
+    t->state = 0;
+}
+
+void xCounterInit(void* b, void* asset)
+{
+    xCounterInit((xBase*)b, (xCounterAsset*)asset);
+}
+
+void xCounterInit()
+{
+}
+
+#include "xCutscene.cpp"
