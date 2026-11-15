@@ -2,2779 +2,7 @@
 
 #include "xWad2.h"
 
-//                                              xIni
-
-const char* xIniGetString(xIniFile* ini, const char* tok, const char* def)
-{
-    S32 index = xIniGetIndex(ini, tok);
-    if (index == -1)
-    {
-        return def;
-    }
-    return ini->Values[index].val;
-}
-
-F32 xIniGetFloat(xIniFile* ini, const char* tok, F32 def)
-{
-    S32 index = xIniGetIndex(ini, tok);
-    if (index == -1)
-    {
-        return def;
-    }
-    return atof(ini->Values[index].val);
-}
-
-S32 xIniGetInt(xIniFile* ini, const char* tok, S32 def)
-{
-    S32 index = xIniGetIndex(ini, tok);
-    if (index == -1)
-    {
-        return def;
-    }
-    return atoi(ini->Values[index].val);
-}
-
-void xIniDestroy(xIniFile* ini)
-{
-    RwFree(ini->mem);
-    RwFree(ini);
-}
-
-char* TrimWhitespace(char* string)
-{
-    // Skip through any leading whitespace
-    for (; *string == ' ' || *string == '\t'; string++)
-    {
-    }
-    // Return early if there's no other characters to go through
-    if (*string == '\0')
-    {
-        return string;
-    }
-
-    // Find first non-whitespace character at the end of the string
-    char* substring = &string[strlen(string) - 1];
-    for (; *substring == ' ' || *substring == '\t'; substring--)
-    {
-    }
-
-    // Set the null-terminator accordingly
-    substring[1] = '\0';
-
-    return string;
-}
-
-xIniFile* xIniParse(char* buf, S32 len)
-{
-    S32 i;
-    S32 ccr = 1;
-    S32 clf = 1;
-    S32 copen = 0;
-    S32 lastCRLF = -1;
-    for (i = 0; i < len; i++)
-    {
-        switch (buf[i])
-        {
-        case '\n':
-            lastCRLF = i;
-            clf++;
-            break;
-        case '\r':
-            lastCRLF = i;
-            ccr++;
-            break;
-        case '[':
-            copen++;
-            break;
-        }
-    }
-
-    if (clf > ccr)
-    {
-        ccr = clf;
-    }
-
-    S32 sectionAlloc = copen;
-    S32 valueAlloc = ccr;
-
-    xIniFile* ini = (xIniFile*)RwMalloc(sizeof(xIniFile) + (valueAlloc * sizeof(xIniValue)) +
-                                        (sectionAlloc * sizeof(xIniSection)) + (len - lastCRLF),
-                                        rwMEMHINTDUR_NADURATION);
-    ini->mem = NULL;
-    ini->NumValues = 0;
-    ini->NumSections = 0;
-    ini->Values = (xIniValue*)(ini + 1);
-    ini->Sections = (xIniSection*)(ini->Values + valueAlloc);
-
-    char* lastLine = (char*)(ini->Sections + sectionAlloc);
-    strncpy(lastLine, buf + (lastCRLF + 1), len - (lastCRLF + 1));
-    lastLine[len - (lastCRLF + 1)] = '\0';
-
-    if (lastCRLF >= 0)
-    {
-        buf[lastCRLF] = '\0';
-    }
-    else
-    {
-        buf[0] = '\0';
-    }
-
-    char* ltoken;
-    char* line = xStrTok(buf, "\n\r", &ltoken);
-    if (line == NULL)
-    {
-        line = xStrTok(lastLine, "\n\r", &ltoken);
-        lastLine = NULL;
-    }
-
-    while (line != NULL)
-    {
-        line = TrimWhitespace(line);
-        if (*line != '#' && *line != '\0')
-        {
-            if (*line == '[')
-            {
-                char* c = std::strstr(line, "]");
-                if (c != NULL)
-                {
-                    *c = '\0';
-                    c = TrimWhitespace(line + 1);
-                    if (*c != '\0')
-                    {
-                        ini->Sections[ini->NumSections].sec = c;
-                        ini->Sections[ini->NumSections].first = ini->NumValues;
-                        ini->Sections[ini->NumSections].count = 0;
-                        ini->NumSections++;
-                    }
-                }
-            }
-            else
-            {
-                char* c = std::strstr(line, "=");
-                if (c != NULL)
-                {
-                    *c = '\0';
-                    char* tok = TrimWhitespace(line);
-                    if (*tok != '\0')
-                    {
-                        line = c + 1;
-                        c = std::strstr(line, "#");
-                        if (c != NULL)
-                        {
-                            *c = '\0';
-                        }
-                        char* val = TrimWhitespace(line);
-                        ini->Values[ini->NumValues].tok = tok;
-                        ini->Values[ini->NumValues].val = val;
-                        ini->NumValues++;
-                        if (ini->NumSections != 0)
-                        {
-                            ini->Sections[ini->NumSections - 1].count++;
-                        }
-                    }
-                }
-            }
-        }
-
-        line = xStrTok(NULL, "\n\r", &ltoken);
-        if (line == NULL && lastLine != NULL)
-        {
-            line = xStrTok(lastLine, "\n\r", &ltoken);
-            lastLine = NULL;
-        }
-    }
-
-    return ini;
-}
-
-#include "xIM.cpp"
-
-//                                           xhud::text_widget
-
-void xhud::text_widget::render()
-{
-    F32 boundX = tb.bounds.x;
-    F32 boundY = tb.bounds.y;
-    U8 oldRed = tb.font.color.r;
-    U8 oldGreen = tb.font.color.g;
-    U8 oldBlue = tb.font.color.b;
-    U8 oldAlpha = tb.font.color.a;
-
-    U8 alpha;
-    F32 fVar1 = (oldAlpha * 200.0f) / 255.0f;
-    if (fVar1 > 255.0f)
-    {
-        alpha = 0xFF;
-    }
-    else if (fVar1 < 0.0f)
-    {
-        alpha = 0;
-    }
-    else
-    {
-        alpha = fVar1;
-    }
-
-    tb.bounds.x += 0.0075f;
-    tb.bounds.y += 0.0075f;
-    tb.font.color.r = 0x00;
-    tb.font.color.g = 0x46;
-    tb.font.color.b = 0x55;
-    tb.font.color.a = alpha;
-    tb.render(true);
-
-    tb.bounds.x = boundX;
-    tb.bounds.y = boundY;
-    tb.font.color.r = oldRed;
-    tb.font.color.g = oldGreen;
-    tb.font.color.b = oldBlue;
-    tb.font.color.a = oldAlpha;
-    tb.render(true);
-}
-
-void xhud::text_widget::update(F32 dt)
-{
-    updater(dt);
-
-    tb.set_text(text);
-    tb.bounds.x = rc.loc.x;
-    tb.bounds.y = rc.loc.y;
-    tb.bounds.w = rc.size.x;
-    tb.bounds.h = rc.size.y;
-    tb.font.clip = tb.bounds;
-
-    tb.font.color.r = (rc.r * 255.0f) + 0.5f;
-    tb.font.color.g = (rc.g * 255.0f) + 0.5f;
-    tb.font.color.b = (rc.b * 255.0f) + 0.5f;
-    tb.font.color.a = (rc.a * 255.0f) + 0.5f;
-}
-
-bool xhud::text_widget::is(U32 id) const
-{
-    return id == text_widget::type() || widget::is(id);
-}
-
-U32 xhud::text_widget::type() const
-{
-    static U32 myid = xStrHash(text_asset::type_name());
-    return myid;
-}
-
-void xhud::text_widget::destroy()
-{
-    destruct();
-}
-
-void xhud::text_widget::setup()
-{
-    presetup();
-    text_asset* asset = (text_asset*)a;
-    ztextbox* textbox = (ztextbox*)zSceneFindObject(asset->text_box);
-    if (textbox == NULL)
-    {
-        tb = xtextbox::create();
-        return;
-    }
-
-    textbox->refresh();
-    tb = textbox->tb;
-    textbox->get_text(text, sizeof(text));
-    if (asset->text != 0)
-    {
-        xTextAsset* tasset = (xTextAsset*)xSTFindAsset(asset->text, NULL);
-        if (tasset != NULL)
-        {
-            char* text_asset_text = xTextAssetGetText(tasset);
-            U32 len = strlen(text_asset_text);
-            if (len >= sizeof(text))
-            {
-                len = sizeof(text) - 1;
-            }
-            memcpy(text, text_asset_text, len);
-            text[len] = '\0';
-        }
-    }
-
-    rc.r = tb.font.color.r / 255.0f;
-    rc.g = tb.font.color.g / 255.0f;
-    rc.b = tb.font.color.b / 255.0f;
-}
-
-void xhud::text_widget::load(xBase& data, xDynAsset& asset, size_t)
-{
-    init_base(data, asset, sizeof(xBase) + sizeof(text_widget));
-    text_widget* widget = (text_widget*)(&data + 1);
-    new (widget) text_widget((text_asset&)asset);
-}
-
-//                                              xhud::model_widget
-
-void xhud::model_widget::load(xBase& data, xDynAsset& asset, size_t)
-{
-    init_base(data, asset, sizeof(xBase) + sizeof(model_widget));
-    model_widget* widget = (model_widget*)(&data + 1);
-    new (widget) model_widget((model_asset&)asset);
-}
-
-void xhud::model_widget::destruct()
-{
-    widget::destruct();
-}
-
-void xhud::model_widget::destroy()
-{
-    destruct();
-}
-
-U32 xhud::model_widget::type() const
-{
-    static U32 myid = xStrHash(model_asset::type_name());
-    return myid;
-}
-
-bool xhud::model_widget::is(U32 id) const
-{
-    return id == model_widget::type() || widget::is(id);
-}
-
-void xhud::model_widget::update(F32 dt)
-{
-    widget::updater(dt);
-
-    if (!visible() || rc.a <= (0.5f / 255.0f))
-    {
-        return;
-    }
-
-    xModelUpdate(model, dt);
-    xModelEval(model);
-}
-
-void xhud::model_widget::render()
-{
-    if (rc.a <= 0.0f)
-    {
-        return;
-    }
-
-    render_model(*model, rc);
-}
-
-#include "xHudMeter.cpp"
-#include "xHud.cpp"
-
-//                                                   HIPL
-
-static U32 g_loadlock = 0;
-
-static st_HIPLOADDATA g_hiploadinst[8] = {};
-
-static st_HIPLOADFUNCS g_map_HIPL_funcmap = { HIPLCreate,     HIPLDestroy,   HIPLBaseSector,
-                                              HIPLBlockEnter, HIPLBlockExit, HIPLReadBytes,
-                                              HIPLReadShorts, HIPLReadLongs, HIPLReadFloats,
-                                              HIPLReadString, HIPLSetBypass, HIPLSetSpot,
-                                              HIPLPollRead };
-
-static S32 HIPLBlockRead(st_HIPLOADDATA* lddata, void* data, S32 cnt, S32 size)
-{
-    st_HIPLOADBLOCK* top;
-    S32 got = 0;
-    S32 left = 0;
-    S32 head = 0;
-
-    if (lddata->bypass)
-    {
-        return 0;
-    }
-
-    if (cnt == 0)
-    {
-        return 0;
-    }
-
-    if (lddata->top < 0)
-    {
-        top = NULL;
-    }
-    else
-    {
-        top = &lddata->stk[lddata->top];
-        left = top->blk_remain / size;
-    }
-
-    if (cnt < 0)
-    {
-        cnt = -cnt;
-        head = 1;
-
-        if (top && cnt > left)
-        {
-            cnt = left;
-        }
-    }
-
-    if (!head && left < cnt)
-    {
-        cnt = left;
-    }
-
-    if (cnt == 0)
-    {
-        got = 0;
-    }
-    else if (size == 1)
-    {
-        got = lddata->fli->readBytes(lddata->fli, (char*)data, cnt);
-    }
-    else if (size == 2)
-    {
-        got = lddata->fli->readMShorts(lddata->fli, (S16*)data, cnt);
-    }
-    else if (size == 4)
-    {
-        got = lddata->fli->readMLongs(lddata->fli, (S32*)data, cnt);
-    }
-
-    got *= size;
-
-    lddata->pos += got;
-
-    if (top)
-    {
-        top->blk_remain -= got;
-    }
-
-    return got;
-}
-
-static S32 HIPLReadAsync(st_HIPLOADDATA* lddata, S32 pos, char* data, S32 cnt, S32 size)
-{
-    S32 rc;
-
-    lddata->asyn_stat = HIP_RDSTAT_NONE;
-
-    rc = lddata->fli->asyncMRead(lddata->fli, pos, data, cnt, size);
-
-    lddata->asyn_stat = HIP_RDSTAT_INPROG;
-
-    return rc;
-}
-
-static S32 HIPLBypassRead(st_HIPLOADDATA* lddata, void* data, S32 cnt, S32 size)
-{
-    S32 got = 0;
-
-    if (!lddata->bypass)
-    {
-        return 0;
-    }
-
-    if (lddata->use_async)
-    {
-        return HIPLReadAsync(lddata, lddata->pos, (char*)data, cnt, size);
-    }
-
-    if (cnt == 0)
-    {
-        return 0;
-    }
-
-    if (cnt == 0)
-    {
-        got = 0;
-    }
-    else if (size == 1)
-    {
-        got = lddata->fli->readBytes(lddata->fli, (char*)data, cnt);
-    }
-    else if (size == 2)
-    {
-        got = lddata->fli->readMShorts(lddata->fli, (S16*)data, cnt);
-    }
-    else if (size == 4)
-    {
-        got = lddata->fli->readMLongs(lddata->fli, (S32*)data, cnt);
-    }
-
-    return got * size;
-}
-
-static S32 HIPLReadString(st_HIPLOADDATA* lddata, char* buf)
-{
-    S32 n = 0;
-    char pad = 0;
-
-    if (lddata->bypass)
-    {
-        while (HIPLBypassRead(lddata, &buf[n], 1, sizeof(char)))
-        {
-            if (buf[n] == '\0')
-            {
-                if (!(n & 1))
-                {
-                    HIPLBypassRead(lddata, &pad, 1, sizeof(char));
-                }
-
-                break;
-            }
-
-            n++;
-        }
-    }
-    else
-    {
-        while (HIPLBlockRead(lddata, &buf[n], 1, sizeof(char)))
-        {
-            if (buf[n] == '\0')
-            {
-                if (!(n & 1))
-                {
-                    HIPLBlockRead(lddata, &pad, 1, sizeof(char));
-                }
-
-                break;
-            }
-
-            n++;
-        }
-    }
-
-    return n;
-}
-
-static S32 HIPLReadFloats(st_HIPLOADDATA* lddata, F32* data, S32 cnt)
-{
-    S32 got;
-
-    if (lddata->bypass)
-    {
-        got = HIPLBypassRead(lddata, data, cnt, sizeof(F32));
-    }
-    else
-    {
-        got = HIPLBlockRead(lddata, data, cnt, sizeof(F32));
-    }
-
-    got /= sizeof(F32);
-
-    return got;
-}
-
-static S32 HIPLReadLongs(st_HIPLOADDATA* lddata, S32* data, S32 cnt)
-{
-    S32 got;
-
-    if (lddata->bypass)
-    {
-        got = HIPLBypassRead(lddata, data, cnt, sizeof(S32));
-    }
-    else
-    {
-        got = HIPLBlockRead(lddata, data, cnt, sizeof(S32));
-    }
-
-    got /= sizeof(S32);
-
-    return got;
-}
-
-static S32 HIPLReadShorts(st_HIPLOADDATA* lddata, S16* data, S32 cnt)
-{
-    S32 got;
-
-    if (lddata->bypass)
-    {
-        got = HIPLBypassRead(lddata, data, cnt, sizeof(S16));
-    }
-    else
-    {
-        got = HIPLBlockRead(lddata, data, cnt, sizeof(S16));
-    }
-
-    got /= sizeof(S16);
-
-    return got;
-}
-
-static S32 HIPLReadBytes(st_HIPLOADDATA* lddata, char* data, S32 cnt)
-{
-    if (lddata->bypass)
-    {
-        return HIPLBypassRead(lddata, data, cnt, sizeof(char));
-    }
-    else
-    {
-        return HIPLBlockRead(lddata, data, cnt, sizeof(char));
-    }
-}
-
-static en_READ_ASYNC_STATUS HIPLPollRead(st_HIPLOADDATA* lddata)
-{
-    en_READ_ASYNC_STATUS rdstat = HIP_RDSTAT_INPROG;
-    en_BIO_ASYNC_ERRCODES pollstat;
-
-    if (!lddata->bypass)
-    {
-        return HIP_RDSTAT_NOBYPASS;
-    }
-
-    if (!lddata->use_async)
-    {
-        return HIP_RDSTAT_NOASYNC;
-    }
-
-    pollstat = lddata->fli->asyncReadStatus(lddata->fli);
-
-    switch (pollstat)
-    {
-    case BINIO_ASYNC_INPROG:
-    {
-        rdstat = HIP_RDSTAT_INPROG;
-        break;
-    }
-    case BINIO_ASYNC_DONE:
-    {
-        rdstat = HIP_RDSTAT_SUCCESS;
-        lddata->asyn_stat = HIP_RDSTAT_NONE;
-        break;
-    }
-    case BINIO_ASYNC_FAIL:
-    {
-        rdstat = HIP_RDSTAT_FAILED;
-        lddata->asyn_stat = HIP_RDSTAT_NONE;
-        break;
-    }
-    default:
-    {
-        lddata->asyn_stat = HIP_RDSTAT_NONE;
-        break;
-    }
-    }
-
-    return rdstat;
-}
-
-static void HIPLBlockExit(st_HIPLOADDATA* lddata)
-{
-    st_HIPLOADBLOCK* top;
-
-    if (!lddata->bypass)
-    {
-        top = &lddata->stk[lddata->top--];
-
-        lddata->fli->skipBytes(lddata->fli, top->endpos - lddata->pos);
-        lddata->pos = top->endpos;
-    }
-}
-
-static U32 HIPLBlockEnter(st_HIPLOADDATA* lddata)
-{
-    st_HIPLOADBLOCK* top;
-    U32 cid = 0;
-    S32 size = 0;
-
-    if (lddata->bypass)
-    {
-        return 0;
-    }
-
-    if (lddata->top >= 0 && lddata->stk[lddata->top].blk_remain <= 0)
-    {
-        return 0;
-    }
-
-    if (HIPLReadLongs(lddata, (S32*)&cid, -1) == 0)
-    {
-        cid = 0;
-    }
-    else
-    {
-        HIPLReadLongs(lddata, &size, -1);
-
-        if (lddata->top >= 0)
-        {
-            lddata->stk[lddata->top].blk_remain -= size;
-        }
-
-        top = &lddata->stk[++lddata->top];
-
-        top->blk_id = cid;
-        top->blk_remain = size;
-        top->endpos = lddata->pos + top->blk_remain + (top->blk_remain & 1);
-        top->flags = 0;
-    }
-
-    return cid;
-}
-
-static void HIPLSetSpot(st_HIPLOADDATA* lddata, S32 spot)
-{
-    if (lddata->bypass)
-    {
-        lddata->pos = spot;
-        lddata->fli->seekSpot(lddata->fli, spot);
-    }
-}
-
-static S32 HIPLSetBypass(st_HIPLOADDATA* lddata, S32 enable, S32 use_async)
-{
-    lddata->fli->discardDblBuf(lddata->fli);
-
-    if (enable && lddata->bypass)
-    {
-        return 0;
-    }
-
-    if (!enable && !lddata->bypass)
-    {
-        return 0;
-    }
-
-    if (enable)
-    {
-        lddata->bypass = 1;
-        lddata->use_async = use_async;
-        lddata->bypass_recover = lddata->fli->position;
-    }
-    else
-    {
-        lddata->fli->seekSpot(lddata->fli, lddata->bypass_recover);
-        lddata->bypass = 0;
-        lddata->use_async = 0;
-        lddata->bypass_recover = -1;
-    }
-
-    return 1;
-}
-
-static U32 HIPLBaseSector(st_HIPLOADDATA* lddata)
-{
-    return lddata->base_sector;
-}
-
-static void HIPLDestroy(st_HIPLOADDATA* lddata)
-{
-    S32 lockid;
-
-    if (lddata)
-    {
-        if (lddata->fli)
-        {
-            lddata->fli->destroy(lddata->fli);
-        }
-
-        lockid = lddata->lockid;
-
-        memset(lddata, 0, sizeof(st_HIPLOADDATA));
-
-        g_loadlock &= ~(1 << lockid);
-    }
-}
-
-static st_HIPLOADDATA* HIPLCreate(const char* filename, char* dblbuf, S32 bufsize, S32)
-{
-    st_HIPLOADDATA* lddata = NULL;
-    st_FILELOADINFO* fli;
-    st_HIPLOADBLOCK* tmp_blk;
-    S32 i;
-    S32 uselock = -1;
-
-    for (i = 0; i < 8; i++)
-    {
-        if (!(g_loadlock & (1 << i)))
-        {
-            g_loadlock |= 1 << i;
-
-            uselock = i;
-            lddata = &g_hiploadinst[i];
-
-            break;
-        }
-    }
-
-    if (lddata)
-    {
-        memset(lddata, 0, sizeof(st_HIPLOADDATA));
-
-        lddata->lockid = uselock;
-        lddata->top = -1;
-        lddata->base_sector = 0;
-        lddata->use_async = 0;
-        lddata->asyn_stat = HIP_RDSTAT_NONE;
-        lddata->bypass = 0;
-        lddata->bypass_recover = -1;
-        lddata->pos = 0;
-        lddata->readTop = 0;
-
-        for (i = 0; i < 8; i++)
-        {
-            tmp_blk = &lddata->stk[i];
-
-            tmp_blk->endpos = 0;
-            tmp_blk->blk_id = 0;
-            tmp_blk->blk_remain = 0;
-            tmp_blk->flags = 0;
-        }
-
-        fli = xBinioLoadCreate(filename);
-
-        if (fli)
-        {
-            lddata->fli = fli;
-            lddata->base_sector = fli->basesector;
-
-            if (dblbuf && bufsize > 0)
-            {
-                fli->setDoubleBuf(fli, dblbuf, bufsize);
-            }
-        }
-        else
-        {
-            HIPLDestroy(lddata);
-            lddata = NULL;
-        }
-    }
-
-    return lddata;
-}
-
-st_HIPLOADFUNCS* get_HIPLFuncs()
-{
-    return &g_map_HIPL_funcmap;
-}
-
-#include "xGroup.cpp"
-#include "xGrid.cpp"
-
-//                                              xFX
-
-extern const char _stringBase0_7[];
-
-extern F32 _957_0;
-extern F32 _958;
-extern F32 _995;
-extern F32 _1132;
-extern F32 _1171;
-
-RpAtomicCallBackRender gAtomicRenderCallBack = NULL;
-F32 EnvMapShininess = 1.0f;
-RpLight* MainLight = NULL;
-
-static U32 num_fx_atomics = 0;
-
-static U32 xfx_initted = 0;
-
-static void LightResetFrame(RpLight* light);
-
-static void DrawRing(xFXRing* m)
-{
-    // todo: uses int-to-float conversion
-}
-
-// Inlining issue
-void xFXRingRender()
-{
-    S32 i;
-    xFXRing* ring = &ringlist[0];
-
-    for (i = 0; i < RING_COUNT; i++, ring++)
-    {
-        if (ring->time > _957_0)
-        {
-            DrawRing(ring);
-        }
-    }
-}
-
-void xFXInit()
-{
-    if (!xfx_initted)
-    {
-        xfx_initted = 1;
-
-        RpLight* light = RpLightCreate(rpLIGHTDIRECTIONAL);
-
-        if (light)
-        {
-            RwFrame* frame = RwFrameCreate();
-
-            if (frame)
-            {
-                RpLightSetFrame(light, frame);
-                LightResetFrame(light);
-
-                MainLight = light;
-            }
-            else
-            {
-                RpLightDestroy(light);
-            }
-        }
-
-        xFXanimUVCreate();
-        xFXAuraInit();
-    }
-}
-
-xFXRing* xFXRingCreate(const xVec3* pos, const xFXRing* params)
-{
-    xFXRing* ring = &ringlist[0];
-
-    if (!pos || !params)
-    {
-        return NULL;
-    }
-
-    for (S32 i = 0; i < RING_COUNT; i++, ring++)
-    {
-        if (ring->time <= _957_0)
-        {
-            // non-matching: _958 is only loaded once
-
-            memcpy(ring, params, sizeof(xFXRing));
-
-            ring->time = _995;
-            ring->pos = *pos;
-            ring->ring_radius_delta *= _958 / ring->lifetime;
-            ring->ring_height_delta *= _958 / ring->lifetime;
-            ring->ring_tilt_delta *= _958 / ring->lifetime;
-
-            return ring;
-        }
-    }
-
-    return NULL;
-}
-
-static RpMaterial* MaterialSetEnvMap(RpMaterial* material, void* data);
-static RpMaterial* MaterialSetBumpMap(RpMaterial* material, void* data);
-static RpMaterial* MaterialSetBumpEnvMap(RpMaterial* material, RwTexture* env, F32 shininess,
-                                         RwTexture* bump, F32 bumpiness);
-
-void xFX_SceneEnter(RpWorld* world)
-{
-    S32 i;
-    S32 num = RpWorldGetNumMaterials(world);
-
-    for (i = 0; i < num; i++)
-    {
-        xSurface* sp = zSurfaceGetSurface(i);
-        zSurfaceProps* pp = (zSurfaceProps*)sp->moprops;
-
-        if (pp && pp->asset)
-        {
-            zSurfMatFX* fxp = &pp->asset->matfx;
-
-            if (fxp->flags)
-            {
-                if (fxp->flags == 0x10)
-                {
-                    fxp->flags |= 0x1;
-                }
-
-                RpMaterial* mp = RpWorldGetMaterial(world, i);
-
-                if (RpMaterialGetTexture(mp))
-                {
-                    gFXSurfaceFlags = fxp->flags;
-
-                    if (fxp->flags & 0x1)
-                    {
-                        RwTexture* env = (RwTexture*)xSTFindAsset(fxp->envmapID, NULL);
-
-                        if (!env)
-                        {
-                            continue;
-                        }
-
-                        MaterialSetEnvMap(mp, env);
-                        RpMatFXMaterialSetEnvMapCoefficient(mp, _1132 * fxp->shininess);
-                    }
-
-                    if (fxp->flags & 0x2)
-                    {
-                        RwTexture* bump = (RwTexture*)xSTFindAsset(fxp->bumpmapID, NULL);
-
-                        if (!bump)
-                        {
-                            continue;
-                        }
-
-                        MaterialSetBumpMap(mp, bump);
-                        RpMatFXMaterialSetBumpMapCoefficient(mp, fxp->bumpiness);
-                    }
-
-                    if (fxp->flags & 0x4)
-                    {
-                        RwTexture* env = (RwTexture*)xSTFindAsset(fxp->envmapID, NULL);
-                        RwTexture* bump = (RwTexture*)xSTFindAsset(fxp->bumpmapID, NULL);
-
-                        if (!env || !bump)
-                        {
-                            continue;
-                        }
-
-                        MaterialSetBumpEnvMap(mp, env, fxp->shininess, bump, fxp->bumpiness);
-                    }
-                }
-            }
-        }
-    }
-
-    zScene* sc = globals.sceneCur;
-
-    for (i = 0; i < sc->num_act_ents; i++)
-    {
-        xEnt* ent = sc->act_ents[i];
-
-        if (!gAtomicRenderCallBack && ent->model)
-        {
-            RpAtomicCallBackRender tmp = RpAtomicGetRenderCallBack(ent->model->Data);
-
-            RpAtomicSetRenderCallBack(ent->model->Data, NULL);
-
-            gAtomicRenderCallBack = RpAtomicGetRenderCallBack(ent->model->Data);
-
-            RpAtomicSetRenderCallBack(ent->model->Data, tmp);
-        }
-
-        if (ent->model)
-        {
-            // non-matching: strings are getting cached for some reason
-
-            U32 bubble;
-
-            bubble = (ent->id == xStrHash(_stringBase0_7));
-            bubble |= (ent->id == xStrHash(_stringBase0_7 + 13));
-            bubble |= (ent->id == xStrHash(_stringBase0_7 + 28));
-            bubble |= (ent->id == xStrHash(_stringBase0_7 + 42));
-            bubble |= (ent->id == xStrHash(_stringBase0_7 + 62));
-            bubble |= (ent->id == xStrHash(_stringBase0_7 + 75));
-
-            if (bubble)
-            {
-                xSTAssetName(ent->id);
-
-                RpAtomicSetRenderCallBack(ent->model->Data, xFXBubbleRender);
-            }
-        }
-    }
-
-    num_fx_atomics = 0;
-}
-
-void xFX_SceneExit(RpWorld*)
-{
-}
-
-void xFXUpdate(F32 dt)
-{
-    xFXRibbonUpdate(dt);
-    xFXAuraUpdate(dt);
-}
-
-static RpMaterial* MaterialDisableMatFX(RpMaterial* material, void*)
-{
-    RpMatFXMaterialSetEffects(material, rpMATFXEFFECTNULL);
-    return material;
-}
-
-RpAtomic* AtomicDisableMatFX(RpAtomic* atomic)
-{
-    RpMatFXAtomicEnableEffects(atomic);
-
-    RpGeometry* geometry = RpAtomicGetGeometry(atomic);
-
-    if (geometry)
-    {
-        RpGeometryForAllMaterials(geometry, MaterialDisableMatFX, NULL);
-    }
-
-    return atomic;
-}
-
-RpMaterial* MaterialSetShininess(RpMaterial* material, void*)
-{
-    RpMatFXMaterialFlags flags = RpMatFXMaterialGetEffects(material);
-
-    if (flags == rpMATFXEFFECTENVMAP || flags == rpMATFXEFFECTBUMPENVMAP)
-    {
-        RpMatFXMaterialSetEnvMapCoefficient(material, EnvMapShininess);
-    }
-
-    return material;
-}
-
-//                                      xtextbox::layout
-
-#define FLAG_UNK40 0x40
-#define FLAG_UNK80 0x80
-
-#define WRAP_WORD 0x0
-#define WRAP_CHAR 0x10
-#define WRAP_NONE 0x20
-#define WRAP_MASK (WRAP_WORD | WRAP_CHAR | WRAP_NONE)
-
-#define XJUSTIFY_LEFT 0x0
-#define XJUSTIFY_RIGHT 0x1
-#define XJUSTIFY_CENTER 0x2
-#define XJUSTIFY_MASK (XJUSTIFY_LEFT | XJUSTIFY_RIGHT | XJUSTIFY_CENTER)
-
-#define YJUSTIFY_TOP 0x0
-#define YJUSTIFY_BOTTOM 0x4
-#define YJUSTIFY_CENTER 0x8
-#define YJUSTIFY_MASK (YJUSTIFY_TOP | YJUSTIFY_BOTTOM | YJUSTIFY_CENTER)
-
-extern substr _1615;
-extern substr _1616;
-extern xtextbox::tag_entry_list _1642;
-
-extern substr text_delims;
-
-xModelInstance* load_model(U32 id);
-
-namespace
-{
-
-    size_t parse_split_tag(xtextbox::split_tag& ti)
-    {
-        ti.value.size = 0;
-        ti.action.size = 0;
-        ti.name.size = 0;
-
-        // non-matching: scheduling
-
-        substr s;
-
-        s.text = ti.tag.text;
-        s.size = ti.tag.size;
-
-        s.text++;
-        s.size--;
-
-        ti.name.text = skip_ws(s);
-        s.text = find_char(s, text_delims);
-
-        if (!s.text)
-        {
-            return 0;
-        }
-
-        ti.name.size = s.text - ti.name.text;
-        s.size -= ti.name.size;
-        ti.action.text = skip_ws(s);
-
-        if (!s.size)
-        {
-            return 0;
-        }
-
-        char c = s.text[0];
-
-        if (c == '\0' || c == '{')
-        {
-            return 0;
-        }
-
-        s.text++;
-        s.size--;
-
-        if (c == '}')
-        {
-            return ti.tag.size - s.size;
-        }
-
-        ti.action.size = 1;
-        ti.value.text = skip_ws(s);
-        s.text = find_char(s, '}');
-        s.size -= s.text - ti.value.text;
-
-        if (!s.text)
-        {
-            return 0;
-        }
-
-        ti.value.size = s.text - ti.value.text;
-
-        rskip_ws(ti.value);
-
-        s.text++;
-        s.size--;
-
-        return ti.tag.size - s.size;
-    }
-
-    const char* parse_next_tag_jot(xtextbox::jot& a, const xtextbox& tb, const xtextbox& ctb,
-                                   const char* text, size_t text_size)
-    {
-        xtextbox::split_tag ti = {};
-        ti.tag.text = text;
-        ti.tag.size = text_size;
-
-        size_t size = parse_split_tag(ti);
-
-        if (!size)
-        {
-            return NULL;
-        }
-
-        a.s.text = text;
-        a.s.size = size;
-        a.flag.invisible = a.flag.ethereal = true;
-
-        if (icompare(ti.name, substr::create("~", 1)) == 0 ||
-            icompare(ti.name, substr::create("reset", 5)) == 0)
-        {
-            a.tag = xtextbox::find_format_tag(ti.value);
-
-            if (a.tag && a.tag->reset_tag)
-            {
-                a.tag->reset_tag(a, tb, ctb, ti);
-            }
-        }
-        else
-        {
-            a.tag = xtextbox::find_format_tag(ti.name);
-
-            if (a.tag && a.tag->parse_tag)
-            {
-                a.tag->parse_tag(a, tb, ctb, ti);
-            }
-        }
-
-        return text + size;
-    }
-
-    const char* parse_next_text_jot(xtextbox::jot& a, const xtextbox& tb, const xtextbox& ctb,
-                                    const char* text, size_t text_size)
-    {
-        char c = text[0];
-
-        a.s.text = text;
-        a.s.size = 1;
-        a.flag.merge = true;
-
-        if (c == '\n')
-        {
-            a.flag.line_break = true;
-        }
-        else if (c == '\t')
-        {
-            a.flag.tab = true;
-        }
-        else if (c == '-')
-        {
-            a.flag.word_end = true;
-        }
-
-        if (is_ws(c))
-        {
-            a.flag.invisible = a.flag.word_break = true;
-        }
-
-        a.bounds = tb.font.bounds(c);
-        a.cb = &xtextbox::text_cb;
-        a.context = NULL;
-        a.context_size = 0;
-
-        return a.s.text + a.s.size;
-    }
-
-    const char* parse_next_jot(xtextbox::jot& a, const xtextbox& tb, const xtextbox& ctb,
-                               const char* text, size_t text_size)
-    {
-        const char* ret;
-
-        if (text[0] != '{' || !(ret = parse_next_tag_jot(a, tb, ctb, text, text_size)))
-        {
-            ret = parse_next_text_jot(a, tb, ctb, text, text_size);
-        }
-
-        a.flag.merge = a.flag.merge && !(tb.flags & FLAG_UNK80);
-        return ret;
-    }
-
-    struct tex_args
-    {
-        RwRaster* raster;
-        F32 rot;
-        basic_rect<F32> src;
-        basic_rect<F32> dst;
-        xVec2 off;
-        enum
-        {
-            SCALE_FONT,
-            SCALE_SCREEN,
-            SCALE_SIZE,
-            SCALE_FONT_WIDTH,
-            SCALE_FONT_HEIGHT,
-            SCALE_SCREEN_WIDTH,
-            SCALE_SCREEN_HEIGHT
-        } scale;
-    };
-
-    struct model_args
-    {
-        xModelInstance* model;
-        xVec3 rot;
-        basic_rect<F32> dst;
-        xVec2 off;
-        enum
-        {
-            SCALE_FONT,
-            SCALE_SCREEN,
-            SCALE_SIZE
-        } scale;
-    };
-
-    tex_args def_tex_args;
-    model_args def_model_args;
-
-    void reset_tex_args(tex_args& ta)
-    {
-        ta.raster = NULL;
-        ta.rot = 0.0f;
-        ta.src = ta.dst = basic_rect<F32>::m_Unit;
-        ta.off.x = ta.off.y = 1.0f;
-        ta.scale = tex_args::SCALE_FONT;
-    }
-
-    void load_tex_args(tex_args& ta, const substr& s)
-    {
-        xtextbox::tag_entry_list el = xtextbox::read_tag(s);
-        xtextbox::tag_entry* e;
-
-        if (el.size == 0)
-        {
-            return;
-        }
-
-        e = &el.entries[0];
-
-        if (e->op == ':' || (e->args_size == 1 && e->args[0].size))
-        {
-            substr& name = e->args[0];
-            U32 id;
-
-            if (name.size == 10 && imemcmp(name.text, "0x", 2) == 0)
-            {
-                id = atox(substr::create(name.text + 2, 8));
-            }
-            else
-            {
-                id = xStrHash(name.text, name.size);
-            }
-
-            RwTexture* texture = (RwTexture*)xSTFindAsset(id, NULL);
-
-            if (texture && texture->raster && texture->raster->width > 0 &&
-                texture->raster->height > 0 && texture->raster->width <= 4096 &&
-                texture->raster->height <= 4096)
-            {
-                RwTextureSetFilterMode(texture, rwFILTERLINEAR);
-                ta.raster = texture->raster;
-            }
-        }
-
-        el.entries++;
-        el.size--;
-
-        e = xtextbox::find_entry(el, substr::create("rot", 3));
-
-        if (e && e->op == '=' && e->args_size == 1)
-        {
-            xtextbox::read_list(*e, &ta.rot, 1);
-        }
-
-        e = xtextbox::find_entry(el, substr::create("src", 3));
-
-        if (e && e->op == '=' && e->args_size == 4)
-        {
-            xtextbox::read_list(*e, (F32*)&ta.src, 4);
-        }
-
-        e = xtextbox::find_entry(el, substr::create("dst", 3));
-
-        if (e && e->op == '=' && e->args_size == 4)
-        {
-            xtextbox::read_list(*e, (F32*)&ta.dst, 4);
-        }
-
-        e = xtextbox::find_entry(el, substr::create("off", 3));
-
-        if (e && e->op == '=' && e->args_size == 2)
-        {
-            xtextbox::read_list(*e, (F32*)&ta.off, 2);
-        }
-
-        e = xtextbox::find_entry(el, substr::create("scale", 5));
-
-        if (e && e->op == '=' && e->args_size == 1)
-        {
-            if (icompare(e->args[0], substr::create("font", 4)) == 0)
-            {
-                ta.scale = tex_args::SCALE_FONT;
-            }
-            else if (icompare(e->args[0], substr::create("screen", 6)) == 0)
-            {
-                ta.scale = tex_args::SCALE_SCREEN;
-            }
-            else if (icompare(e->args[0], substr::create("size", 4)) == 0)
-            {
-                ta.scale = tex_args::SCALE_SIZE;
-            }
-            else if (icompare(e->args[0], substr::create("font_width", 10)) == 0)
-            {
-                ta.scale = tex_args::SCALE_FONT_WIDTH;
-            }
-            else if (icompare(e->args[0], substr::create("font_height", 11)) == 0)
-            {
-                ta.scale = tex_args::SCALE_FONT_HEIGHT;
-            }
-            else if (icompare(e->args[0], substr::create("screen_width", 12)) == 0)
-            {
-                ta.scale = tex_args::SCALE_SCREEN_WIDTH;
-            }
-#if 1 // needed until .sdata2 is decomped
-            else if (icompare(e->args[0], substr::create("screen_height\0=:+*;}\0,;}", 13)) ==
-#else
-            else if (icompare(e->args[0], substr::create("screen_height", 13)) ==
-#endif
-                     0) // screen_height
-            {
-                ta.scale = tex_args::SCALE_SCREEN_HEIGHT;
-            }
-            else
-            {
-                ta.scale = tex_args::SCALE_FONT;
-            }
-        }
-    }
-
-    void reset_model_args(model_args& ma)
-    {
-        ma.model = NULL;
-        ma.rot = xVec3::m_Null;
-        ma.dst = basic_rect<F32>::m_Unit;
-        ma.off.x = ma.off.y = 1.0f;
-        ma.scale = model_args::SCALE_FONT;
-    }
-
-    void load_model_args(model_args& ma, const substr& s)
-    {
-        xtextbox::tag_entry_list el = xtextbox::read_tag(s);
-        xtextbox::tag_entry* e;
-
-        if (!el.size)
-        {
-            return;
-        }
-
-        e = &el.entries[0];
-
-        if (e->op == ':' || (e->args_size == 1 && e->args[0].size))
-        {
-            substr& name = e->args[0];
-
-            ma.model = load_model(xStrHash(name.text, name.size));
-        }
-
-        el.entries++;
-        el.size--;
-
-        e = xtextbox::find_entry(el, substr::create("rot", 3));
-
-        if (e && e->op == '=' && e->args_size == 3)
-        {
-            xtextbox::read_list(*e, (F32*)&ma.rot, 3);
-        }
-
-        e = xtextbox::find_entry(el, substr::create("dst", 3));
-
-        if (e && e->op == '=' && e->args_size == 4)
-        {
-            xtextbox::read_list(*e, (F32*)&ma.dst, 4);
-        }
-
-        e = xtextbox::find_entry(el, substr::create("off", 3));
-
-        if (e && e->op == '=' && e->args_size == 2)
-        {
-            xtextbox::read_list(*e, (F32*)&ma.off, 2);
-        }
-
-        e = xtextbox::find_entry(el, substr::create("scale", 5));
-
-        if (e && e->op == '=' && e->args_size == 1)
-        {
-            if (icompare(e->args[0], substr::create("screen", 6)) == 0)
-            {
-                ma.scale = model_args::SCALE_SCREEN;
-            }
-            else
-            {
-                ma.scale = model_args::SCALE_FONT;
-            }
-        }
-    }
-
-    void start_layout(const xtextbox&)
-    {
-        reset_tex_args(def_tex_args);
-        reset_model_args(def_model_args);
-    }
-
-    void stop_layout(const xtextbox&)
-    {
-    }
-
-    void start_render(const xtextbox& tb)
-    {
-        tb.font.start_render();
-    }
-
-    void stop_render(const xtextbox& tb)
-    {
-        tb.font.stop_render();
-    }
-} // namespace
-
-bool xtextbox::layout::changed(const xtextbox& ctb)
-{
-    U32 flags1 = tb.flags & (WRAP_MASK | FLAG_UNK40);
-    U32 flags2 = ctb.flags & (WRAP_MASK | FLAG_UNK40);
-
-    if (tb.text_hash != ctb.text_hash || tb.font.id != ctb.font.id ||
-        tb.font.width != ctb.font.width || tb.font.height != ctb.font.height ||
-        tb.font.space != ctb.font.space || tb.bounds.w != ctb.bounds.w || flags1 != flags2 ||
-        tb.line_space != ctb.line_space)
-    {
-        return true;
-    }
-
-    S32 i = dynamics_size;
-
-    while (i > 0)
-    {
-        i--;
-
-        jot& j = _jots[dynamics[i]];
-        U32 oldval = xStrHash((char*)j.context, j.context_size);
-
-        parse_next_jot(j, tb, ctb, j.s.text, j.s.size);
-
-        U32 val = xStrHash((char*)j.context, j.context_size);
-
-        if (val != oldval)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-#define min(a, b) ((a) >= (b) ? (b) : (a))
-
-F32 xtextbox::layout::yextent(F32 max, S32& size, S32 begin_jot, S32 end_jot) const
-{
-    size = 0;
-
-    if (begin_jot < 0)
-    {
-        begin_jot = 0;
-    }
-
-    if (end_jot < begin_jot)
-    {
-        end_jot = _jots_size;
-    }
-
-    if (begin_jot >= end_jot)
-    {
-        return 0.0f;
-    }
-
-    S32 begin_line = 0;
-
-    while (true)
-    {
-        if (begin_line >= (S32)_lines_size)
-        {
-            return 0.0f;
-        }
-
-        if ((S32)_lines[begin_line].last > begin_jot)
-        {
-            break;
-        }
-
-        begin_line++;
-    }
-
-    // non-matching: wrong float registers
-    F32 top = _lines[begin_line].bounds.y;
-    S32 i = begin_line;
-
-    while (true)
-    {
-        if (i == (S32)_lines_size)
-        {
-            break;
-        }
-
-        // non-matching: r11 missing
-        const jot_line& line = _lines[i];
-
-        if (line.bounds.y + line.bounds.h > max + top)
-        {
-            i--;
-            break;
-        }
-
-        if ((S32)line.last >= end_jot)
-        {
-            break;
-        }
-
-        if (line.page_break)
-        {
-            break;
-        }
-
-        i++;
-    }
-
-    if (i < begin_line)
-    {
-        return 0.0f;
-    }
-
-    const jot_line& line = _lines[i];
-
-    size = min((S32)line.last, end_jot) - begin_jot;
-
-    return line.bounds.y + line.bounds.h - top;
-}
-
-void xtextbox::layout::render(const xtextbox& ctb, S32 begin_jot, S32 end_jot)
-{
-    if (begin_jot < 0)
-    {
-        begin_jot = 0;
-    }
-
-    if (end_jot < begin_jot)
-    {
-        end_jot = _jots_size;
-    }
-
-    if (begin_jot >= end_jot)
-    {
-        return;
-    }
-
-    tb = ctb;
-    start_render(ctb);
-
-    S32 begin_line = 0;
-
-    while (true)
-    {
-        if (begin_line >= (S32)_lines_size)
-        {
-            stop_render(ctb);
-            return;
-        }
-
-        if ((S32)_lines[begin_line].last > begin_jot)
-        {
-            break;
-        }
-
-        begin_line++;
-    }
-
-    for (S32 i = 0; i < begin_jot; i++)
-    {
-        jot& j = _jots[i];
-
-        if (j.cb && j.cb->render_update)
-        {
-            j.cb->render_update(j, tb, ctb);
-        }
-    }
-
-    F32 top = _lines[begin_line].bounds.y;
-    U32 li = begin_line - 1;
-    S32 line_last = -1;
-    F32 x, y;
-
-    for (S32 i = begin_jot; i < end_jot; i++)
-    {
-        if (i >= line_last)
-        {
-            li++;
-            jot_line& line = _lines[li];
-
-            line_last = line.last;
-
-            x = tb.bounds.x + line.bounds.x;
-            y = tb.bounds.y + line.bounds.y + line.baseline - top;
-
-            U32 xj = tb.flags & XJUSTIFY_MASK;
-
-            if (xj == XJUSTIFY_CENTER)
-            {
-                x += 0.5f * (tb.bounds.w - line.bounds.w);
-            }
-            else if (xj == XJUSTIFY_RIGHT)
-            {
-                x += tb.bounds.w - line.bounds.w;
-            }
-
-            if (line.page_break && end_jot > line_last)
-            {
-                end_jot = line_last;
-            }
-        }
-
-        jot& j = _jots[i];
-
-        if (j.cb)
-        {
-            if (j.cb->render_update)
-            {
-                j.cb->render_update(j, tb, ctb);
-            }
-
-            if (!j.flag.ethereal && !j.flag.invisible && j.cb->render)
-            {
-                j.cb->render(j, tb, x + j.bounds.x, y);
-            }
-        }
-    }
-
-    stop_render(ctb);
-}
-
-void xtextbox::layout::calc(const xtextbox& ctb, size_t start_text)
-{
-    if (!start_text)
-    {
-        dynamics_size = 0;
-        context_buffer_size = 0;
-        _lines_size = 0;
-        _jots_size = 0;
-    }
-
-    if (!tb.texts_size)
-    {
-        return;
-    }
-
-    start_layout(ctb);
-
-    jot_line& first_line = _lines[_lines_size];
-    first_line.first = 0;
-    first_line.bounds.w = 0.0f;
-    first_line.bounds.x = 0.0f;
-    first_line.bounds.y = 0.0f;
-    first_line.baseline = 0.0f;
-
-    struct
-    {
-        const char* s;
-        const char* end;
-    } text_stack[16];
-
-    size_t text_stack_size = 0;
-    size_t size = ((!tb.text_sizes) ? 0x40000000 : tb.text_sizes[start_text]);
-    size_t text_index = start_text + 1;
-    const char* s = tb.texts[start_text];
-    const char* end = s + size;
-    const char* r25;
-
-    while (true)
-    {
-        jot& a = _jots[_jots_size];
-        jot_line& line = _lines[_lines_size];
-
-        a.context = &context_buffer[context_buffer_size];
-        a.context_size = 0;
-        a.reset_flags();
-        a.cb = NULL;
-        a.tag = NULL;
-
-        if (s == end || *s == '\0')
-        {
-            if (text_stack_size)
-            {
-                text_stack_size--;
-                s = text_stack[text_stack_size].s;
-                end = text_stack[text_stack_size].end;
-            }
-            else if (text_index < tb.texts_size)
-            {
-                size = ((!tb.text_sizes) ? 0x40000000 : tb.text_sizes[text_index]);
-
-                s = tb.texts[text_index];
-                end = s + size;
-                text_index++;
-            }
-            else
-            {
-                break;
-            }
-
-            a.flag.invisible = a.flag.ethereal = true;
-            a.s = substr::create(NULL, 0);
-
-            _jots_size++;
-        }
-        else
-        {
-            r25 = parse_next_jot(a, tb, ctb, s, end - s);
-
-            if (a.context == &context_buffer[context_buffer_size])
-            {
-                context_buffer_size += ALIGN(a.context_size, 4);
-            }
-
-            _jots_size++;
-
-            if (a.cb && a.cb->layout_update)
-            {
-                a.cb->layout_update(a, tb, ctb);
-            }
-
-            if (a.flag.stop)
-            {
-                break;
-            }
-
-            if (!a.flag.ethereal)
-            {
-                a.bounds.x += line.bounds.w;
-                line.bounds.w += a.bounds.w;
-
-                if (line.bounds.w >= tb.bounds.w)
-                {
-                    line.last = _jots_size;
-
-                    if (!fit_line())
-                    {
-                        break;
-                    }
-
-                    next_line();
-                }
-            }
-
-            if (a.flag.line_break || a.flag.page_break)
-            {
-                line.last = _jots_size;
-
-                if (!fit_line())
-                {
-                    break;
-                }
-
-                next_line();
-            }
-
-            s = r25;
-
-            if (a.flag.insert)
-            {
-                s = (const char*)a.context;
-                text_stack[text_stack_size].s = r25;
-                text_stack[text_stack_size].end = end;
-                text_stack_size++;
-                end = s + a.context_size;
-            }
-        }
-    }
-
-    jot_line& last_line = _lines[_lines_size];
-
-    if (last_line.first < _jots_size)
-    {
-        last_line.last = _jots_size;
-
-        if (fit_line())
-        {
-            _lines_size++;
-        }
-    }
-
-    for (size_t i = 0; i < _jots_size; i++)
-    {
-        if (_jots[i].flag.dynamic)
-        {
-            dynamics[dynamics_size++] = i;
-        }
-    }
-
-    stop_layout(ctb);
-}
-
-bool xtextbox::layout::fit_line(bool)
-{
-    jot_line& line = _lines[_lines_size];
-
-    if (line.bounds.w > tb.bounds.w)
-    {
-        switch (tb.flags & WRAP_MASK)
-        {
-        case WRAP_CHAR:
-        {
-            if (line.last > line.first + 1)
-            {
-                line.last--;
-            }
-
-            break;
-        }
-        case WRAP_NONE:
-        {
-            return false;
-        }
-        default:
-        {
-            for (S32 i = (S32)line.last - 1; i > (S32)line.first; i--)
-            {
-                if (_jots[i].flag.word_break)
-                {
-                    line.last = i + 1;
-                    break;
-                }
-                else if (_jots[i - 1].flag.word_end)
-                {
-                    line.last = i;
-                    break;
-                }
-            }
-
-            if (line.last <= line.first)
-            {
-                line.last = line.first + 1;
-            }
-
-            trim_line(line);
-            break;
-        }
-        }
-    }
-
-    merge_line(line);
-    bound_line(line);
-
-    return true;
-}
-
-void xtextbox::layout::merge_line(jot_line& line)
-{
-    size_t d = line.first;
-    size_t i = line.first + 1;
-
-    while (i != line.last)
-    {
-        jot& a1 = _jots[d];
-        jot& a2 = _jots[i];
-
-        if (!a1.flag.ethereal && !a2.flag.ethereal && a1.flag.merge && a2.flag.merge &&
-            a1.cb == a2.cb)
-        {
-            a1.s.size = a2.s.text - a1.s.text + a2.s.size;
-            a1.bounds |= a2.bounds;
-            a1.intersect_flags(a2);
-        }
-        else
-        {
-            d++;
-
-            if (d != i)
-            {
-                _jots[d] = a2;
-            }
-        }
-
-        i++;
-    }
-
-    erase_jots(d + 1, line.last);
-    line.last = d + 1;
-}
-
-void xtextbox::layout::trim_line(jot_line& line)
-{
-    // non-matching: mtctr and bdnz not generated
-
-    for (S32 i = line.last - 1; i >= line.first; i--)
-    {
-        jot& a = _jots[i];
-
-        if (!a.flag.ethereal)
-        {
-            if (a.flag.invisible)
-            {
-                erase_jots(i, i + 1);
-                line.last--;
-            }
-
-            break;
-        }
-    }
-
-    for (S32 i = line.first; i < line.last; i++)
-    {
-        jot& a = _jots[i];
-
-        if (!a.flag.ethereal)
-        {
-            if (a.flag.invisible)
-            {
-                erase_jots(i, i + 1);
-            }
-
-            break;
-        }
-    }
-}
-
-void xtextbox::layout::refresh_end(const xtextbox& tb)
-{
-    size_t texts_size = this->tb.texts_size;
-
-    if (texts_size > tb.texts_size)
-    {
-        this->tb = tb;
-        calc(tb, texts_size);
-    }
-}
-
-void xtextbox::layout::clear()
-{
-    dynamics_size = 0;
-    context_buffer_size = 0;
-    _lines_size = 0;
-    _jots_size = 0;
-    tb = xtextbox::create();
-}
-
-void xtextbox::layout::refresh(const xtextbox& tb, bool force)
-{
-    if (force || changed(tb))
-    {
-        this->tb = tb;
-        calc(tb, 0);
-    }
-}
-
-void xfont::irender(const char* text, F32 x, F32 y) const
-{
-    irender(text, 0x40000000, x, y);
-}
-
-#include "xFog.cpp"
-#include "xFFX.cpp"
-#include "xFactory.cpp"
-
-//                                              zEntEvent
-
-void zEntEvent(U32 toID, U32 toEvent, F32 toParam0, F32 toParam1, F32 toParam2, F32 toParam3)
-{
-    xBase* sendTo;
-    F32 toParam[4];
-
-    toParam[0] = toParam0;
-    toParam[1] = toParam1;
-    toParam[2] = toParam2;
-    toParam[3] = toParam3;
-
-    sendTo = zSceneFindObject(toID);
-
-    if (sendTo)
-    {
-        zEntEvent(sendTo, toEvent, toParam);
-    }
-}
-
-void zEntEvent(U32 toID, U32 toEvent)
-{
-    xBase* sendTo = zSceneFindObject(toID);
-
-    if (sendTo)
-    {
-        zEntEvent(sendTo, toEvent);
-    }
-}
-
-void zEntEvent(char* to, U32 toEvent)
-{
-    U32 id = xStrHash(to);
-    xBase* sendTo = zSceneFindObject(id);
-
-    if (sendTo)
-    {
-        zEntEvent(sendTo, toEvent);
-    }
-}
-
-#include "xEnv.cpp"
-
-//                                 xEntMotionTranslate
-
-// Artificial
-enum en_MOTIONTYPE
-{
-    MOTION_TYPE_EXRT,
-    MOTION_TYPE_ORBT,
-    MOTION_TYPE_SPLN,
-    MOTION_TYPE_MVPT,
-    MOTION_TYPE_MECH,
-    MOTION_TYPE_PEND
-};
-
-void xEntMechReverse(xEntMotion* motion)
-{
-    xEntMotionMechData* mech = &(motion->asset->mech);
-    xEntMotionAsset* mkasst = motion->asset;
-
-    xEntMotionRun(motion);
-
-    if (motion->mech.state == 0)
-    {
-        motion->mech.ss = -motion->mech.ss;
-        motion->mech.sr = -motion->mech.sr;
-        motion->tmr = mkasst->mech.sld_tm - motion->tmr;
-        motion->mech.state = 3;
-    }
-    else if (motion->mech.state == 1)
-    {
-        motion->mech.ss = -motion->mech.ss;
-        motion->mech.sr = -motion->mech.sr;
-        motion->tmr = mkasst->mech.rot_tm - motion->tmr;
-        motion->mech.state = 4;
-    }
-    else if ((motion->mech.state != 2) && (motion->mech.state != 3) && (motion->mech.state != 4) &&
-             (motion->mech.state != 5) && (motion->mech.state == 6))
-    {
-        motion->mech.ss = -motion->mech.ss;
-        motion->mech.sr = -motion->mech.sr;
-        motion->tmr = 0.0f;
-
-        if ((mech->type == 0) || (mech->type == 2) || (mech->type == 4))
-        {
-            motion->mech.state = 3;
-        }
-        else
-        {
-            motion->mech.state = 4;
-        }
-    }
-}
-
-void xEntMechForward(xEntMotion* motion)
-{
-    xEntMotionMechData* mech = &(motion->asset->mech);
-    xEntMotionAsset* mkasst = motion->asset;
-
-    xEntMotionRun(motion);
-
-    if ((motion->mech.state != 0) && (motion->mech.state != 1) && (motion->mech.state != 2))
-    {
-        if (motion->mech.state == 3)
-        {
-            motion->mech.ss = -motion->mech.ss;
-            motion->mech.sr = -motion->mech.sr;
-            motion->tmr = mkasst->mech.sld_tm - motion->tmr;
-            motion->mech.state = 0;
-        }
-        else if (motion->mech.state == 4)
-        {
-            motion->mech.ss = -motion->mech.ss;
-            motion->mech.sr = -motion->mech.sr;
-            motion->tmr = mkasst->mech.rot_tm - motion->tmr;
-            motion->mech.state = 1;
-        }
-        else if ((motion->mech.state != 5) && (motion->mech.state != 6) &&
-                 (motion->mech.state == 7))
-        {
-            motion->mech.ss = -motion->mech.ss;
-            motion->mech.sr = -motion->mech.sr;
-            motion->tmr = 0.0f;
-
-            if ((mech->type == 0) || (mech->type == 2) || (mech->type == 4))
-            {
-                motion->mech.state = 0;
-            }
-            else
-            {
-                motion->mech.state = 1;
-            }
-        }
-    }
-}
-
-void xEntMotionInit(xEntMotion* a, xEnt* b, xEntMotionAsset* c)
-{
-    a->asset = c;
-    a->type = c->type;
-    a->flags = c->flags;
-
-    if (a->type == MOTION_TYPE_EXRT)
-    {
-        xVec3Copy(&a->er.a, &c->er.ret_pos);
-        xVec3Add(&a->er.b, &c->er.ret_pos, &c->er.ext_dpos);
-
-        a->er.et = c->er.ext_tm;
-        a->er.wet = c->er.ext_wait_tm;
-        a->er.rt = c->er.ret_tm;
-        a->er.wrt = c->er.ret_wait_tm;
-
-        if (a->er.p <= 0)
-        {
-            a->er.p = 10.0f;
-        }
-
-        a->er.brt = a->er.et + a->er.wet;
-        a->er.ert = a->er.brt + a->er.rt;
-        a->er.p = a->er.ert + a->er.wrt;
-    }
-    else if (a->type == MOTION_TYPE_ORBT)
-    {
-        xVec3Copy((xVec3*)(&a->er.b), &c->er.ret_pos);
-
-        a->orb.a = c->orb.w;
-        a->orb.b = c->orb.h;
-
-        if (c->orb.period <= 0.0f)
-        {
-            c->orb.period = 10.0f;
-        }
-
-        a->orb.p = c->orb.period;
-        a->orb.w = (2 * PI) / c->orb.period;
-    }
-    else if (a->type == MOTION_TYPE_MVPT)
-    {
-        // literally nothing
-    }
-    else if (a->type == MOTION_TYPE_PEND)
-    {
-        if (c->pen.period <= 1e-5f)
-        {
-            c->pen.period = 0;
-        }
-
-        a->pen.w = (2 * PI) / c->pen.period;
-    }
-    else if (a->type == MOTION_TYPE_MECH)
-    {
-        if (c->mp.speed < 1e-5f)
-        {
-            c->mp.speed = 0;
-        }
-
-        if (c->mech.sld_acc_tm + c->mech.sld_dec_tm > c->mech.sld_tm)
-        {
-            c->mech.sld_dec_tm = c->mech.sld_acc_tm = c->mech.sld_tm * 0.5f;
-        }
-
-        if (c->mech.rot_tm < 3.0f)
-        {
-            c->mech.rot_tm = 1.0f;
-        }
-
-        if (c->mech.type == 2)
-        {
-            if (c->mech.rot_tm != c->mech.sld_tm)
-            {
-                c->mech.rot_tm = c->mech.sld_tm;
-            }
-        }
-        if (c->mech.rot_acc_tm + c->mech.rot_dec_tm > c->mech.rot_tm)
-        {
-            c->mech.rot_dec_tm = c->mech.rot_acc_tm = c->mech.rot_tm * 0.5f;
-        }
-    }
-
-    a->owner = b;
-    a->target = NULL;
-
-    xEntMotionDebugAdd(a);
-}
-
-//                                              xEntDrive
-
-// DONT FORGET, THESE ARE COPIED FROM BFBB
-// THEY WILL NOT BE 100% CORRECT OR EVEN CLOSE
-
-void xEntDriveUpdate(xEntDrive* drv, xScene* s, F32 dt, const xCollis* coll)
-{
-    if ((drv != NULL && (drv->odriver != NULL || drv->driver != NULL)))
-    {
-        if (drv->driven == NULL || drv->driven->frame == NULL ||
-            (drv->odriver != NULL && drv->odriver->frame == NULL))
-        {
-            xEntDriveInit(drv, drv->driven);
-            return;
-        }
-
-        if (drv->otmr > 0.0f)
-        {
-            drv->otmr -= dt;
-            if (drv->otmr <= 0.0f)
-            {
-                drv->os = 0.0f;
-                drv->otmr = 0.0f;
-            }
-            else
-            {
-                drv->os = drv->otmr / drv->otm;
-            }
-        }
-
-        if (drv->tmr > 0.0f)
-        {
-            drv->tmr -= dt;
-            if (drv->tmr <= 0.0f)
-            {
-                drv->s = 1.0f;
-                drv->tmr = 0.0f;
-            }
-            else
-            {
-                drv->s = 1.0f - drv->tmr / drv->tm;
-            }
-        }
-
-        if (!drv->os && !drv->s)
-        {
-            return;
-        }
-
-        xVec3 euler;
-        xMat3x3 rot;
-        xMat3x3 a_descaled;
-        if (drv->s && drv->flags & 1)
-        {
-            if (drv->driver == NULL || drv->driver->frame == NULL)
-            {
-                xEntDriveInit(drv, drv->driven);
-                return;
-            }
-
-            {
-                F32 len2 = SQR(drv->driver->frame->mat.right.x) +
-                           SQR(drv->driver->frame->mat.right.y) +
-                           SQR(drv->driver->frame->mat.right.z);
-                if (xabs(len2 - 1) <= 0.00001f)
-                {
-                    a_descaled.right.x = drv->driver->frame->mat.right.x;
-                    a_descaled.right.y = drv->driver->frame->mat.right.y;
-                    a_descaled.right.z = drv->driver->frame->mat.right.z;
-                }
-                else if (xabs(len2) <= 0.00001f)
-                {
-                    a_descaled.right.x = 0.0f;
-                    a_descaled.right.y = 1.0f;
-                    a_descaled.right.z = 0.0f;
-                }
-                else
-                {
-                    F32 len_inv = 1.0f / xsqrt(len2);
-                    a_descaled.right.x = drv->driver->frame->mat.right.x * len_inv;
-                    a_descaled.right.y = drv->driver->frame->mat.right.y * len_inv;
-                    a_descaled.right.z = drv->driver->frame->mat.right.z * len_inv;
-                }
-            }
-
-            {
-                F32 len2 = SQR(drv->driver->frame->mat.up.x) + SQR(drv->driver->frame->mat.up.y) +
-                           SQR(drv->driver->frame->mat.up.z);
-                if (xabs(len2 - 1.0f) <= 0.00001f)
-                {
-                    a_descaled.up.x = drv->driver->frame->mat.up.x;
-                    a_descaled.up.y = drv->driver->frame->mat.up.y;
-                    a_descaled.up.z = drv->driver->frame->mat.up.z;
-                }
-                else if (xabs(len2) <= 0.00001f)
-                {
-                    a_descaled.up.x = 0.0f;
-                    a_descaled.up.y = 1.0f;
-                    a_descaled.up.z = 0.0f;
-                }
-                else
-                {
-                    F32 len_inv = 1.0f / xsqrt(len2);
-                    a_descaled.up.x = drv->driver->frame->mat.up.x * len_inv;
-                    a_descaled.up.y = drv->driver->frame->mat.up.y * len_inv;
-                    a_descaled.up.z = drv->driver->frame->mat.up.z * len_inv;
-                }
-            }
-
-            {
-                F32 len2 = SQR(drv->driver->frame->mat.at.x) + SQR(drv->driver->frame->mat.at.y) +
-                           SQR(drv->driver->frame->mat.at.z);
-                if (xabs(len2 - 1.0f) <= 0.00001f)
-                {
-                    a_descaled.at.x = drv->driver->frame->mat.at.x;
-                    a_descaled.at.y = drv->driver->frame->mat.at.y;
-                    a_descaled.at.z = drv->driver->frame->mat.at.z;
-                }
-                else if (xabs(len2) <= 0.00001f)
-                {
-                    a_descaled.at.x = 0.0f;
-                    a_descaled.at.y = 1.0f;
-                    a_descaled.at.z = 0.0f;
-                }
-                else
-                {
-                    F32 len_inv = 1.0f / xsqrt(len2);
-                    a_descaled.at.x = drv->driver->frame->mat.at.x * len_inv;
-                    a_descaled.at.y = drv->driver->frame->mat.at.y * len_inv;
-                    a_descaled.at.z = drv->driver->frame->mat.at.z * len_inv;
-                }
-            }
-            xMat3x3GetEuler(&a_descaled, &euler);
-            xMat3x3RotY(&rot, drv->s * (euler.x - drv->yaw));
-            xMat3x3Mul(&drv->driven->frame->mat, &drv->driven->frame->mat, &rot);
-            drv->yaw = euler.x;
-        }
-
-        drv->dloc = 0.0f;
-        xVec3 newq;
-        if (drv->os)
-        {
-            if (drv->odriver == NULL || drv->odriver->frame == NULL)
-            {
-                xEntDriveInit(drv, drv->driven);
-                return;
-            }
-
-            xMat4x3Toworld(&newq, &drv->odriver->frame->mat, &drv->op);
-            xVec3Sub(&drv->driven->frame->dpos, &newq, &drv->q);
-            xVec3SMulBy(&drv->driven->frame->dpos, drv->os);
-            xVec3AddTo(&drv->driven->frame->mat.pos, &drv->driven->frame->dpos);
-            drv->dloc += drv->driven->frame->dpos;
-        }
-
-        if (drv->s)
-        {
-            if (drv->driver == NULL || drv->driver->frame == NULL)
-            {
-                xEntDriveInit(drv, drv->driven);
-                return;
-            }
-
-            if (drv->flags & 0x2)
-            {
-                xModelInstance& m = *drv->driver->model;
-                if (xModelAnimCollDirty(m))
-                {
-                    xModelAnimCollRefresh(m);
-                }
-                xVec3 world_loc;
-                xMat4x3Toworld(&world_loc, &drv->driver->frame->mat, &drv->tri.loc);
-
-                xVec3 new_loc;
-                new_loc = xCollisTriHit(drv->tri, m);
-                drv->driven->frame->dpos = new_loc - world_loc;
-
-                if (drv->tri.index != drv->tri.coll->tri.index ||
-                    !(xabs(drv->tri.r - drv->tri.coll->tri.r) <= 0.1f) ||
-                    !(xabs(drv->tri.d - drv->tri.coll->tri.d) <= 0.1f))
-                {
-                    *(xCollis::tri_data*)&drv->tri = drv->tri.coll->tri;
-                }
-
-                xMat4x3 oldmat = *(xMat4x3*)m.Mat;
-                *(xMat4x3*)m.Mat = drv->driver->frame->mat;
-
-                drv->tri.loc = xCollisTriHit(drv->tri, m);
-                xMat4x3Tolocal(&drv->tri.loc, &drv->driver->frame->mat, &drv->tri.loc);
-                *(xMat4x3*)m.Mat = oldmat;
-            }
-            else
-            {
-                xMat4x3Toworld(&newq, &drv->driver->frame->mat, &drv->p);
-                xVec3Sub(&drv->driven->frame->dpos, &newq, &drv->q);
-            }
-
-            drv->driven->frame->dpos *= drv->s;
-            drv->dloc += drv->driven->frame->dpos;
-            drv->driven->frame->mat.pos += drv->driven->frame->dpos;
-            if (drv->driven->model != NULL)
-            {
-                *(xVec3*)&drv->driven->model->Mat->pos = drv->driven->frame->mat.pos;
-            }
-        }
-
-        xVec3Copy(&drv->q, &drv->driven->frame->mat.pos);
-        if (drv->os)
-        {
-            if (drv->odriver == NULL || drv->odriver->frame == NULL)
-            {
-                xEntDriveInit(drv, drv->driven);
-                return;
-            }
-            xMat4x3Tolocal(&drv->op, &drv->odriver->frame->mat, &drv->q);
-        }
-        if (drv->s)
-        {
-            if (drv->driver == NULL || drv->driver->frame == NULL)
-            {
-                xEntDriveInit(drv, drv->driven);
-                return;
-            }
-            xMat4x3Tolocal(&drv->p, &drv->driver->frame->mat, &drv->q);
-        }
-    }
-}
-
-void xEntDriveDismount(xEntDrive* drv, F32 dmt)
-{
-    if (drv == NULL)
-    {
-        return;
-    }
-
-    if (drv->driver == NULL)
-    {
-        return;
-    }
-
-    if (drv->driven == NULL || drv->driven->frame == NULL || drv->driver->frame == NULL)
-    {
-        xEntDriveInit(drv, drv->driven);
-        return;
-    }
-    drv->odriver = drv->driver;
-    drv->os = drv->s;
-    drv->otm = dmt;
-    drv->otmr = dmt * drv->os;
-    if (drv->driver != NULL)
-    {
-        drv->driver->driving_count--;
-    }
-
-    drv->driver = NULL;
-    drv->s = 0.0f;
-    drv->tm = 0.0f;
-    drv->tmr = 0.0f;
-    drv->flags &= ~2;
-    xVec3Copy(&drv->q, &drv->driven->frame->mat.pos);
-    xMat4x3Tolocal(&drv->op, &drv->odriver->frame->mat, &drv->q);
-}
-
-void xEntDriveMount(xEntDrive* drv, xEnt* driver, F32 mt, const xCollis* coll)
-{
-    if (drv->driven == NULL || drv->driven->frame == NULL || driver == NULL ||
-        driver->frame == NULL)
-    {
-        xEntDriveInit(drv, drv->driven);
-        return;
-    }
-    drv->dloc = 0.0f;
-    if (driver == drv->odriver && drv->os)
-    {
-        drv->driver = driver;
-        driver->driving_count++;
-        if (mt < 0.0f)
-        {
-            drv->s = 1.0f;
-            drv->tmr = 0.0f;
-        }
-        else
-        {
-            drv->s = drv->os;
-            drv->tmr = mt * (1.0f - drv->s);
-        }
-
-        drv->tm = mt;
-        drv->odriver = NULL;
-        drv->os = 0.0f;
-        drv->otm = 0.0f;
-        drv->otmr = 0.0f;
-    }
-    else
-    {
-        drv->driver = driver;
-        driver->driving_count++;
-        if (mt < 0.0f)
-        {
-            drv->s = 1.0f;
-            drv->tmr = 0.0f;
-        }
-        else
-        {
-            drv->s = 0.0f;
-            drv->tmr = mt;
-        }
-        drv->tm = mt;
-    }
-
-    xVec3 euler;
-    xMat3x3 a_descaled;
-    if (drv->flags & 1)
-    {
-        {
-            F32 len2 = SQR(drv->driver->frame->mat.right.x) + SQR(drv->driver->frame->mat.right.y) +
-                       SQR(drv->driver->frame->mat.right.z);
-            if (xabs(len2 - 1) <= 0.00001f)
-            {
-                a_descaled.right.x = drv->driver->frame->mat.right.x;
-                a_descaled.right.y = drv->driver->frame->mat.right.y;
-                a_descaled.right.z = drv->driver->frame->mat.right.z;
-            }
-            else if (xabs(len2) <= 0.00001f)
-            {
-                a_descaled.right.x = 0.0f;
-                a_descaled.right.y = 1.0f;
-                a_descaled.right.z = 0.0f;
-            }
-            else
-            {
-                F32 len_inv = 1.0f / xsqrt(len2);
-                a_descaled.right.x = drv->driver->frame->mat.right.x * len_inv;
-                a_descaled.right.y = drv->driver->frame->mat.right.y * len_inv;
-                a_descaled.right.z = drv->driver->frame->mat.right.z * len_inv;
-            }
-        }
-
-        {
-            F32 len2 = SQR(drv->driver->frame->mat.up.x) + SQR(drv->driver->frame->mat.up.y) +
-                       SQR(drv->driver->frame->mat.up.z);
-            if (xabs(len2 - 1.0f) <= 0.00001f)
-            {
-                a_descaled.up.x = drv->driver->frame->mat.up.x;
-                a_descaled.up.y = drv->driver->frame->mat.up.y;
-                a_descaled.up.z = drv->driver->frame->mat.up.z;
-            }
-            else if (xabs(len2) <= 0.00001f)
-            {
-                a_descaled.up.x = 0.0f;
-                a_descaled.up.y = 1.0f;
-                a_descaled.up.z = 0.0f;
-            }
-            else
-            {
-                F32 len_inv = 1.0f / xsqrt(len2);
-                a_descaled.up.x = drv->driver->frame->mat.up.x * len_inv;
-                a_descaled.up.y = drv->driver->frame->mat.up.y * len_inv;
-                a_descaled.up.z = drv->driver->frame->mat.up.z * len_inv;
-            }
-        }
-
-        {
-            F32 len2 = SQR(drv->driver->frame->mat.at.x) + SQR(drv->driver->frame->mat.at.y) +
-                       SQR(drv->driver->frame->mat.at.z);
-            if (xabs(len2 - 1.0f) <= 0.00001f)
-            {
-                a_descaled.at.x = drv->driver->frame->mat.at.x;
-                a_descaled.at.y = drv->driver->frame->mat.at.y;
-                a_descaled.at.z = drv->driver->frame->mat.at.z;
-            }
-            else if (xabs(len2) <= 0.00001f)
-            {
-                a_descaled.at.x = 0.0f;
-                a_descaled.at.y = 1.0f;
-                a_descaled.at.z = 0.0f;
-            }
-            else
-            {
-                F32 len_inv = 1.0f / xsqrt(len2);
-                a_descaled.at.x = drv->driver->frame->mat.at.x * len_inv;
-                a_descaled.at.y = drv->driver->frame->mat.at.y * len_inv;
-                a_descaled.at.z = drv->driver->frame->mat.at.z * len_inv;
-            }
-        }
-        xMat3x3GetEuler(&a_descaled, &euler);
-        drv->yaw = euler.x;
-    }
-
-    if (coll != NULL && coll->flags & 0x2000)
-    {
-        drv->flags |= 0x2;
-
-        *(xCollis::tri_data*)&drv->tri = coll->tri;
-        drv->tri.loc = xCollisTriHit(drv->tri, *driver->model);
-        xMat4x3Tolocal(&drv->tri.loc, &drv->driver->frame->mat, &drv->tri.loc);
-        drv->tri.coll = coll;
-    }
-
-    xVec3Copy(&drv->q, &drv->driven->frame->mat.pos);
-    xMat4x3Tolocal(&drv->p, &drv->driver->frame->mat, &drv->q);
-}
-
-void xEntDriveInit(xEntDrive* drv, xEnt* driven)
-{
-    if (drv == NULL)
-    {
-        return;
-    }
-
-    drv->flags = 0;
-    drv->driven = driven;
-    drv->driver = NULL;
-    drv->s = 0.0f;
-    drv->tm = 0.0f;
-    drv->tmr = 0.0f;
-    drv->odriver = NULL;
-    drv->os = 0.0f;
-    drv->otm = 0.0f;
-    drv->otmr = 0.0f;
-}
-
-//                                        xBoulder / xEntBoulder
-
-void xEntBoulder_Setup(xEntBoulder* ent)
-{
-    ent->asset->redMult = 0.0f;
-    ent->asset->greenMult = 0.0f;
-    ent->asset->blueMult = 0.0f;
-
-    if (ent->model != NULL)
-    {
-        ent->asset->seeThru = ent->model->Alpha;
-    }
-    else
-    {
-        ent->asset->seeThru = 1.0f;
-    }
-
-    xEntSetup(ent);
-}
-
-void xEntBoulder_BUpdate(xEnt*, xVec3*)
-{
-}
-
-void xEntBoulder_AddForce(xEntBoulder* ent, xVec3* force)
-{
-    if (ent->update != 0)
-    {
-        xVec3* frcptr = &ent->force;
-        xVec3AddTo(frcptr, force);
-    }
-}
-
-void xEntBoulder_AddInstantForce(xEntBoulder* ent, xVec3* force)
-{
-    if (ent->update != 0)
-    {
-        xVec3* frcptr = &ent->instForce;
-        xVec3AddTo(frcptr, force);
-    }
-}
-
-void xEntBoulder_Init(void* ent, void* asset)
-{
-    xEntBoulder_Init((xEntBoulder*)ent, (xEntAsset*)asset);
-}
+#include "xDebug.cpp"
 
 //                                          xEnt
 
@@ -3921,4 +1149,2776 @@ void xEntRestorePipeline(xModelInstance* model)
     xEntRestorePipeline(model->Surf, model->Data);
 }
 
-#include "xDebug.cpp"
+//                                        xBoulder / xEntBoulder
+
+void xEntBoulder_Setup(xEntBoulder* ent)
+{
+    ent->asset->redMult = 0.0f;
+    ent->asset->greenMult = 0.0f;
+    ent->asset->blueMult = 0.0f;
+
+    if (ent->model != NULL)
+    {
+        ent->asset->seeThru = ent->model->Alpha;
+    }
+    else
+    {
+        ent->asset->seeThru = 1.0f;
+    }
+
+    xEntSetup(ent);
+}
+
+void xEntBoulder_BUpdate(xEnt*, xVec3*)
+{
+}
+
+void xEntBoulder_AddForce(xEntBoulder* ent, xVec3* force)
+{
+    if (ent->update != 0)
+    {
+        xVec3* frcptr = &ent->force;
+        xVec3AddTo(frcptr, force);
+    }
+}
+
+void xEntBoulder_AddInstantForce(xEntBoulder* ent, xVec3* force)
+{
+    if (ent->update != 0)
+    {
+        xVec3* frcptr = &ent->instForce;
+        xVec3AddTo(frcptr, force);
+    }
+}
+
+void xEntBoulder_Init(void* ent, void* asset)
+{
+    xEntBoulder_Init((xEntBoulder*)ent, (xEntAsset*)asset);
+}
+
+//                                              xEntDrive
+
+// DONT FORGET, THESE ARE COPIED FROM BFBB
+// THEY WILL NOT BE 100% CORRECT OR EVEN CLOSE
+
+void xEntDriveUpdate(xEntDrive* drv, xScene* s, F32 dt, const xCollis* coll)
+{
+    if ((drv != NULL && (drv->odriver != NULL || drv->driver != NULL)))
+    {
+        if (drv->driven == NULL || drv->driven->frame == NULL ||
+            (drv->odriver != NULL && drv->odriver->frame == NULL))
+        {
+            xEntDriveInit(drv, drv->driven);
+            return;
+        }
+
+        if (drv->otmr > 0.0f)
+        {
+            drv->otmr -= dt;
+            if (drv->otmr <= 0.0f)
+            {
+                drv->os = 0.0f;
+                drv->otmr = 0.0f;
+            }
+            else
+            {
+                drv->os = drv->otmr / drv->otm;
+            }
+        }
+
+        if (drv->tmr > 0.0f)
+        {
+            drv->tmr -= dt;
+            if (drv->tmr <= 0.0f)
+            {
+                drv->s = 1.0f;
+                drv->tmr = 0.0f;
+            }
+            else
+            {
+                drv->s = 1.0f - drv->tmr / drv->tm;
+            }
+        }
+
+        if (!drv->os && !drv->s)
+        {
+            return;
+        }
+
+        xVec3 euler;
+        xMat3x3 rot;
+        xMat3x3 a_descaled;
+        if (drv->s && drv->flags & 1)
+        {
+            if (drv->driver == NULL || drv->driver->frame == NULL)
+            {
+                xEntDriveInit(drv, drv->driven);
+                return;
+            }
+
+            {
+                F32 len2 = SQR(drv->driver->frame->mat.right.x) +
+                           SQR(drv->driver->frame->mat.right.y) +
+                           SQR(drv->driver->frame->mat.right.z);
+                if (xabs(len2 - 1) <= 0.00001f)
+                {
+                    a_descaled.right.x = drv->driver->frame->mat.right.x;
+                    a_descaled.right.y = drv->driver->frame->mat.right.y;
+                    a_descaled.right.z = drv->driver->frame->mat.right.z;
+                }
+                else if (xabs(len2) <= 0.00001f)
+                {
+                    a_descaled.right.x = 0.0f;
+                    a_descaled.right.y = 1.0f;
+                    a_descaled.right.z = 0.0f;
+                }
+                else
+                {
+                    F32 len_inv = 1.0f / xsqrt(len2);
+                    a_descaled.right.x = drv->driver->frame->mat.right.x * len_inv;
+                    a_descaled.right.y = drv->driver->frame->mat.right.y * len_inv;
+                    a_descaled.right.z = drv->driver->frame->mat.right.z * len_inv;
+                }
+            }
+
+            {
+                F32 len2 = SQR(drv->driver->frame->mat.up.x) + SQR(drv->driver->frame->mat.up.y) +
+                           SQR(drv->driver->frame->mat.up.z);
+                if (xabs(len2 - 1.0f) <= 0.00001f)
+                {
+                    a_descaled.up.x = drv->driver->frame->mat.up.x;
+                    a_descaled.up.y = drv->driver->frame->mat.up.y;
+                    a_descaled.up.z = drv->driver->frame->mat.up.z;
+                }
+                else if (xabs(len2) <= 0.00001f)
+                {
+                    a_descaled.up.x = 0.0f;
+                    a_descaled.up.y = 1.0f;
+                    a_descaled.up.z = 0.0f;
+                }
+                else
+                {
+                    F32 len_inv = 1.0f / xsqrt(len2);
+                    a_descaled.up.x = drv->driver->frame->mat.up.x * len_inv;
+                    a_descaled.up.y = drv->driver->frame->mat.up.y * len_inv;
+                    a_descaled.up.z = drv->driver->frame->mat.up.z * len_inv;
+                }
+            }
+
+            {
+                F32 len2 = SQR(drv->driver->frame->mat.at.x) + SQR(drv->driver->frame->mat.at.y) +
+                           SQR(drv->driver->frame->mat.at.z);
+                if (xabs(len2 - 1.0f) <= 0.00001f)
+                {
+                    a_descaled.at.x = drv->driver->frame->mat.at.x;
+                    a_descaled.at.y = drv->driver->frame->mat.at.y;
+                    a_descaled.at.z = drv->driver->frame->mat.at.z;
+                }
+                else if (xabs(len2) <= 0.00001f)
+                {
+                    a_descaled.at.x = 0.0f;
+                    a_descaled.at.y = 1.0f;
+                    a_descaled.at.z = 0.0f;
+                }
+                else
+                {
+                    F32 len_inv = 1.0f / xsqrt(len2);
+                    a_descaled.at.x = drv->driver->frame->mat.at.x * len_inv;
+                    a_descaled.at.y = drv->driver->frame->mat.at.y * len_inv;
+                    a_descaled.at.z = drv->driver->frame->mat.at.z * len_inv;
+                }
+            }
+            xMat3x3GetEuler(&a_descaled, &euler);
+            xMat3x3RotY(&rot, drv->s * (euler.x - drv->yaw));
+            xMat3x3Mul(&drv->driven->frame->mat, &drv->driven->frame->mat, &rot);
+            drv->yaw = euler.x;
+        }
+
+        drv->dloc = 0.0f;
+        xVec3 newq;
+        if (drv->os)
+        {
+            if (drv->odriver == NULL || drv->odriver->frame == NULL)
+            {
+                xEntDriveInit(drv, drv->driven);
+                return;
+            }
+
+            xMat4x3Toworld(&newq, &drv->odriver->frame->mat, &drv->op);
+            xVec3Sub(&drv->driven->frame->dpos, &newq, &drv->q);
+            xVec3SMulBy(&drv->driven->frame->dpos, drv->os);
+            xVec3AddTo(&drv->driven->frame->mat.pos, &drv->driven->frame->dpos);
+            drv->dloc += drv->driven->frame->dpos;
+        }
+
+        if (drv->s)
+        {
+            if (drv->driver == NULL || drv->driver->frame == NULL)
+            {
+                xEntDriveInit(drv, drv->driven);
+                return;
+            }
+
+            if (drv->flags & 0x2)
+            {
+                xModelInstance& m = *drv->driver->model;
+                if (xModelAnimCollDirty(m))
+                {
+                    xModelAnimCollRefresh(m);
+                }
+                xVec3 world_loc;
+                xMat4x3Toworld(&world_loc, &drv->driver->frame->mat, &drv->tri.loc);
+
+                xVec3 new_loc;
+                new_loc = xCollisTriHit(drv->tri, m);
+                drv->driven->frame->dpos = new_loc - world_loc;
+
+                if (drv->tri.index != drv->tri.coll->tri.index ||
+                    !(xabs(drv->tri.r - drv->tri.coll->tri.r) <= 0.1f) ||
+                    !(xabs(drv->tri.d - drv->tri.coll->tri.d) <= 0.1f))
+                {
+                    *(xCollis::tri_data*)&drv->tri = drv->tri.coll->tri;
+                }
+
+                xMat4x3 oldmat = *(xMat4x3*)m.Mat;
+                *(xMat4x3*)m.Mat = drv->driver->frame->mat;
+
+                drv->tri.loc = xCollisTriHit(drv->tri, m);
+                xMat4x3Tolocal(&drv->tri.loc, &drv->driver->frame->mat, &drv->tri.loc);
+                *(xMat4x3*)m.Mat = oldmat;
+            }
+            else
+            {
+                xMat4x3Toworld(&newq, &drv->driver->frame->mat, &drv->p);
+                xVec3Sub(&drv->driven->frame->dpos, &newq, &drv->q);
+            }
+
+            drv->driven->frame->dpos *= drv->s;
+            drv->dloc += drv->driven->frame->dpos;
+            drv->driven->frame->mat.pos += drv->driven->frame->dpos;
+            if (drv->driven->model != NULL)
+            {
+                *(xVec3*)&drv->driven->model->Mat->pos = drv->driven->frame->mat.pos;
+            }
+        }
+
+        xVec3Copy(&drv->q, &drv->driven->frame->mat.pos);
+        if (drv->os)
+        {
+            if (drv->odriver == NULL || drv->odriver->frame == NULL)
+            {
+                xEntDriveInit(drv, drv->driven);
+                return;
+            }
+            xMat4x3Tolocal(&drv->op, &drv->odriver->frame->mat, &drv->q);
+        }
+        if (drv->s)
+        {
+            if (drv->driver == NULL || drv->driver->frame == NULL)
+            {
+                xEntDriveInit(drv, drv->driven);
+                return;
+            }
+            xMat4x3Tolocal(&drv->p, &drv->driver->frame->mat, &drv->q);
+        }
+    }
+}
+
+void xEntDriveDismount(xEntDrive* drv, F32 dmt)
+{
+    if (drv == NULL)
+    {
+        return;
+    }
+
+    if (drv->driver == NULL)
+    {
+        return;
+    }
+
+    if (drv->driven == NULL || drv->driven->frame == NULL || drv->driver->frame == NULL)
+    {
+        xEntDriveInit(drv, drv->driven);
+        return;
+    }
+    drv->odriver = drv->driver;
+    drv->os = drv->s;
+    drv->otm = dmt;
+    drv->otmr = dmt * drv->os;
+    if (drv->driver != NULL)
+    {
+        drv->driver->driving_count--;
+    }
+
+    drv->driver = NULL;
+    drv->s = 0.0f;
+    drv->tm = 0.0f;
+    drv->tmr = 0.0f;
+    drv->flags &= ~2;
+    xVec3Copy(&drv->q, &drv->driven->frame->mat.pos);
+    xMat4x3Tolocal(&drv->op, &drv->odriver->frame->mat, &drv->q);
+}
+
+void xEntDriveMount(xEntDrive* drv, xEnt* driver, F32 mt, const xCollis* coll)
+{
+    if (drv->driven == NULL || drv->driven->frame == NULL || driver == NULL ||
+        driver->frame == NULL)
+    {
+        xEntDriveInit(drv, drv->driven);
+        return;
+    }
+    drv->dloc = 0.0f;
+    if (driver == drv->odriver && drv->os)
+    {
+        drv->driver = driver;
+        driver->driving_count++;
+        if (mt < 0.0f)
+        {
+            drv->s = 1.0f;
+            drv->tmr = 0.0f;
+        }
+        else
+        {
+            drv->s = drv->os;
+            drv->tmr = mt * (1.0f - drv->s);
+        }
+
+        drv->tm = mt;
+        drv->odriver = NULL;
+        drv->os = 0.0f;
+        drv->otm = 0.0f;
+        drv->otmr = 0.0f;
+    }
+    else
+    {
+        drv->driver = driver;
+        driver->driving_count++;
+        if (mt < 0.0f)
+        {
+            drv->s = 1.0f;
+            drv->tmr = 0.0f;
+        }
+        else
+        {
+            drv->s = 0.0f;
+            drv->tmr = mt;
+        }
+        drv->tm = mt;
+    }
+
+    xVec3 euler;
+    xMat3x3 a_descaled;
+    if (drv->flags & 1)
+    {
+        {
+            F32 len2 = SQR(drv->driver->frame->mat.right.x) + SQR(drv->driver->frame->mat.right.y) +
+                       SQR(drv->driver->frame->mat.right.z);
+            if (xabs(len2 - 1) <= 0.00001f)
+            {
+                a_descaled.right.x = drv->driver->frame->mat.right.x;
+                a_descaled.right.y = drv->driver->frame->mat.right.y;
+                a_descaled.right.z = drv->driver->frame->mat.right.z;
+            }
+            else if (xabs(len2) <= 0.00001f)
+            {
+                a_descaled.right.x = 0.0f;
+                a_descaled.right.y = 1.0f;
+                a_descaled.right.z = 0.0f;
+            }
+            else
+            {
+                F32 len_inv = 1.0f / xsqrt(len2);
+                a_descaled.right.x = drv->driver->frame->mat.right.x * len_inv;
+                a_descaled.right.y = drv->driver->frame->mat.right.y * len_inv;
+                a_descaled.right.z = drv->driver->frame->mat.right.z * len_inv;
+            }
+        }
+
+        {
+            F32 len2 = SQR(drv->driver->frame->mat.up.x) + SQR(drv->driver->frame->mat.up.y) +
+                       SQR(drv->driver->frame->mat.up.z);
+            if (xabs(len2 - 1.0f) <= 0.00001f)
+            {
+                a_descaled.up.x = drv->driver->frame->mat.up.x;
+                a_descaled.up.y = drv->driver->frame->mat.up.y;
+                a_descaled.up.z = drv->driver->frame->mat.up.z;
+            }
+            else if (xabs(len2) <= 0.00001f)
+            {
+                a_descaled.up.x = 0.0f;
+                a_descaled.up.y = 1.0f;
+                a_descaled.up.z = 0.0f;
+            }
+            else
+            {
+                F32 len_inv = 1.0f / xsqrt(len2);
+                a_descaled.up.x = drv->driver->frame->mat.up.x * len_inv;
+                a_descaled.up.y = drv->driver->frame->mat.up.y * len_inv;
+                a_descaled.up.z = drv->driver->frame->mat.up.z * len_inv;
+            }
+        }
+
+        {
+            F32 len2 = SQR(drv->driver->frame->mat.at.x) + SQR(drv->driver->frame->mat.at.y) +
+                       SQR(drv->driver->frame->mat.at.z);
+            if (xabs(len2 - 1.0f) <= 0.00001f)
+            {
+                a_descaled.at.x = drv->driver->frame->mat.at.x;
+                a_descaled.at.y = drv->driver->frame->mat.at.y;
+                a_descaled.at.z = drv->driver->frame->mat.at.z;
+            }
+            else if (xabs(len2) <= 0.00001f)
+            {
+                a_descaled.at.x = 0.0f;
+                a_descaled.at.y = 1.0f;
+                a_descaled.at.z = 0.0f;
+            }
+            else
+            {
+                F32 len_inv = 1.0f / xsqrt(len2);
+                a_descaled.at.x = drv->driver->frame->mat.at.x * len_inv;
+                a_descaled.at.y = drv->driver->frame->mat.at.y * len_inv;
+                a_descaled.at.z = drv->driver->frame->mat.at.z * len_inv;
+            }
+        }
+        xMat3x3GetEuler(&a_descaled, &euler);
+        drv->yaw = euler.x;
+    }
+
+    if (coll != NULL && coll->flags & 0x2000)
+    {
+        drv->flags |= 0x2;
+
+        *(xCollis::tri_data*)&drv->tri = coll->tri;
+        drv->tri.loc = xCollisTriHit(drv->tri, *driver->model);
+        xMat4x3Tolocal(&drv->tri.loc, &drv->driver->frame->mat, &drv->tri.loc);
+        drv->tri.coll = coll;
+    }
+
+    xVec3Copy(&drv->q, &drv->driven->frame->mat.pos);
+    xMat4x3Tolocal(&drv->p, &drv->driver->frame->mat, &drv->q);
+}
+
+void xEntDriveInit(xEntDrive* drv, xEnt* driven)
+{
+    if (drv == NULL)
+    {
+        return;
+    }
+
+    drv->flags = 0;
+    drv->driven = driven;
+    drv->driver = NULL;
+    drv->s = 0.0f;
+    drv->tm = 0.0f;
+    drv->tmr = 0.0f;
+    drv->odriver = NULL;
+    drv->os = 0.0f;
+    drv->otm = 0.0f;
+    drv->otmr = 0.0f;
+}
+
+//                                 xEntMotionTranslate
+
+// Artificial
+enum en_MOTIONTYPE
+{
+    MOTION_TYPE_EXRT,
+    MOTION_TYPE_ORBT,
+    MOTION_TYPE_SPLN,
+    MOTION_TYPE_MVPT,
+    MOTION_TYPE_MECH,
+    MOTION_TYPE_PEND
+};
+
+void xEntMechReverse(xEntMotion* motion)
+{
+    xEntMotionMechData* mech = &(motion->asset->mech);
+    xEntMotionAsset* mkasst = motion->asset;
+
+    xEntMotionRun(motion);
+
+    if (motion->mech.state == 0)
+    {
+        motion->mech.ss = -motion->mech.ss;
+        motion->mech.sr = -motion->mech.sr;
+        motion->tmr = mkasst->mech.sld_tm - motion->tmr;
+        motion->mech.state = 3;
+    }
+    else if (motion->mech.state == 1)
+    {
+        motion->mech.ss = -motion->mech.ss;
+        motion->mech.sr = -motion->mech.sr;
+        motion->tmr = mkasst->mech.rot_tm - motion->tmr;
+        motion->mech.state = 4;
+    }
+    else if ((motion->mech.state != 2) && (motion->mech.state != 3) && (motion->mech.state != 4) &&
+             (motion->mech.state != 5) && (motion->mech.state == 6))
+    {
+        motion->mech.ss = -motion->mech.ss;
+        motion->mech.sr = -motion->mech.sr;
+        motion->tmr = 0.0f;
+
+        if ((mech->type == 0) || (mech->type == 2) || (mech->type == 4))
+        {
+            motion->mech.state = 3;
+        }
+        else
+        {
+            motion->mech.state = 4;
+        }
+    }
+}
+
+void xEntMechForward(xEntMotion* motion)
+{
+    xEntMotionMechData* mech = &(motion->asset->mech);
+    xEntMotionAsset* mkasst = motion->asset;
+
+    xEntMotionRun(motion);
+
+    if ((motion->mech.state != 0) && (motion->mech.state != 1) && (motion->mech.state != 2))
+    {
+        if (motion->mech.state == 3)
+        {
+            motion->mech.ss = -motion->mech.ss;
+            motion->mech.sr = -motion->mech.sr;
+            motion->tmr = mkasst->mech.sld_tm - motion->tmr;
+            motion->mech.state = 0;
+        }
+        else if (motion->mech.state == 4)
+        {
+            motion->mech.ss = -motion->mech.ss;
+            motion->mech.sr = -motion->mech.sr;
+            motion->tmr = mkasst->mech.rot_tm - motion->tmr;
+            motion->mech.state = 1;
+        }
+        else if ((motion->mech.state != 5) && (motion->mech.state != 6) &&
+                 (motion->mech.state == 7))
+        {
+            motion->mech.ss = -motion->mech.ss;
+            motion->mech.sr = -motion->mech.sr;
+            motion->tmr = 0.0f;
+
+            if ((mech->type == 0) || (mech->type == 2) || (mech->type == 4))
+            {
+                motion->mech.state = 0;
+            }
+            else
+            {
+                motion->mech.state = 1;
+            }
+        }
+    }
+}
+
+void xEntMotionInit(xEntMotion* a, xEnt* b, xEntMotionAsset* c)
+{
+    a->asset = c;
+    a->type = c->type;
+    a->flags = c->flags;
+
+    if (a->type == MOTION_TYPE_EXRT)
+    {
+        xVec3Copy(&a->er.a, &c->er.ret_pos);
+        xVec3Add(&a->er.b, &c->er.ret_pos, &c->er.ext_dpos);
+
+        a->er.et = c->er.ext_tm;
+        a->er.wet = c->er.ext_wait_tm;
+        a->er.rt = c->er.ret_tm;
+        a->er.wrt = c->er.ret_wait_tm;
+
+        if (a->er.p <= 0)
+        {
+            a->er.p = 10.0f;
+        }
+
+        a->er.brt = a->er.et + a->er.wet;
+        a->er.ert = a->er.brt + a->er.rt;
+        a->er.p = a->er.ert + a->er.wrt;
+    }
+    else if (a->type == MOTION_TYPE_ORBT)
+    {
+        xVec3Copy((xVec3*)(&a->er.b), &c->er.ret_pos);
+
+        a->orb.a = c->orb.w;
+        a->orb.b = c->orb.h;
+
+        if (c->orb.period <= 0.0f)
+        {
+            c->orb.period = 10.0f;
+        }
+
+        a->orb.p = c->orb.period;
+        a->orb.w = (2 * PI) / c->orb.period;
+    }
+    else if (a->type == MOTION_TYPE_MVPT)
+    {
+        // literally nothing
+    }
+    else if (a->type == MOTION_TYPE_PEND)
+    {
+        if (c->pen.period <= 1e-5f)
+        {
+            c->pen.period = 0;
+        }
+
+        a->pen.w = (2 * PI) / c->pen.period;
+    }
+    else if (a->type == MOTION_TYPE_MECH)
+    {
+        if (c->mp.speed < 1e-5f)
+        {
+            c->mp.speed = 0;
+        }
+
+        if (c->mech.sld_acc_tm + c->mech.sld_dec_tm > c->mech.sld_tm)
+        {
+            c->mech.sld_dec_tm = c->mech.sld_acc_tm = c->mech.sld_tm * 0.5f;
+        }
+
+        if (c->mech.rot_tm < 3.0f)
+        {
+            c->mech.rot_tm = 1.0f;
+        }
+
+        if (c->mech.type == 2)
+        {
+            if (c->mech.rot_tm != c->mech.sld_tm)
+            {
+                c->mech.rot_tm = c->mech.sld_tm;
+            }
+        }
+        if (c->mech.rot_acc_tm + c->mech.rot_dec_tm > c->mech.rot_tm)
+        {
+            c->mech.rot_dec_tm = c->mech.rot_acc_tm = c->mech.rot_tm * 0.5f;
+        }
+    }
+
+    a->owner = b;
+    a->target = NULL;
+
+    xEntMotionDebugAdd(a);
+}
+
+#include "xEnv.cpp"
+
+//                                              zEntEvent
+
+void zEntEvent(U32 toID, U32 toEvent, F32 toParam0, F32 toParam1, F32 toParam2, F32 toParam3)
+{
+    xBase* sendTo;
+    F32 toParam[4];
+
+    toParam[0] = toParam0;
+    toParam[1] = toParam1;
+    toParam[2] = toParam2;
+    toParam[3] = toParam3;
+
+    sendTo = zSceneFindObject(toID);
+
+    if (sendTo)
+    {
+        zEntEvent(sendTo, toEvent, toParam);
+    }
+}
+
+void zEntEvent(U32 toID, U32 toEvent)
+{
+    xBase* sendTo = zSceneFindObject(toID);
+
+    if (sendTo)
+    {
+        zEntEvent(sendTo, toEvent);
+    }
+}
+
+void zEntEvent(char* to, U32 toEvent)
+{
+    U32 id = xStrHash(to);
+    xBase* sendTo = zSceneFindObject(id);
+
+    if (sendTo)
+    {
+        zEntEvent(sendTo, toEvent);
+    }
+}
+
+#include "xFactory.cpp"
+#include "xFFX.cpp"
+#include "xFog.cpp"
+
+//                                      xtextbox::layout
+
+#define FLAG_UNK40 0x40
+#define FLAG_UNK80 0x80
+
+#define WRAP_WORD 0x0
+#define WRAP_CHAR 0x10
+#define WRAP_NONE 0x20
+#define WRAP_MASK (WRAP_WORD | WRAP_CHAR | WRAP_NONE)
+
+#define XJUSTIFY_LEFT 0x0
+#define XJUSTIFY_RIGHT 0x1
+#define XJUSTIFY_CENTER 0x2
+#define XJUSTIFY_MASK (XJUSTIFY_LEFT | XJUSTIFY_RIGHT | XJUSTIFY_CENTER)
+
+#define YJUSTIFY_TOP 0x0
+#define YJUSTIFY_BOTTOM 0x4
+#define YJUSTIFY_CENTER 0x8
+#define YJUSTIFY_MASK (YJUSTIFY_TOP | YJUSTIFY_BOTTOM | YJUSTIFY_CENTER)
+
+extern substr _1615;
+extern substr _1616;
+extern xtextbox::tag_entry_list _1642;
+
+extern substr text_delims;
+
+xModelInstance* load_model(U32 id);
+
+namespace
+{
+
+    size_t parse_split_tag(xtextbox::split_tag& ti)
+    {
+        ti.value.size = 0;
+        ti.action.size = 0;
+        ti.name.size = 0;
+
+        // non-matching: scheduling
+
+        substr s;
+
+        s.text = ti.tag.text;
+        s.size = ti.tag.size;
+
+        s.text++;
+        s.size--;
+
+        ti.name.text = skip_ws(s);
+        s.text = find_char(s, text_delims);
+
+        if (!s.text)
+        {
+            return 0;
+        }
+
+        ti.name.size = s.text - ti.name.text;
+        s.size -= ti.name.size;
+        ti.action.text = skip_ws(s);
+
+        if (!s.size)
+        {
+            return 0;
+        }
+
+        char c = s.text[0];
+
+        if (c == '\0' || c == '{')
+        {
+            return 0;
+        }
+
+        s.text++;
+        s.size--;
+
+        if (c == '}')
+        {
+            return ti.tag.size - s.size;
+        }
+
+        ti.action.size = 1;
+        ti.value.text = skip_ws(s);
+        s.text = find_char(s, '}');
+        s.size -= s.text - ti.value.text;
+
+        if (!s.text)
+        {
+            return 0;
+        }
+
+        ti.value.size = s.text - ti.value.text;
+
+        rskip_ws(ti.value);
+
+        s.text++;
+        s.size--;
+
+        return ti.tag.size - s.size;
+    }
+
+    const char* parse_next_tag_jot(xtextbox::jot& a, const xtextbox& tb, const xtextbox& ctb,
+                                   const char* text, size_t text_size)
+    {
+        xtextbox::split_tag ti = {};
+        ti.tag.text = text;
+        ti.tag.size = text_size;
+
+        size_t size = parse_split_tag(ti);
+
+        if (!size)
+        {
+            return NULL;
+        }
+
+        a.s.text = text;
+        a.s.size = size;
+        a.flag.invisible = a.flag.ethereal = true;
+
+        if (icompare(ti.name, substr::create("~", 1)) == 0 ||
+            icompare(ti.name, substr::create("reset", 5)) == 0)
+        {
+            a.tag = xtextbox::find_format_tag(ti.value);
+
+            if (a.tag && a.tag->reset_tag)
+            {
+                a.tag->reset_tag(a, tb, ctb, ti);
+            }
+        }
+        else
+        {
+            a.tag = xtextbox::find_format_tag(ti.name);
+
+            if (a.tag && a.tag->parse_tag)
+            {
+                a.tag->parse_tag(a, tb, ctb, ti);
+            }
+        }
+
+        return text + size;
+    }
+
+    const char* parse_next_text_jot(xtextbox::jot& a, const xtextbox& tb, const xtextbox& ctb,
+                                    const char* text, size_t text_size)
+    {
+        char c = text[0];
+
+        a.s.text = text;
+        a.s.size = 1;
+        a.flag.merge = true;
+
+        if (c == '\n')
+        {
+            a.flag.line_break = true;
+        }
+        else if (c == '\t')
+        {
+            a.flag.tab = true;
+        }
+        else if (c == '-')
+        {
+            a.flag.word_end = true;
+        }
+
+        if (is_ws(c))
+        {
+            a.flag.invisible = a.flag.word_break = true;
+        }
+
+        a.bounds = tb.font.bounds(c);
+        a.cb = &xtextbox::text_cb;
+        a.context = NULL;
+        a.context_size = 0;
+
+        return a.s.text + a.s.size;
+    }
+
+    const char* parse_next_jot(xtextbox::jot& a, const xtextbox& tb, const xtextbox& ctb,
+                               const char* text, size_t text_size)
+    {
+        const char* ret;
+
+        if (text[0] != '{' || !(ret = parse_next_tag_jot(a, tb, ctb, text, text_size)))
+        {
+            ret = parse_next_text_jot(a, tb, ctb, text, text_size);
+        }
+
+        a.flag.merge = a.flag.merge && !(tb.flags & FLAG_UNK80);
+        return ret;
+    }
+
+    struct tex_args
+    {
+        RwRaster* raster;
+        F32 rot;
+        basic_rect<F32> src;
+        basic_rect<F32> dst;
+        xVec2 off;
+        enum
+        {
+            SCALE_FONT,
+            SCALE_SCREEN,
+            SCALE_SIZE,
+            SCALE_FONT_WIDTH,
+            SCALE_FONT_HEIGHT,
+            SCALE_SCREEN_WIDTH,
+            SCALE_SCREEN_HEIGHT
+        } scale;
+    };
+
+    struct model_args
+    {
+        xModelInstance* model;
+        xVec3 rot;
+        basic_rect<F32> dst;
+        xVec2 off;
+        enum
+        {
+            SCALE_FONT,
+            SCALE_SCREEN,
+            SCALE_SIZE
+        } scale;
+    };
+
+    tex_args def_tex_args;
+    model_args def_model_args;
+
+    void reset_tex_args(tex_args& ta)
+    {
+        ta.raster = NULL;
+        ta.rot = 0.0f;
+        ta.src = ta.dst = basic_rect<F32>::m_Unit;
+        ta.off.x = ta.off.y = 1.0f;
+        ta.scale = tex_args::SCALE_FONT;
+    }
+
+    void load_tex_args(tex_args& ta, const substr& s)
+    {
+        xtextbox::tag_entry_list el = xtextbox::read_tag(s);
+        xtextbox::tag_entry* e;
+
+        if (el.size == 0)
+        {
+            return;
+        }
+
+        e = &el.entries[0];
+
+        if (e->op == ':' || (e->args_size == 1 && e->args[0].size))
+        {
+            substr& name = e->args[0];
+            U32 id;
+
+            if (name.size == 10 && imemcmp(name.text, "0x", 2) == 0)
+            {
+                id = atox(substr::create(name.text + 2, 8));
+            }
+            else
+            {
+                id = xStrHash(name.text, name.size);
+            }
+
+            RwTexture* texture = (RwTexture*)xSTFindAsset(id, NULL);
+
+            if (texture && texture->raster && texture->raster->width > 0 &&
+                texture->raster->height > 0 && texture->raster->width <= 4096 &&
+                texture->raster->height <= 4096)
+            {
+                RwTextureSetFilterMode(texture, rwFILTERLINEAR);
+                ta.raster = texture->raster;
+            }
+        }
+
+        el.entries++;
+        el.size--;
+
+        e = xtextbox::find_entry(el, substr::create("rot", 3));
+
+        if (e && e->op == '=' && e->args_size == 1)
+        {
+            xtextbox::read_list(*e, &ta.rot, 1);
+        }
+
+        e = xtextbox::find_entry(el, substr::create("src", 3));
+
+        if (e && e->op == '=' && e->args_size == 4)
+        {
+            xtextbox::read_list(*e, (F32*)&ta.src, 4);
+        }
+
+        e = xtextbox::find_entry(el, substr::create("dst", 3));
+
+        if (e && e->op == '=' && e->args_size == 4)
+        {
+            xtextbox::read_list(*e, (F32*)&ta.dst, 4);
+        }
+
+        e = xtextbox::find_entry(el, substr::create("off", 3));
+
+        if (e && e->op == '=' && e->args_size == 2)
+        {
+            xtextbox::read_list(*e, (F32*)&ta.off, 2);
+        }
+
+        e = xtextbox::find_entry(el, substr::create("scale", 5));
+
+        if (e && e->op == '=' && e->args_size == 1)
+        {
+            if (icompare(e->args[0], substr::create("font", 4)) == 0)
+            {
+                ta.scale = tex_args::SCALE_FONT;
+            }
+            else if (icompare(e->args[0], substr::create("screen", 6)) == 0)
+            {
+                ta.scale = tex_args::SCALE_SCREEN;
+            }
+            else if (icompare(e->args[0], substr::create("size", 4)) == 0)
+            {
+                ta.scale = tex_args::SCALE_SIZE;
+            }
+            else if (icompare(e->args[0], substr::create("font_width", 10)) == 0)
+            {
+                ta.scale = tex_args::SCALE_FONT_WIDTH;
+            }
+            else if (icompare(e->args[0], substr::create("font_height", 11)) == 0)
+            {
+                ta.scale = tex_args::SCALE_FONT_HEIGHT;
+            }
+            else if (icompare(e->args[0], substr::create("screen_width", 12)) == 0)
+            {
+                ta.scale = tex_args::SCALE_SCREEN_WIDTH;
+            }
+#if 1 // needed until .sdata2 is decomped
+            else if (icompare(e->args[0], substr::create("screen_height\0=:+*;}\0,;}", 13)) ==
+#else
+            else if (icompare(e->args[0], substr::create("screen_height", 13)) ==
+#endif
+                     0) // screen_height
+            {
+                ta.scale = tex_args::SCALE_SCREEN_HEIGHT;
+            }
+            else
+            {
+                ta.scale = tex_args::SCALE_FONT;
+            }
+        }
+    }
+
+    void reset_model_args(model_args& ma)
+    {
+        ma.model = NULL;
+        ma.rot = xVec3::m_Null;
+        ma.dst = basic_rect<F32>::m_Unit;
+        ma.off.x = ma.off.y = 1.0f;
+        ma.scale = model_args::SCALE_FONT;
+    }
+
+    void load_model_args(model_args& ma, const substr& s)
+    {
+        xtextbox::tag_entry_list el = xtextbox::read_tag(s);
+        xtextbox::tag_entry* e;
+
+        if (!el.size)
+        {
+            return;
+        }
+
+        e = &el.entries[0];
+
+        if (e->op == ':' || (e->args_size == 1 && e->args[0].size))
+        {
+            substr& name = e->args[0];
+
+            ma.model = load_model(xStrHash(name.text, name.size));
+        }
+
+        el.entries++;
+        el.size--;
+
+        e = xtextbox::find_entry(el, substr::create("rot", 3));
+
+        if (e && e->op == '=' && e->args_size == 3)
+        {
+            xtextbox::read_list(*e, (F32*)&ma.rot, 3);
+        }
+
+        e = xtextbox::find_entry(el, substr::create("dst", 3));
+
+        if (e && e->op == '=' && e->args_size == 4)
+        {
+            xtextbox::read_list(*e, (F32*)&ma.dst, 4);
+        }
+
+        e = xtextbox::find_entry(el, substr::create("off", 3));
+
+        if (e && e->op == '=' && e->args_size == 2)
+        {
+            xtextbox::read_list(*e, (F32*)&ma.off, 2);
+        }
+
+        e = xtextbox::find_entry(el, substr::create("scale", 5));
+
+        if (e && e->op == '=' && e->args_size == 1)
+        {
+            if (icompare(e->args[0], substr::create("screen", 6)) == 0)
+            {
+                ma.scale = model_args::SCALE_SCREEN;
+            }
+            else
+            {
+                ma.scale = model_args::SCALE_FONT;
+            }
+        }
+    }
+
+    void start_layout(const xtextbox&)
+    {
+        reset_tex_args(def_tex_args);
+        reset_model_args(def_model_args);
+    }
+
+    void stop_layout(const xtextbox&)
+    {
+    }
+
+    void start_render(const xtextbox& tb)
+    {
+        tb.font.start_render();
+    }
+
+    void stop_render(const xtextbox& tb)
+    {
+        tb.font.stop_render();
+    }
+} // namespace
+
+bool xtextbox::layout::changed(const xtextbox& ctb)
+{
+    U32 flags1 = tb.flags & (WRAP_MASK | FLAG_UNK40);
+    U32 flags2 = ctb.flags & (WRAP_MASK | FLAG_UNK40);
+
+    if (tb.text_hash != ctb.text_hash || tb.font.id != ctb.font.id ||
+        tb.font.width != ctb.font.width || tb.font.height != ctb.font.height ||
+        tb.font.space != ctb.font.space || tb.bounds.w != ctb.bounds.w || flags1 != flags2 ||
+        tb.line_space != ctb.line_space)
+    {
+        return true;
+    }
+
+    S32 i = dynamics_size;
+
+    while (i > 0)
+    {
+        i--;
+
+        jot& j = _jots[dynamics[i]];
+        U32 oldval = xStrHash((char*)j.context, j.context_size);
+
+        parse_next_jot(j, tb, ctb, j.s.text, j.s.size);
+
+        U32 val = xStrHash((char*)j.context, j.context_size);
+
+        if (val != oldval)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+#define min(a, b) ((a) >= (b) ? (b) : (a))
+
+F32 xtextbox::layout::yextent(F32 max, S32& size, S32 begin_jot, S32 end_jot) const
+{
+    size = 0;
+
+    if (begin_jot < 0)
+    {
+        begin_jot = 0;
+    }
+
+    if (end_jot < begin_jot)
+    {
+        end_jot = _jots_size;
+    }
+
+    if (begin_jot >= end_jot)
+    {
+        return 0.0f;
+    }
+
+    S32 begin_line = 0;
+
+    while (true)
+    {
+        if (begin_line >= (S32)_lines_size)
+        {
+            return 0.0f;
+        }
+
+        if ((S32)_lines[begin_line].last > begin_jot)
+        {
+            break;
+        }
+
+        begin_line++;
+    }
+
+    // non-matching: wrong float registers
+    F32 top = _lines[begin_line].bounds.y;
+    S32 i = begin_line;
+
+    while (true)
+    {
+        if (i == (S32)_lines_size)
+        {
+            break;
+        }
+
+        // non-matching: r11 missing
+        const jot_line& line = _lines[i];
+
+        if (line.bounds.y + line.bounds.h > max + top)
+        {
+            i--;
+            break;
+        }
+
+        if ((S32)line.last >= end_jot)
+        {
+            break;
+        }
+
+        if (line.page_break)
+        {
+            break;
+        }
+
+        i++;
+    }
+
+    if (i < begin_line)
+    {
+        return 0.0f;
+    }
+
+    const jot_line& line = _lines[i];
+
+    size = min((S32)line.last, end_jot) - begin_jot;
+
+    return line.bounds.y + line.bounds.h - top;
+}
+
+void xtextbox::layout::render(const xtextbox& ctb, S32 begin_jot, S32 end_jot)
+{
+    if (begin_jot < 0)
+    {
+        begin_jot = 0;
+    }
+
+    if (end_jot < begin_jot)
+    {
+        end_jot = _jots_size;
+    }
+
+    if (begin_jot >= end_jot)
+    {
+        return;
+    }
+
+    tb = ctb;
+    start_render(ctb);
+
+    S32 begin_line = 0;
+
+    while (true)
+    {
+        if (begin_line >= (S32)_lines_size)
+        {
+            stop_render(ctb);
+            return;
+        }
+
+        if ((S32)_lines[begin_line].last > begin_jot)
+        {
+            break;
+        }
+
+        begin_line++;
+    }
+
+    for (S32 i = 0; i < begin_jot; i++)
+    {
+        jot& j = _jots[i];
+
+        if (j.cb && j.cb->render_update)
+        {
+            j.cb->render_update(j, tb, ctb);
+        }
+    }
+
+    F32 top = _lines[begin_line].bounds.y;
+    U32 li = begin_line - 1;
+    S32 line_last = -1;
+    F32 x, y;
+
+    for (S32 i = begin_jot; i < end_jot; i++)
+    {
+        if (i >= line_last)
+        {
+            li++;
+            jot_line& line = _lines[li];
+
+            line_last = line.last;
+
+            x = tb.bounds.x + line.bounds.x;
+            y = tb.bounds.y + line.bounds.y + line.baseline - top;
+
+            U32 xj = tb.flags & XJUSTIFY_MASK;
+
+            if (xj == XJUSTIFY_CENTER)
+            {
+                x += 0.5f * (tb.bounds.w - line.bounds.w);
+            }
+            else if (xj == XJUSTIFY_RIGHT)
+            {
+                x += tb.bounds.w - line.bounds.w;
+            }
+
+            if (line.page_break && end_jot > line_last)
+            {
+                end_jot = line_last;
+            }
+        }
+
+        jot& j = _jots[i];
+
+        if (j.cb)
+        {
+            if (j.cb->render_update)
+            {
+                j.cb->render_update(j, tb, ctb);
+            }
+
+            if (!j.flag.ethereal && !j.flag.invisible && j.cb->render)
+            {
+                j.cb->render(j, tb, x + j.bounds.x, y);
+            }
+        }
+    }
+
+    stop_render(ctb);
+}
+
+void xtextbox::layout::calc(const xtextbox& ctb, size_t start_text)
+{
+    if (!start_text)
+    {
+        dynamics_size = 0;
+        context_buffer_size = 0;
+        _lines_size = 0;
+        _jots_size = 0;
+    }
+
+    if (!tb.texts_size)
+    {
+        return;
+    }
+
+    start_layout(ctb);
+
+    jot_line& first_line = _lines[_lines_size];
+    first_line.first = 0;
+    first_line.bounds.w = 0.0f;
+    first_line.bounds.x = 0.0f;
+    first_line.bounds.y = 0.0f;
+    first_line.baseline = 0.0f;
+
+    struct
+    {
+        const char* s;
+        const char* end;
+    } text_stack[16];
+
+    size_t text_stack_size = 0;
+    size_t size = ((!tb.text_sizes) ? 0x40000000 : tb.text_sizes[start_text]);
+    size_t text_index = start_text + 1;
+    const char* s = tb.texts[start_text];
+    const char* end = s + size;
+    const char* r25;
+
+    while (true)
+    {
+        jot& a = _jots[_jots_size];
+        jot_line& line = _lines[_lines_size];
+
+        a.context = &context_buffer[context_buffer_size];
+        a.context_size = 0;
+        a.reset_flags();
+        a.cb = NULL;
+        a.tag = NULL;
+
+        if (s == end || *s == '\0')
+        {
+            if (text_stack_size)
+            {
+                text_stack_size--;
+                s = text_stack[text_stack_size].s;
+                end = text_stack[text_stack_size].end;
+            }
+            else if (text_index < tb.texts_size)
+            {
+                size = ((!tb.text_sizes) ? 0x40000000 : tb.text_sizes[text_index]);
+
+                s = tb.texts[text_index];
+                end = s + size;
+                text_index++;
+            }
+            else
+            {
+                break;
+            }
+
+            a.flag.invisible = a.flag.ethereal = true;
+            a.s = substr::create(NULL, 0);
+
+            _jots_size++;
+        }
+        else
+        {
+            r25 = parse_next_jot(a, tb, ctb, s, end - s);
+
+            if (a.context == &context_buffer[context_buffer_size])
+            {
+                context_buffer_size += ALIGN(a.context_size, 4);
+            }
+
+            _jots_size++;
+
+            if (a.cb && a.cb->layout_update)
+            {
+                a.cb->layout_update(a, tb, ctb);
+            }
+
+            if (a.flag.stop)
+            {
+                break;
+            }
+
+            if (!a.flag.ethereal)
+            {
+                a.bounds.x += line.bounds.w;
+                line.bounds.w += a.bounds.w;
+
+                if (line.bounds.w >= tb.bounds.w)
+                {
+                    line.last = _jots_size;
+
+                    if (!fit_line())
+                    {
+                        break;
+                    }
+
+                    next_line();
+                }
+            }
+
+            if (a.flag.line_break || a.flag.page_break)
+            {
+                line.last = _jots_size;
+
+                if (!fit_line())
+                {
+                    break;
+                }
+
+                next_line();
+            }
+
+            s = r25;
+
+            if (a.flag.insert)
+            {
+                s = (const char*)a.context;
+                text_stack[text_stack_size].s = r25;
+                text_stack[text_stack_size].end = end;
+                text_stack_size++;
+                end = s + a.context_size;
+            }
+        }
+    }
+
+    jot_line& last_line = _lines[_lines_size];
+
+    if (last_line.first < _jots_size)
+    {
+        last_line.last = _jots_size;
+
+        if (fit_line())
+        {
+            _lines_size++;
+        }
+    }
+
+    for (size_t i = 0; i < _jots_size; i++)
+    {
+        if (_jots[i].flag.dynamic)
+        {
+            dynamics[dynamics_size++] = i;
+        }
+    }
+
+    stop_layout(ctb);
+}
+
+bool xtextbox::layout::fit_line(bool)
+{
+    jot_line& line = _lines[_lines_size];
+
+    if (line.bounds.w > tb.bounds.w)
+    {
+        switch (tb.flags & WRAP_MASK)
+        {
+        case WRAP_CHAR:
+        {
+            if (line.last > line.first + 1)
+            {
+                line.last--;
+            }
+
+            break;
+        }
+        case WRAP_NONE:
+        {
+            return false;
+        }
+        default:
+        {
+            for (S32 i = (S32)line.last - 1; i > (S32)line.first; i--)
+            {
+                if (_jots[i].flag.word_break)
+                {
+                    line.last = i + 1;
+                    break;
+                }
+                else if (_jots[i - 1].flag.word_end)
+                {
+                    line.last = i;
+                    break;
+                }
+            }
+
+            if (line.last <= line.first)
+            {
+                line.last = line.first + 1;
+            }
+
+            trim_line(line);
+            break;
+        }
+        }
+    }
+
+    merge_line(line);
+    bound_line(line);
+
+    return true;
+}
+
+void xtextbox::layout::merge_line(jot_line& line)
+{
+    size_t d = line.first;
+    size_t i = line.first + 1;
+
+    while (i != line.last)
+    {
+        jot& a1 = _jots[d];
+        jot& a2 = _jots[i];
+
+        if (!a1.flag.ethereal && !a2.flag.ethereal && a1.flag.merge && a2.flag.merge &&
+            a1.cb == a2.cb)
+        {
+            a1.s.size = a2.s.text - a1.s.text + a2.s.size;
+            a1.bounds |= a2.bounds;
+            a1.intersect_flags(a2);
+        }
+        else
+        {
+            d++;
+
+            if (d != i)
+            {
+                _jots[d] = a2;
+            }
+        }
+
+        i++;
+    }
+
+    erase_jots(d + 1, line.last);
+    line.last = d + 1;
+}
+
+void xtextbox::layout::trim_line(jot_line& line)
+{
+    // non-matching: mtctr and bdnz not generated
+
+    for (S32 i = line.last - 1; i >= line.first; i--)
+    {
+        jot& a = _jots[i];
+
+        if (!a.flag.ethereal)
+        {
+            if (a.flag.invisible)
+            {
+                erase_jots(i, i + 1);
+                line.last--;
+            }
+
+            break;
+        }
+    }
+
+    for (S32 i = line.first; i < line.last; i++)
+    {
+        jot& a = _jots[i];
+
+        if (!a.flag.ethereal)
+        {
+            if (a.flag.invisible)
+            {
+                erase_jots(i, i + 1);
+            }
+
+            break;
+        }
+    }
+}
+
+void xtextbox::layout::refresh_end(const xtextbox& tb)
+{
+    size_t texts_size = this->tb.texts_size;
+
+    if (texts_size > tb.texts_size)
+    {
+        this->tb = tb;
+        calc(tb, texts_size);
+    }
+}
+
+void xtextbox::layout::clear()
+{
+    dynamics_size = 0;
+    context_buffer_size = 0;
+    _lines_size = 0;
+    _jots_size = 0;
+    tb = xtextbox::create();
+}
+
+void xtextbox::layout::refresh(const xtextbox& tb, bool force)
+{
+    if (force || changed(tb))
+    {
+        this->tb = tb;
+        calc(tb, 0);
+    }
+}
+
+void xfont::irender(const char* text, F32 x, F32 y) const
+{
+    irender(text, 0x40000000, x, y);
+}
+
+//                                              xFX
+
+extern const char _stringBase0_7[];
+
+extern F32 _957_0;
+extern F32 _958;
+extern F32 _995;
+extern F32 _1132;
+extern F32 _1171;
+
+RpAtomicCallBackRender gAtomicRenderCallBack = NULL;
+F32 EnvMapShininess = 1.0f;
+RpLight* MainLight = NULL;
+
+static U32 num_fx_atomics = 0;
+
+static U32 xfx_initted = 0;
+
+static void LightResetFrame(RpLight* light);
+
+static void DrawRing(xFXRing* m)
+{
+    // todo: uses int-to-float conversion
+}
+
+// Inlining issue
+void xFXRingRender()
+{
+    S32 i;
+    xFXRing* ring = &ringlist[0];
+
+    for (i = 0; i < RING_COUNT; i++, ring++)
+    {
+        if (ring->time > _957_0)
+        {
+            DrawRing(ring);
+        }
+    }
+}
+
+void xFXInit()
+{
+    if (!xfx_initted)
+    {
+        xfx_initted = 1;
+
+        RpLight* light = RpLightCreate(rpLIGHTDIRECTIONAL);
+
+        if (light)
+        {
+            RwFrame* frame = RwFrameCreate();
+
+            if (frame)
+            {
+                RpLightSetFrame(light, frame);
+                LightResetFrame(light);
+
+                MainLight = light;
+            }
+            else
+            {
+                RpLightDestroy(light);
+            }
+        }
+
+        xFXanimUVCreate();
+        xFXAuraInit();
+    }
+}
+
+xFXRing* xFXRingCreate(const xVec3* pos, const xFXRing* params)
+{
+    xFXRing* ring = &ringlist[0];
+
+    if (!pos || !params)
+    {
+        return NULL;
+    }
+
+    for (S32 i = 0; i < RING_COUNT; i++, ring++)
+    {
+        if (ring->time <= _957_0)
+        {
+            // non-matching: _958 is only loaded once
+
+            memcpy(ring, params, sizeof(xFXRing));
+
+            ring->time = _995;
+            ring->pos = *pos;
+            ring->ring_radius_delta *= _958 / ring->lifetime;
+            ring->ring_height_delta *= _958 / ring->lifetime;
+            ring->ring_tilt_delta *= _958 / ring->lifetime;
+
+            return ring;
+        }
+    }
+
+    return NULL;
+}
+
+static RpMaterial* MaterialSetEnvMap(RpMaterial* material, void* data);
+static RpMaterial* MaterialSetBumpMap(RpMaterial* material, void* data);
+static RpMaterial* MaterialSetBumpEnvMap(RpMaterial* material, RwTexture* env, F32 shininess,
+                                         RwTexture* bump, F32 bumpiness);
+
+void xFX_SceneEnter(RpWorld* world)
+{
+    S32 i;
+    S32 num = RpWorldGetNumMaterials(world);
+
+    for (i = 0; i < num; i++)
+    {
+        xSurface* sp = zSurfaceGetSurface(i);
+        zSurfaceProps* pp = (zSurfaceProps*)sp->moprops;
+
+        if (pp && pp->asset)
+        {
+            zSurfMatFX* fxp = &pp->asset->matfx;
+
+            if (fxp->flags)
+            {
+                if (fxp->flags == 0x10)
+                {
+                    fxp->flags |= 0x1;
+                }
+
+                RpMaterial* mp = RpWorldGetMaterial(world, i);
+
+                if (RpMaterialGetTexture(mp))
+                {
+                    gFXSurfaceFlags = fxp->flags;
+
+                    if (fxp->flags & 0x1)
+                    {
+                        RwTexture* env = (RwTexture*)xSTFindAsset(fxp->envmapID, NULL);
+
+                        if (!env)
+                        {
+                            continue;
+                        }
+
+                        MaterialSetEnvMap(mp, env);
+                        RpMatFXMaterialSetEnvMapCoefficient(mp, _1132 * fxp->shininess);
+                    }
+
+                    if (fxp->flags & 0x2)
+                    {
+                        RwTexture* bump = (RwTexture*)xSTFindAsset(fxp->bumpmapID, NULL);
+
+                        if (!bump)
+                        {
+                            continue;
+                        }
+
+                        MaterialSetBumpMap(mp, bump);
+                        RpMatFXMaterialSetBumpMapCoefficient(mp, fxp->bumpiness);
+                    }
+
+                    if (fxp->flags & 0x4)
+                    {
+                        RwTexture* env = (RwTexture*)xSTFindAsset(fxp->envmapID, NULL);
+                        RwTexture* bump = (RwTexture*)xSTFindAsset(fxp->bumpmapID, NULL);
+
+                        if (!env || !bump)
+                        {
+                            continue;
+                        }
+
+                        MaterialSetBumpEnvMap(mp, env, fxp->shininess, bump, fxp->bumpiness);
+                    }
+                }
+            }
+        }
+    }
+
+    zScene* sc = globals.sceneCur;
+
+    for (i = 0; i < sc->num_act_ents; i++)
+    {
+        xEnt* ent = sc->act_ents[i];
+
+        if (!gAtomicRenderCallBack && ent->model)
+        {
+            RpAtomicCallBackRender tmp = RpAtomicGetRenderCallBack(ent->model->Data);
+
+            RpAtomicSetRenderCallBack(ent->model->Data, NULL);
+
+            gAtomicRenderCallBack = RpAtomicGetRenderCallBack(ent->model->Data);
+
+            RpAtomicSetRenderCallBack(ent->model->Data, tmp);
+        }
+
+        if (ent->model)
+        {
+            // non-matching: strings are getting cached for some reason
+
+            U32 bubble;
+
+            bubble = (ent->id == xStrHash(_stringBase0_7));
+            bubble |= (ent->id == xStrHash(_stringBase0_7 + 13));
+            bubble |= (ent->id == xStrHash(_stringBase0_7 + 28));
+            bubble |= (ent->id == xStrHash(_stringBase0_7 + 42));
+            bubble |= (ent->id == xStrHash(_stringBase0_7 + 62));
+            bubble |= (ent->id == xStrHash(_stringBase0_7 + 75));
+
+            if (bubble)
+            {
+                xSTAssetName(ent->id);
+
+                RpAtomicSetRenderCallBack(ent->model->Data, xFXBubbleRender);
+            }
+        }
+    }
+
+    num_fx_atomics = 0;
+}
+
+void xFX_SceneExit(RpWorld*)
+{
+}
+
+void xFXUpdate(F32 dt)
+{
+    xFXRibbonUpdate(dt);
+    xFXAuraUpdate(dt);
+}
+
+static RpMaterial* MaterialDisableMatFX(RpMaterial* material, void*)
+{
+    RpMatFXMaterialSetEffects(material, rpMATFXEFFECTNULL);
+    return material;
+}
+
+RpAtomic* AtomicDisableMatFX(RpAtomic* atomic)
+{
+    RpMatFXAtomicEnableEffects(atomic);
+
+    RpGeometry* geometry = RpAtomicGetGeometry(atomic);
+
+    if (geometry)
+    {
+        RpGeometryForAllMaterials(geometry, MaterialDisableMatFX, NULL);
+    }
+
+    return atomic;
+}
+
+RpMaterial* MaterialSetShininess(RpMaterial* material, void*)
+{
+    RpMatFXMaterialFlags flags = RpMatFXMaterialGetEffects(material);
+
+    if (flags == rpMATFXEFFECTENVMAP || flags == rpMATFXEFFECTBUMPENVMAP)
+    {
+        RpMatFXMaterialSetEnvMapCoefficient(material, EnvMapShininess);
+    }
+
+    return material;
+}
+
+#include "xGrid.cpp"
+#include "xGroup.cpp"
+
+//                                                   HIPL
+
+static U32 g_loadlock = 0;
+
+static st_HIPLOADDATA g_hiploadinst[8] = {};
+
+static st_HIPLOADFUNCS g_map_HIPL_funcmap = { HIPLCreate,     HIPLDestroy,   HIPLBaseSector,
+                                              HIPLBlockEnter, HIPLBlockExit, HIPLReadBytes,
+                                              HIPLReadShorts, HIPLReadLongs, HIPLReadFloats,
+                                              HIPLReadString, HIPLSetBypass, HIPLSetSpot,
+                                              HIPLPollRead };
+
+static S32 HIPLBlockRead(st_HIPLOADDATA* lddata, void* data, S32 cnt, S32 size)
+{
+    st_HIPLOADBLOCK* top;
+    S32 got = 0;
+    S32 left = 0;
+    S32 head = 0;
+
+    if (lddata->bypass)
+    {
+        return 0;
+    }
+
+    if (cnt == 0)
+    {
+        return 0;
+    }
+
+    if (lddata->top < 0)
+    {
+        top = NULL;
+    }
+    else
+    {
+        top = &lddata->stk[lddata->top];
+        left = top->blk_remain / size;
+    }
+
+    if (cnt < 0)
+    {
+        cnt = -cnt;
+        head = 1;
+
+        if (top && cnt > left)
+        {
+            cnt = left;
+        }
+    }
+
+    if (!head && left < cnt)
+    {
+        cnt = left;
+    }
+
+    if (cnt == 0)
+    {
+        got = 0;
+    }
+    else if (size == 1)
+    {
+        got = lddata->fli->readBytes(lddata->fli, (char*)data, cnt);
+    }
+    else if (size == 2)
+    {
+        got = lddata->fli->readMShorts(lddata->fli, (S16*)data, cnt);
+    }
+    else if (size == 4)
+    {
+        got = lddata->fli->readMLongs(lddata->fli, (S32*)data, cnt);
+    }
+
+    got *= size;
+
+    lddata->pos += got;
+
+    if (top)
+    {
+        top->blk_remain -= got;
+    }
+
+    return got;
+}
+
+static S32 HIPLReadAsync(st_HIPLOADDATA* lddata, S32 pos, char* data, S32 cnt, S32 size)
+{
+    S32 rc;
+
+    lddata->asyn_stat = HIP_RDSTAT_NONE;
+
+    rc = lddata->fli->asyncMRead(lddata->fli, pos, data, cnt, size);
+
+    lddata->asyn_stat = HIP_RDSTAT_INPROG;
+
+    return rc;
+}
+
+static S32 HIPLBypassRead(st_HIPLOADDATA* lddata, void* data, S32 cnt, S32 size)
+{
+    S32 got = 0;
+
+    if (!lddata->bypass)
+    {
+        return 0;
+    }
+
+    if (lddata->use_async)
+    {
+        return HIPLReadAsync(lddata, lddata->pos, (char*)data, cnt, size);
+    }
+
+    if (cnt == 0)
+    {
+        return 0;
+    }
+
+    if (cnt == 0)
+    {
+        got = 0;
+    }
+    else if (size == 1)
+    {
+        got = lddata->fli->readBytes(lddata->fli, (char*)data, cnt);
+    }
+    else if (size == 2)
+    {
+        got = lddata->fli->readMShorts(lddata->fli, (S16*)data, cnt);
+    }
+    else if (size == 4)
+    {
+        got = lddata->fli->readMLongs(lddata->fli, (S32*)data, cnt);
+    }
+
+    return got * size;
+}
+
+static S32 HIPLReadString(st_HIPLOADDATA* lddata, char* buf)
+{
+    S32 n = 0;
+    char pad = 0;
+
+    if (lddata->bypass)
+    {
+        while (HIPLBypassRead(lddata, &buf[n], 1, sizeof(char)))
+        {
+            if (buf[n] == '\0')
+            {
+                if (!(n & 1))
+                {
+                    HIPLBypassRead(lddata, &pad, 1, sizeof(char));
+                }
+
+                break;
+            }
+
+            n++;
+        }
+    }
+    else
+    {
+        while (HIPLBlockRead(lddata, &buf[n], 1, sizeof(char)))
+        {
+            if (buf[n] == '\0')
+            {
+                if (!(n & 1))
+                {
+                    HIPLBlockRead(lddata, &pad, 1, sizeof(char));
+                }
+
+                break;
+            }
+
+            n++;
+        }
+    }
+
+    return n;
+}
+
+static S32 HIPLReadFloats(st_HIPLOADDATA* lddata, F32* data, S32 cnt)
+{
+    S32 got;
+
+    if (lddata->bypass)
+    {
+        got = HIPLBypassRead(lddata, data, cnt, sizeof(F32));
+    }
+    else
+    {
+        got = HIPLBlockRead(lddata, data, cnt, sizeof(F32));
+    }
+
+    got /= sizeof(F32);
+
+    return got;
+}
+
+static S32 HIPLReadLongs(st_HIPLOADDATA* lddata, S32* data, S32 cnt)
+{
+    S32 got;
+
+    if (lddata->bypass)
+    {
+        got = HIPLBypassRead(lddata, data, cnt, sizeof(S32));
+    }
+    else
+    {
+        got = HIPLBlockRead(lddata, data, cnt, sizeof(S32));
+    }
+
+    got /= sizeof(S32);
+
+    return got;
+}
+
+static S32 HIPLReadShorts(st_HIPLOADDATA* lddata, S16* data, S32 cnt)
+{
+    S32 got;
+
+    if (lddata->bypass)
+    {
+        got = HIPLBypassRead(lddata, data, cnt, sizeof(S16));
+    }
+    else
+    {
+        got = HIPLBlockRead(lddata, data, cnt, sizeof(S16));
+    }
+
+    got /= sizeof(S16);
+
+    return got;
+}
+
+static S32 HIPLReadBytes(st_HIPLOADDATA* lddata, char* data, S32 cnt)
+{
+    if (lddata->bypass)
+    {
+        return HIPLBypassRead(lddata, data, cnt, sizeof(char));
+    }
+    else
+    {
+        return HIPLBlockRead(lddata, data, cnt, sizeof(char));
+    }
+}
+
+static en_READ_ASYNC_STATUS HIPLPollRead(st_HIPLOADDATA* lddata)
+{
+    en_READ_ASYNC_STATUS rdstat = HIP_RDSTAT_INPROG;
+    en_BIO_ASYNC_ERRCODES pollstat;
+
+    if (!lddata->bypass)
+    {
+        return HIP_RDSTAT_NOBYPASS;
+    }
+
+    if (!lddata->use_async)
+    {
+        return HIP_RDSTAT_NOASYNC;
+    }
+
+    pollstat = lddata->fli->asyncReadStatus(lddata->fli);
+
+    switch (pollstat)
+    {
+    case BINIO_ASYNC_INPROG:
+    {
+        rdstat = HIP_RDSTAT_INPROG;
+        break;
+    }
+    case BINIO_ASYNC_DONE:
+    {
+        rdstat = HIP_RDSTAT_SUCCESS;
+        lddata->asyn_stat = HIP_RDSTAT_NONE;
+        break;
+    }
+    case BINIO_ASYNC_FAIL:
+    {
+        rdstat = HIP_RDSTAT_FAILED;
+        lddata->asyn_stat = HIP_RDSTAT_NONE;
+        break;
+    }
+    default:
+    {
+        lddata->asyn_stat = HIP_RDSTAT_NONE;
+        break;
+    }
+    }
+
+    return rdstat;
+}
+
+static void HIPLBlockExit(st_HIPLOADDATA* lddata)
+{
+    st_HIPLOADBLOCK* top;
+
+    if (!lddata->bypass)
+    {
+        top = &lddata->stk[lddata->top--];
+
+        lddata->fli->skipBytes(lddata->fli, top->endpos - lddata->pos);
+        lddata->pos = top->endpos;
+    }
+}
+
+static U32 HIPLBlockEnter(st_HIPLOADDATA* lddata)
+{
+    st_HIPLOADBLOCK* top;
+    U32 cid = 0;
+    S32 size = 0;
+
+    if (lddata->bypass)
+    {
+        return 0;
+    }
+
+    if (lddata->top >= 0 && lddata->stk[lddata->top].blk_remain <= 0)
+    {
+        return 0;
+    }
+
+    if (HIPLReadLongs(lddata, (S32*)&cid, -1) == 0)
+    {
+        cid = 0;
+    }
+    else
+    {
+        HIPLReadLongs(lddata, &size, -1);
+
+        if (lddata->top >= 0)
+        {
+            lddata->stk[lddata->top].blk_remain -= size;
+        }
+
+        top = &lddata->stk[++lddata->top];
+
+        top->blk_id = cid;
+        top->blk_remain = size;
+        top->endpos = lddata->pos + top->blk_remain + (top->blk_remain & 1);
+        top->flags = 0;
+    }
+
+    return cid;
+}
+
+static void HIPLSetSpot(st_HIPLOADDATA* lddata, S32 spot)
+{
+    if (lddata->bypass)
+    {
+        lddata->pos = spot;
+        lddata->fli->seekSpot(lddata->fli, spot);
+    }
+}
+
+static S32 HIPLSetBypass(st_HIPLOADDATA* lddata, S32 enable, S32 use_async)
+{
+    lddata->fli->discardDblBuf(lddata->fli);
+
+    if (enable && lddata->bypass)
+    {
+        return 0;
+    }
+
+    if (!enable && !lddata->bypass)
+    {
+        return 0;
+    }
+
+    if (enable)
+    {
+        lddata->bypass = 1;
+        lddata->use_async = use_async;
+        lddata->bypass_recover = lddata->fli->position;
+    }
+    else
+    {
+        lddata->fli->seekSpot(lddata->fli, lddata->bypass_recover);
+        lddata->bypass = 0;
+        lddata->use_async = 0;
+        lddata->bypass_recover = -1;
+    }
+
+    return 1;
+}
+
+static U32 HIPLBaseSector(st_HIPLOADDATA* lddata)
+{
+    return lddata->base_sector;
+}
+
+static void HIPLDestroy(st_HIPLOADDATA* lddata)
+{
+    S32 lockid;
+
+    if (lddata)
+    {
+        if (lddata->fli)
+        {
+            lddata->fli->destroy(lddata->fli);
+        }
+
+        lockid = lddata->lockid;
+
+        memset(lddata, 0, sizeof(st_HIPLOADDATA));
+
+        g_loadlock &= ~(1 << lockid);
+    }
+}
+
+static st_HIPLOADDATA* HIPLCreate(const char* filename, char* dblbuf, S32 bufsize, S32)
+{
+    st_HIPLOADDATA* lddata = NULL;
+    st_FILELOADINFO* fli;
+    st_HIPLOADBLOCK* tmp_blk;
+    S32 i;
+    S32 uselock = -1;
+
+    for (i = 0; i < 8; i++)
+    {
+        if (!(g_loadlock & (1 << i)))
+        {
+            g_loadlock |= 1 << i;
+
+            uselock = i;
+            lddata = &g_hiploadinst[i];
+
+            break;
+        }
+    }
+
+    if (lddata)
+    {
+        memset(lddata, 0, sizeof(st_HIPLOADDATA));
+
+        lddata->lockid = uselock;
+        lddata->top = -1;
+        lddata->base_sector = 0;
+        lddata->use_async = 0;
+        lddata->asyn_stat = HIP_RDSTAT_NONE;
+        lddata->bypass = 0;
+        lddata->bypass_recover = -1;
+        lddata->pos = 0;
+        lddata->readTop = 0;
+
+        for (i = 0; i < 8; i++)
+        {
+            tmp_blk = &lddata->stk[i];
+
+            tmp_blk->endpos = 0;
+            tmp_blk->blk_id = 0;
+            tmp_blk->blk_remain = 0;
+            tmp_blk->flags = 0;
+        }
+
+        fli = xBinioLoadCreate(filename);
+
+        if (fli)
+        {
+            lddata->fli = fli;
+            lddata->base_sector = fli->basesector;
+
+            if (dblbuf && bufsize > 0)
+            {
+                fli->setDoubleBuf(fli, dblbuf, bufsize);
+            }
+        }
+        else
+        {
+            HIPLDestroy(lddata);
+            lddata = NULL;
+        }
+    }
+
+    return lddata;
+}
+
+st_HIPLOADFUNCS* get_HIPLFuncs()
+{
+    return &g_map_HIPL_funcmap;
+}
+
+#include "xHud.cpp"
+#include "xHudMeter.cpp"
+
+//                                              xhud::model_widget
+
+void xhud::model_widget::load(xBase& data, xDynAsset& asset, size_t)
+{
+    init_base(data, asset, sizeof(xBase) + sizeof(model_widget));
+    model_widget* widget = (model_widget*)(&data + 1);
+    new (widget) model_widget((model_asset&)asset);
+}
+
+void xhud::model_widget::destruct()
+{
+    widget::destruct();
+}
+
+void xhud::model_widget::destroy()
+{
+    destruct();
+}
+
+U32 xhud::model_widget::type() const
+{
+    static U32 myid = xStrHash(model_asset::type_name());
+    return myid;
+}
+
+bool xhud::model_widget::is(U32 id) const
+{
+    return id == model_widget::type() || widget::is(id);
+}
+
+void xhud::model_widget::update(F32 dt)
+{
+    widget::updater(dt);
+
+    if (!visible() || rc.a <= (0.5f / 255.0f))
+    {
+        return;
+    }
+
+    xModelUpdate(model, dt);
+    xModelEval(model);
+}
+
+void xhud::model_widget::render()
+{
+    if (rc.a <= 0.0f)
+    {
+        return;
+    }
+
+    render_model(*model, rc);
+}
+
+//                                           xhud::text_widget
+
+void xhud::text_widget::render()
+{
+    F32 boundX = tb.bounds.x;
+    F32 boundY = tb.bounds.y;
+    U8 oldRed = tb.font.color.r;
+    U8 oldGreen = tb.font.color.g;
+    U8 oldBlue = tb.font.color.b;
+    U8 oldAlpha = tb.font.color.a;
+
+    U8 alpha;
+    F32 fVar1 = (oldAlpha * 200.0f) / 255.0f;
+    if (fVar1 > 255.0f)
+    {
+        alpha = 0xFF;
+    }
+    else if (fVar1 < 0.0f)
+    {
+        alpha = 0;
+    }
+    else
+    {
+        alpha = fVar1;
+    }
+
+    tb.bounds.x += 0.0075f;
+    tb.bounds.y += 0.0075f;
+    tb.font.color.r = 0x00;
+    tb.font.color.g = 0x46;
+    tb.font.color.b = 0x55;
+    tb.font.color.a = alpha;
+    tb.render(true);
+
+    tb.bounds.x = boundX;
+    tb.bounds.y = boundY;
+    tb.font.color.r = oldRed;
+    tb.font.color.g = oldGreen;
+    tb.font.color.b = oldBlue;
+    tb.font.color.a = oldAlpha;
+    tb.render(true);
+}
+
+void xhud::text_widget::update(F32 dt)
+{
+    updater(dt);
+
+    tb.set_text(text);
+    tb.bounds.x = rc.loc.x;
+    tb.bounds.y = rc.loc.y;
+    tb.bounds.w = rc.size.x;
+    tb.bounds.h = rc.size.y;
+    tb.font.clip = tb.bounds;
+
+    tb.font.color.r = (rc.r * 255.0f) + 0.5f;
+    tb.font.color.g = (rc.g * 255.0f) + 0.5f;
+    tb.font.color.b = (rc.b * 255.0f) + 0.5f;
+    tb.font.color.a = (rc.a * 255.0f) + 0.5f;
+}
+
+bool xhud::text_widget::is(U32 id) const
+{
+    return id == text_widget::type() || widget::is(id);
+}
+
+U32 xhud::text_widget::type() const
+{
+    static U32 myid = xStrHash(text_asset::type_name());
+    return myid;
+}
+
+void xhud::text_widget::destroy()
+{
+    destruct();
+}
+
+void xhud::text_widget::setup()
+{
+    presetup();
+    text_asset* asset = (text_asset*)a;
+    ztextbox* textbox = (ztextbox*)zSceneFindObject(asset->text_box);
+    if (textbox == NULL)
+    {
+        tb = xtextbox::create();
+        return;
+    }
+
+    textbox->refresh();
+    tb = textbox->tb;
+    textbox->get_text(text, sizeof(text));
+    if (asset->text != 0)
+    {
+        xTextAsset* tasset = (xTextAsset*)xSTFindAsset(asset->text, NULL);
+        if (tasset != NULL)
+        {
+            char* text_asset_text = xTextAssetGetText(tasset);
+            U32 len = strlen(text_asset_text);
+            if (len >= sizeof(text))
+            {
+                len = sizeof(text) - 1;
+            }
+            memcpy(text, text_asset_text, len);
+            text[len] = '\0';
+        }
+    }
+
+    rc.r = tb.font.color.r / 255.0f;
+    rc.g = tb.font.color.g / 255.0f;
+    rc.b = tb.font.color.b / 255.0f;
+}
+
+void xhud::text_widget::load(xBase& data, xDynAsset& asset, size_t)
+{
+    init_base(data, asset, sizeof(xBase) + sizeof(text_widget));
+    text_widget* widget = (text_widget*)(&data + 1);
+    new (widget) text_widget((text_asset&)asset);
+}
+
+#include "xIM.cpp"
+
+//                                              xIni
+
+const char* xIniGetString(xIniFile* ini, const char* tok, const char* def)
+{
+    S32 index = xIniGetIndex(ini, tok);
+    if (index == -1)
+    {
+        return def;
+    }
+    return ini->Values[index].val;
+}
+
+F32 xIniGetFloat(xIniFile* ini, const char* tok, F32 def)
+{
+    S32 index = xIniGetIndex(ini, tok);
+    if (index == -1)
+    {
+        return def;
+    }
+    return atof(ini->Values[index].val);
+}
+
+S32 xIniGetInt(xIniFile* ini, const char* tok, S32 def)
+{
+    S32 index = xIniGetIndex(ini, tok);
+    if (index == -1)
+    {
+        return def;
+    }
+    return atoi(ini->Values[index].val);
+}
+
+void xIniDestroy(xIniFile* ini)
+{
+    RwFree(ini->mem);
+    RwFree(ini);
+}
+
+char* TrimWhitespace(char* string)
+{
+    // Skip through any leading whitespace
+    for (; *string == ' ' || *string == '\t'; string++)
+    {
+    }
+    // Return early if there's no other characters to go through
+    if (*string == '\0')
+    {
+        return string;
+    }
+
+    // Find first non-whitespace character at the end of the string
+    char* substring = &string[strlen(string) - 1];
+    for (; *substring == ' ' || *substring == '\t'; substring--)
+    {
+    }
+
+    // Set the null-terminator accordingly
+    substring[1] = '\0';
+
+    return string;
+}
+
+xIniFile* xIniParse(char* buf, S32 len)
+{
+    S32 i;
+    S32 ccr = 1;
+    S32 clf = 1;
+    S32 copen = 0;
+    S32 lastCRLF = -1;
+    for (i = 0; i < len; i++)
+    {
+        switch (buf[i])
+        {
+        case '\n':
+            lastCRLF = i;
+            clf++;
+            break;
+        case '\r':
+            lastCRLF = i;
+            ccr++;
+            break;
+        case '[':
+            copen++;
+            break;
+        }
+    }
+
+    if (clf > ccr)
+    {
+        ccr = clf;
+    }
+
+    S32 sectionAlloc = copen;
+    S32 valueAlloc = ccr;
+
+    xIniFile* ini = (xIniFile*)RwMalloc(sizeof(xIniFile) + (valueAlloc * sizeof(xIniValue)) +
+                                        (sectionAlloc * sizeof(xIniSection)) + (len - lastCRLF),
+                                        rwMEMHINTDUR_NADURATION);
+    ini->mem = NULL;
+    ini->NumValues = 0;
+    ini->NumSections = 0;
+    ini->Values = (xIniValue*)(ini + 1);
+    ini->Sections = (xIniSection*)(ini->Values + valueAlloc);
+
+    char* lastLine = (char*)(ini->Sections + sectionAlloc);
+    strncpy(lastLine, buf + (lastCRLF + 1), len - (lastCRLF + 1));
+    lastLine[len - (lastCRLF + 1)] = '\0';
+
+    if (lastCRLF >= 0)
+    {
+        buf[lastCRLF] = '\0';
+    }
+    else
+    {
+        buf[0] = '\0';
+    }
+
+    char* ltoken;
+    char* line = xStrTok(buf, "\n\r", &ltoken);
+    if (line == NULL)
+    {
+        line = xStrTok(lastLine, "\n\r", &ltoken);
+        lastLine = NULL;
+    }
+
+    while (line != NULL)
+    {
+        line = TrimWhitespace(line);
+        if (*line != '#' && *line != '\0')
+        {
+            if (*line == '[')
+            {
+                char* c = std::strstr(line, "]");
+                if (c != NULL)
+                {
+                    *c = '\0';
+                    c = TrimWhitespace(line + 1);
+                    if (*c != '\0')
+                    {
+                        ini->Sections[ini->NumSections].sec = c;
+                        ini->Sections[ini->NumSections].first = ini->NumValues;
+                        ini->Sections[ini->NumSections].count = 0;
+                        ini->NumSections++;
+                    }
+                }
+            }
+            else
+            {
+                char* c = std::strstr(line, "=");
+                if (c != NULL)
+                {
+                    *c = '\0';
+                    char* tok = TrimWhitespace(line);
+                    if (*tok != '\0')
+                    {
+                        line = c + 1;
+                        c = std::strstr(line, "#");
+                        if (c != NULL)
+                        {
+                            *c = '\0';
+                        }
+                        char* val = TrimWhitespace(line);
+                        ini->Values[ini->NumValues].tok = tok;
+                        ini->Values[ini->NumValues].val = val;
+                        ini->NumValues++;
+                        if (ini->NumSections != 0)
+                        {
+                            ini->Sections[ini->NumSections - 1].count++;
+                        }
+                    }
+                }
+            }
+        }
+
+        line = xStrTok(NULL, "\n\r", &ltoken);
+        if (line == NULL && lastLine != NULL)
+        {
+            line = xStrTok(lastLine, "\n\r", &ltoken);
+            lastLine = NULL;
+        }
+    }
+
+    return ini;
+}
