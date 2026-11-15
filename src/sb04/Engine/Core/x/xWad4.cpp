@@ -1273,6 +1273,8 @@ void xParMgrInit()
 
 //                                              xQuickCull
 
+#include "xRegionSupport.cpp"
+
 //                                                xRender
 
 //                                                xRenderBuffer
