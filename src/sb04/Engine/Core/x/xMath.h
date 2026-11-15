@@ -6,27 +6,24 @@
 #include <math.h>
 
 #define EPSILON 1e-5f
+#define PI 3.14159265358979323846f
+#define HUGE 1e38f
 
 #define xabs(x) iabs(x)
 #define xeq(a,b,e) (xabs((a) - (b)) <= (e))
+#define xfeq0(x) (((x) >= -EPSILON) && ((x) <= EPSILON))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MAX3(a,b,c) (MAX(MAX((a), (b)), (c)))
 #define CLAMP(x,a,b) MAX((a), MIN((x), (b)))
 #define xsqr(x) ((x) * (x))
+#define xsignbit(x) ((x) < 0.0f ? 1 : 0)
+#define xsamesign(a,b) (xsignbit(a) == xsignbit(b))
 
 #define SQR(x) ((x) * (x))
 
 #define ALIGN(x, a) ((x) + ((a)-1) & ~((a)-1))
 
-// Override these to point to their corresponding symbols in .sdata2
-// For example:
-//     #undef PI
-//     #undef ONEEIGHTY
-//     #define PI _771_1
-//     #define ONEEIGHTY _778_0
-#define PI 3.1415927f
-#define HUGE 1e38f
 #define PI_DOUBLE 3.141592653589793
 #define ONEEIGHTY 180.0f
 
@@ -35,6 +32,17 @@
 
 #define FLOAT_MAX 1e38f
 #define FLOAT_MIN -1e38f
+
+F32 xrmod(F32 ang);
+
+template <class T>
+T range_limit(T v, T minv, T maxv)
+{
+    return v <= minv ? minv : (v >= maxv ? maxv : v);
+}
+
+enum { MAX_BINOM_SIZE = 528 };
+extern S32 binom_triangle[MAX_BINOM_SIZE];
 
 struct xFuncPiece
 {
@@ -58,19 +66,54 @@ F32 xAngleClamp(F32 a);
 F32 xAngleClampFast(F32 a);
 F32 xDangleClamp(F32 a);
 void xAccelMove(F32& x, F32& v, F32 a, F32 dt, F32 endx, F32 maxv);
-F32 xAccelMoveTime(F32 dx, F32 a, F32, F32 maxv);
 void xAccelMove(F32& x, F32& v, F32 a, F32 dt, F32 maxv);
 void xAccelStop(F32& x, F32& v, F32 a, F32 dt);
-F32 xFuncPiece_Eval(xFuncPiece* func, F32 param, xFuncPiece** iterator);
 void xFuncPiece_EndPoints(xFuncPiece* func, F32 pi, F32 pf, F32 fi, F32 ff);
 void xFuncPiece_ShiftPiece(xFuncPiece* shift, xFuncPiece* func, F32 newZero);
 F32 xSCurve(F32 t, F32 softness);
 F32 xSCurve(F32 t);
 void xsqrtfast(F32& o, F32 fVal);
 
-F32 xrmod(F32 ang);
+struct xResponseCurve
+{
+    struct node
+    {
+        F32 t;
+    };
 
-template <class T> T range_limit(T v, T minv, T maxv);
+    struct inode : node
+    {
+        F32 value[1];
+    };
+
+    void reset(U32 values, const void* curve, U32 nodes);
+    void eval_linear(F32 t, F32* value) const;
+
+private:
+    void find_active_node(F32 t, size_t stride) const
+    {
+        const U8* it = (const U8*)curve + stride * active_node;
+        while (true) {
+            inode& n = *(inode*)it;
+            inode& next = *(inode*)(it + stride);
+            if (t < n.t) {
+                it -= stride;
+                active_node--;
+            }
+            else if (t > next.t) {
+                it += stride;
+                active_node++;
+            } else {
+                break;
+            }
+        }
+    }
+
+    U32 _values;
+    const inode* curve;
+    U32 _nodes;
+    mutable U32 active_node;
+};
 
 #include "xMathInlines.h"
 

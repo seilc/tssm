@@ -46,6 +46,11 @@ MATH_INLINE float floorf(float __x)
     return floor((double)__x);
 }
 
+MATH_INLINE float fmodf(float __x, float __y)
+{
+    return fmod((double)__x, (double)__y);
+}
+
 // The 3 inlines below were originally MATH_INLINE
 // Changed to correct issues. Change back if needed
 
