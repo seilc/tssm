@@ -422,7 +422,7 @@ config.libs = [
             Object(NonMatching, "sb04/Engine/Game/zParticleSystemWaterfall.cpp"),
             Object(NonMatching, "sb04/Engine/Game/zWadCine.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Game/zParticleCustom.cpp"),
-            Object(NonMatching, "sb04/Engine/Core/gc/iWad.cpp", extra_cflags=["-sym on"]),
+            Object(NonMatching, "sb04/Engine/Core/gc/iWad.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/gc/iTRC.cpp"),
             Object(Matching, "sb04/Engine/Core/gc/iException.cpp"),
             Object(NonMatching, "sb04/Engine/Core/gc/iScrFX.cpp"),
