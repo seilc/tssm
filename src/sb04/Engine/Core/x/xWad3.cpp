@@ -2,477 +2,158 @@
 #include "xWad3.h"
 #include "iModel.h"
 
-#include "xordarray.cpp"
-#include "xMovePoint.cpp"
-#include "xMorph.cpp"
+//                                      xMisc / Miscellaneous
 
-//                                           xModelBucket
+#include "xJSP.cpp"
 
-//                                               xModel
+//                                          xLightKit
 
-static xModelPool* sxModelPoolList;
-static RwCamera* subcamera;
-S32 xModelBucketEnabled;
+S32 iModelHack_DisablePrelight;
+xLightKit* gLastLightKit;
 
-static RwCamera* CameraCreate(int a, int b, int c);
-void CameraDestroy(RwCamera* cam);
-
-void xModelAnimCollStart(xModelInstance& model)
+void xLightKit_Destroy(xLightKit* lkit)
 {
-    model.Flags = (model.Flags & ~0x1000) | 0x800;
-    if (model.anim_coll.verts == NULL)
-    {
-        U32 size = iModelVertCount(model.Data);
-        if (size != 0)
-        {
-            model.anim_coll.verts = (xVec3*)xMEMALLOC(size * sizeof(xVec3), 0);
-        }
-    }
-}
-
-void xModel_SceneExit(RpWorld* world)
-{
-    RpWorldRemoveCamera(world, subcamera);
-}
-
-void xModel_SceneEnter(RpWorld* world)
-{
-    RpWorldAddCamera(world, subcamera);
-}
-
-void xModelRender(xModelInstance* model)
-{
-    while (model != NULL)
-    {
-        if (xModelBucketEnabled)
-        {
-            xModelBucket_Add(model);
-        }
-        else
-        {
-            xModelRenderSingle(model);
-        }
-        model = model->Next;
-    }
-}
-
-void xModelEvalSingle(xModelInstance* model);
-
-void xModelEval(xModelInstance* model)
-{
-    while (model != NULL)
-    {
-        xModelEvalSingle(model);
-        model = model->Next;
-    }
-}
-
-void xModelUpdate(xModelInstance* modelInst, F32 timeDelta)
-{
-    for (; modelInst != NULL; modelInst = modelInst->Next)
-    {
-        if (modelInst->Anim != NULL)
-        {
-            if ((modelInst->Flags & 4) != 0)
-            {
-                if ((modelInst->Flags & 0x100) != 0)
-                {
-                    xAnimPlayChooseTransition(modelInst->Anim);
-                }
-                xAnimPlayUpdate(modelInst->Anim, timeDelta);
-            }
-        }
-    }
-}
-
-void xModelInstanceAttach(xModelInstance* inst, xModelInstance* parent)
-{
-    xModelInstance* curr = parent;
-    while (curr->Next != NULL)
-    {
-        curr = curr->Next;
-    }
-    curr->Next = inst;
-    inst->Parent = parent;
-    if ((inst->Flags & 0x2000) != 0)
-    {
-        inst->Mat = parent->Mat;
-    }
-}
-
-static xModelInstance* FindChild(xModelInstance* model)
-{
-    xModelInstance* child = model->Next;
-    while (child != NULL)
-    {
-        if (child->Parent == model)
-        {
-            return child;
-        }
-        child = child->Next;
-    }
-    return NULL;
-}
-
-void xModelInstanceFree(xModelInstance* model)
-{
-    xModelInstance* prev;
-    xModelInstance* curr;
-
-    while (prev = FindChild(model), prev != NULL)
-    {
-        xModelInstanceFree(prev);
-    }
-    prev = model->Parent;
-    if (prev != NULL)
-    {
-        for (curr = prev->Next; (curr != NULL) && (curr != model); curr = curr->Next)
-        {
-            prev = curr;
-        }
-        prev->Next = curr->Next;
-    }
-    if (model->Anim != NULL)
-    {
-        xAnimPoolFree(model->Anim);
-        model->Anim = NULL;
-    }
-    if (model->Pool != NULL)
-    {
-        model->Next = model->Pool->List;
-        model->Pool->List = model;
-    }
-}
-
-// Equivalent (regalloc)
-void xModelInit()
-{
-    iModelInit();
-    sxModelPoolList = NULL;
-    if (subcamera == NULL)
-    {
-        subcamera = CameraCreate(0, 0, 1);
-    }
-    xModelPipeNumTables = 0;
-}
-
-#include "xMemoryManagerGeneral.cpp"
-#include "xMemoryManagerFixed.cpp"
-#include "xMemoryManager.cpp"
-
-//                                          xMem
-
-extern xMemInfo gMemInfo;
-extern xMemHeap_tag gxHeap[3];
-extern xMemHeap gxxHeap[3];
-extern void (*sMemBaseNotifyFunc)();
-
-void xMemPoolFree(xMemPool* pool, void* data)
-{
-    void** prev;
-    void* freeList;
-    U32 next;
-    void* curr;
-
-    if (data == NULL)
+    if (lkit == NULL)
     {
         return;
     }
 
-    freeList = pool->FreeList;
-    next = pool->NextOffset;
-    if (pool->Flags & 1)
-    {
-        prev = &pool->UsedList;
-        curr = pool->UsedList;
+    int i;
+    xLightKitLight* currLight = lkit->lightList;
 
-        while (curr != NULL && curr != data)
+    for (i = 0; i < lkit->lightCount; currLight++, i++)
+    {
+        if (currLight->platLight != NULL)
         {
-            prev = (void**)((U32)curr + next);
-            curr = *prev;
+            _rwFrameSyncDirty();
+            RwFrame* tframe = (RwFrame*)(currLight->platLight->object).object.parent;
+            if (tframe != NULL)
+            {
+                _rwObjectHasFrameSetFrame(currLight->platLight, 0);
+                RwFrameDestroy(tframe);
+            }
+            RpLightDestroy(currLight->platLight);
+            currLight->platLight = 0;
         }
+    }
+}
 
-        if (curr != NULL)
+xLightKit* xLightKit_GetCurrent(RpWorld* world)
+{
+    return gLastLightKit;
+}
+
+void xLightKit_Enable(xLightKit* lkit, RpWorld* world)
+{
+    if (lkit != gLastLightKit)
+    {
+        int i;
+        if (gLastLightKit != NULL)
         {
-            *prev = *(void**)((U32)curr + next);
+            for (i = 0; i < gLastLightKit->lightCount; i++)
+            {
+                RpWorldRemoveLight(world, gLastLightKit->lightList[i].platLight);
+            }
         }
-    }
-
-    *(void**)((U32)data + next) = freeList;
-    pool->FreeList = data;
-}
-
-void* xMemPoolAlloc(xMemPool* pool)
-{
-    void* retval = pool->FreeList;
-    U32 next = pool->NextOffset;
-    U32 flags = pool->Flags;
-
-    if (retval == NULL)
-    {
-        xMemPoolAddElements(pool, xMEMALLOC(pool->NumRealloc * pool->Size, 0), pool->NumRealloc);
-        retval = pool->FreeList;
-    }
-
-    pool->FreeList = *(void**)((U32)retval + next);
-    if (flags & 1)
-    {
-        *(void**)((U32)retval + next) = pool->UsedList;
-        pool->UsedList = retval;
-    }
-
-    return retval;
-}
-
-void xMemPoolSetup(xMemPool* pool, void* buffer, U32 nextOffset, U32 flags, xMemPoolInitCB initCB,
-                   U32 size, U32 count, U32 numRealloc)
-{
-    pool->FreeList = NULL;
-    pool->NextOffset = nextOffset;
-    pool->Flags = flags;
-    pool->UsedList = NULL;
-    pool->InitCB = initCB;
-    pool->Buffer = buffer;
-    pool->Size = size;
-    pool->NumRealloc = numRealloc;
-    pool->Total = 0;
-    xMemPoolAddElements(pool, buffer, count);
-}
-
-S32 xMemGetBase()
-{
-    return xMemGetBase(gActiveHeap);
-}
-
-void xMemRegisterBaseNotifyFunc(void (*func)())
-{
-    sMemBaseNotifyFunc = func;
-}
-
-S32 xMemPopBase(S32 depth)
-{
-    return xMemPopBase(gActiveHeap, depth);
-}
-
-S32 xMemPushBase()
-{
-    return xMemPushBase(gActiveHeap);
-}
-
-#pragma auto_inline off
-void* xMemAlloc(U32 heapID, U32 size, S32 align)
-{
-    // This variable not in DWARF
-    S32 true_align;
-
-    xMemHeap_tag* heap;
-    xMemBlock_tag* hdr;
-    xHeapState_tag* sp;
-
-    heap = &gxHeap[heapID];
-    sp = &heap->state[heap->state_idx];
-
-    true_align = 1 << (heap->flags >> 9 & 0x1f);
-    if (align > true_align)
-    {
-        true_align = align;
-    }
-
-    if (size == 0)
-    {
-        return (void*)0xDEADBEEF;
-    }
-
-    xMemBlkInfo info;
-    U32 total = xMemGetBlockInfo(heap, size, true_align, &info);
-    hdr = info.header;
-
-    if (sp->used + total > heap->size)
-    {
-        return NULL;
-    }
-
-    sp->curr = info.curr;
-    sp->blk_ct += 1;
-    if (heap->flags & 0x10000)
-    {
-        return NULL;
-    }
-
-    hdr->addr = info.block;
-    hdr->size = size;
-    hdr->align = true_align;
-    sp->used += total;
-    sp->wasted += info.waste;
-
-    memset((void*)hdr->addr, 0, size);
-    heap->lastblk = hdr;
-    return (void*)hdr->addr;
-}
-#pragma auto_inline reset
-
-#if 0
-// Not particularly close. Not 100% confident that I understand what's going on,
-// in particular the bit that goes:
-// (heap->lastblk->size + size) - heap->lastblk->size;
-// It really seems like the assembly code is adding and then immediately
-// subtracting again, and I don't see why it would want to do that.
-#undef xMemGrowAlloc
-void* xMemGrowAlloc(U32 heapID, U32 size)
-{
-    size = (size + 3) & 0xFFFFFFFC;
-    xMemHeap_tag* heap = &gxHeap[heapID];
-    xHeapState_tag* sp = &heap->state[heap->state_idx];
-    // pad size to multiple of 4 bytes
-    xMemBlock_tag* hdr = heap->lastblk;
-    U32 anotherVar = (heap->lastblk->size + size) - heap->lastblk->size;
-    if (sp->used + anotherVar > heap->size)
-    {
-        return 0;
-    }
-    else
-    {
-        void* memptr;
-        if (heap->flags & 0x100)
+        gLastLightKit = lkit;
+        if (lkit != NULL)
         {
-            memptr = (void*)(hdr->addr - size);
-            hdr->addr = (U32)memptr;
-            sp->curr -= anotherVar;
+            iModelHack_DisablePrelight = 1;
+            for (i = 0; i < lkit->lightCount; i++)
+            {
+                RpWorldAddLight(world, lkit->lightList[i].platLight);
+            }
         }
         else
         {
-            sp->curr += anotherVar;
-            memptr = (void*)(hdr->addr + heap->lastblk->size);
+            iModelHack_DisablePrelight = 0;
         }
-        sp->used += anotherVar;
-        hdr->size += size;
-        memset(memptr, 0, size);
-        return memptr;
     }
 }
-#endif
 
-#if 0
-// Not particularly close. This function is a nightmare, it has so many
-// variables to untangle.
-void xMemGetBlockInfo(xMemHeap_tag* heap, U32 size, S32 align, xMemBlkInfo* info)
+xLightKit* xLightKit_Prepare(void* data)
 {
-    S32 hdr = 1;
-    xHeapState_tag* sp = &heap->state[heap->state_idx];
-    if (heap->flags & 0x100)
-    {
-        hdr = -1;
-    }
+    xLightKit* lkit = (xLightKit*)data;
+    lkit->lightList = (xLightKitLight*)((int*)data + 4);
+    xLightKitLight* currlight = (xLightKitLight*)((int*)data + 4);
 
-    S32 remainder = 0xc & -(heap->flags & 0x10000);
-    S32 pre;
-    S32 post;
-    S32 block;
-    S32 r8;
-    if (heap->flags & 0x100)
+    for (int i = 0; i < lkit->lightCount; currlight++, i++)
     {
-        block = -remainder;
-        pre = -(remainder + size + ((sp->curr - remainder - size) & (align - 1)));
-        post = pre + size;
-        r8 = -pre;
-    }
-    else
-    {
-        block = 0;
-        if (r8 = (align - 1) & (sp->curr + remainder))
+        if (currlight->platLight != NULL)
         {
-            r8 = align;
+            return lkit;
         }
-        pre = (align + remainder) - r8;
-        post = pre + size;
-        r8 = post;
+
+        // If any of the colors is greater than 1.0, normalize back to 0-1
+        if (currlight->color.red > 1.0f || currlight->color.green > 1.0f ||
+            currlight->color.blue > 1.0f)
+        {
+            F32 s;
+            s = MAX3(currlight->color.red, currlight->color.green, currlight->color.blue);
+            s = MAX(s, 0.00001f);
+            s = 1.0f / s;
+            currlight->color.red *= s;
+            currlight->color.green *= s;
+            currlight->color.blue *= s;
+        }
+
+        switch (currlight->type)
+        {
+        case 1:
+            currlight->platLight = RpLightCreate(2);
+            break;
+        case 2:
+            currlight->platLight = RpLightCreate(1);
+            break;
+        case 3:
+            currlight->platLight = RpLightCreate(128);
+            break;
+        case 4:
+            currlight->platLight = RpLightCreate(130);
+            break;
+        default:
+            break;
+        }
+        RpLightSetColor(currlight->platLight, &currlight->color);
+        if (currlight->type >= 2)
+        {
+            RwFrame* frame = RwFrameCreate();
+            RwMatrix tmpmat;
+
+            memset(&tmpmat, 0, 64);
+            tmpmat.right.x = -currlight->matrix[0];
+            tmpmat.right.y = -currlight->matrix[1];
+            tmpmat.right.z = -currlight->matrix[2];
+            tmpmat.up.x = currlight->matrix[4];
+            tmpmat.up.y = currlight->matrix[5];
+            tmpmat.up.z = currlight->matrix[6];
+            tmpmat.at.x = -currlight->matrix[8];
+            tmpmat.at.y = -currlight->matrix[9];
+            tmpmat.at.z = -currlight->matrix[10];
+            tmpmat.pos.x = currlight->matrix[12];
+            tmpmat.pos.y = currlight->matrix[13];
+            tmpmat.pos.z = currlight->matrix[14];
+            RwV3dNormalize(&tmpmat.right, &tmpmat.right);
+            RwV3dNormalize(&tmpmat.up, &tmpmat.up);
+            RwV3dNormalize(&tmpmat.at, &tmpmat.at);
+            RwFrameTransform(frame, &tmpmat, rwCOMBINEREPLACE);
+            _rwObjectHasFrameSetFrame(currlight->platLight, frame);
+        }
+        if (currlight->type >= 3)
+        {
+            RpLightSetRadius(currlight->platLight, currlight->radius);
+        }
+        if (currlight->type >= 4)
+        {
+            RpLightSetConeAngle(currlight->platLight, currlight->angle);
+        }
     }
 
-    S32 total = (r8 + 3) & 0xFFFFFFFE;
-    if (heap->flags & 0x10000)
-    {
-        info->header = &heap->blk[sp->curr];
-    }
-    else
-    {
-        info->header = (xMemBlock_tag*)(sp->curr + block);
-    }
-    info->pre = sp->curr + pre;
-    info->block = sp->curr + pre;
-    info->post = sp->curr + post;
-    info->curr = sp->curr + hdr * total;
-    info->waste = total - (remainder + size);
-    info->total = total;
-}
-#endif
-
-void xMemInitHeap(xMemHeap* heap, U32 base, U32 size, U32 flags)
-{
-    U32 old_base = base;
-    S32 align = 1 << ((flags >> 9) & 0x1F);
-    if (flags & 0x100)
-    {
-        base = base & -align;
-        size -= (old_base - base);
-    }
-    else
-    {
-        base = (old_base + align - 1) & -align;
-        size -= (base - old_base);
-    }
-
-    heap->state_idx = 0;
-    heap->hard_base = base;
-    heap->size = size;
-    heap->flags = flags;
-    heap->lastblk = NULL;
-    xHeapState* sp = &heap->state[heap->state_idx];
-    sp->curr = base;
-    sp->blk_ct = 0;
-
-    if (flags & 0x10000)
-    {
-        heap->max_blks = (1 << ((flags >> 14) & 0x1));
-        heap->blk = (xMemBlock*)malloc(heap->max_blks * sizeof(xMemBlock_tag));
-        memset(heap->blk, 0, heap->max_blks * sizeof(xMemBlock_tag));
-    }
-    else
-    {
-        heap->max_blks = -1;
-        heap->blk = 0;
-    }
-    heap->opp_heap[0] = -1;
-    heap->opp_heap[1] = -1;
-}
-
-void iMemExit();
-
-void xMemExit()
-{
-    iMemExit();
-}
-
-void iMemInit();
-
-// The instructions putting 0/1/2 into registers happen in the wrong order.
-void xMemInit()
-{
-    iMemInit();
-    xMemInitHeap(&gxHeap[0], gMemInfo.DRAM.addr, gMemInfo.DRAM.size, 0x8826);
-    xMemInitHeap(&gxHeap[1], gMemInfo.DRAM.addr + gMemInfo.DRAM.size, gMemInfo.DRAM.size, 0x8925);
-    xMemInitHeap(&gxHeap[2], gMemInfo.DRAM.addr + gMemInfo.DRAM.size, gMemInfo.DRAM.size, 0x892A);
-    gxHeap[0].opp_heap[0] = 1;
-    gxHeap[0].opp_heap[1] = 2;
-    gxHeap[1].opp_heap[0] = 0;
-    gxHeap[1].opp_heap[1] = 2;
-    gxHeap[2].opp_heap[0] = 0;
-    gxHeap[2].opp_heap[1] = 1;
-    gActiveHeap = 0;
+    return (xLightKit*)data;
 }
 
-void xMemDebug_SoakLog(const char*)
-{
-}
+#include "xLightVolume.cpp"
+#include "xMath.cpp"
 
 //                                      xQuat / xMat3x3 / xMat4x3
 
@@ -1159,155 +840,474 @@ S32 xPointInBox(const xBox* b, const xVec3* p)
     return (char)ret;
 }
 
-#include "xMath.cpp"
-#include "xLightVolume.cpp"
+//                                          xMem
 
-//                                          xLightKit
+extern xMemInfo gMemInfo;
+extern xMemHeap_tag gxHeap[3];
+extern xMemHeap gxxHeap[3];
+extern void (*sMemBaseNotifyFunc)();
 
-S32 iModelHack_DisablePrelight;
-xLightKit* gLastLightKit;
-
-void xLightKit_Destroy(xLightKit* lkit)
+void xMemPoolFree(xMemPool* pool, void* data)
 {
-    if (lkit == NULL)
+    void** prev;
+    void* freeList;
+    U32 next;
+    void* curr;
+
+    if (data == NULL)
     {
         return;
     }
 
-    int i;
-    xLightKitLight* currLight = lkit->lightList;
-
-    for (i = 0; i < lkit->lightCount; currLight++, i++)
+    freeList = pool->FreeList;
+    next = pool->NextOffset;
+    if (pool->Flags & 1)
     {
-        if (currLight->platLight != NULL)
+        prev = &pool->UsedList;
+        curr = pool->UsedList;
+
+        while (curr != NULL && curr != data)
         {
-            _rwFrameSyncDirty();
-            RwFrame* tframe = (RwFrame*)(currLight->platLight->object).object.parent;
-            if (tframe != NULL)
-            {
-                _rwObjectHasFrameSetFrame(currLight->platLight, 0);
-                RwFrameDestroy(tframe);
-            }
-            RpLightDestroy(currLight->platLight);
-            currLight->platLight = 0;
+            prev = (void**)((U32)curr + next);
+            curr = *prev;
+        }
+
+        if (curr != NULL)
+        {
+            *prev = *(void**)((U32)curr + next);
         }
     }
+
+    *(void**)((U32)data + next) = freeList;
+    pool->FreeList = data;
 }
 
-xLightKit* xLightKit_GetCurrent(RpWorld* world)
+void* xMemPoolAlloc(xMemPool* pool)
 {
-    return gLastLightKit;
-}
+    void* retval = pool->FreeList;
+    U32 next = pool->NextOffset;
+    U32 flags = pool->Flags;
 
-void xLightKit_Enable(xLightKit* lkit, RpWorld* world)
-{
-    if (lkit != gLastLightKit)
+    if (retval == NULL)
     {
-        int i;
-        if (gLastLightKit != NULL)
+        xMemPoolAddElements(pool, xMEMALLOC(pool->NumRealloc * pool->Size, 0), pool->NumRealloc);
+        retval = pool->FreeList;
+    }
+
+    pool->FreeList = *(void**)((U32)retval + next);
+    if (flags & 1)
+    {
+        *(void**)((U32)retval + next) = pool->UsedList;
+        pool->UsedList = retval;
+    }
+
+    return retval;
+}
+
+void xMemPoolSetup(xMemPool* pool, void* buffer, U32 nextOffset, U32 flags, xMemPoolInitCB initCB,
+                   U32 size, U32 count, U32 numRealloc)
+{
+    pool->FreeList = NULL;
+    pool->NextOffset = nextOffset;
+    pool->Flags = flags;
+    pool->UsedList = NULL;
+    pool->InitCB = initCB;
+    pool->Buffer = buffer;
+    pool->Size = size;
+    pool->NumRealloc = numRealloc;
+    pool->Total = 0;
+    xMemPoolAddElements(pool, buffer, count);
+}
+
+S32 xMemGetBase()
+{
+    return xMemGetBase(gActiveHeap);
+}
+
+void xMemRegisterBaseNotifyFunc(void (*func)())
+{
+    sMemBaseNotifyFunc = func;
+}
+
+S32 xMemPopBase(S32 depth)
+{
+    return xMemPopBase(gActiveHeap, depth);
+}
+
+S32 xMemPushBase()
+{
+    return xMemPushBase(gActiveHeap);
+}
+
+#pragma auto_inline off
+void* xMemAlloc(U32 heapID, U32 size, S32 align)
+{
+    // This variable not in DWARF
+    S32 true_align;
+
+    xMemHeap_tag* heap;
+    xMemBlock_tag* hdr;
+    xHeapState_tag* sp;
+
+    heap = &gxHeap[heapID];
+    sp = &heap->state[heap->state_idx];
+
+    true_align = 1 << (heap->flags >> 9 & 0x1f);
+    if (align > true_align)
+    {
+        true_align = align;
+    }
+
+    if (size == 0)
+    {
+        return (void*)0xDEADBEEF;
+    }
+
+    xMemBlkInfo info;
+    U32 total = xMemGetBlockInfo(heap, size, true_align, &info);
+    hdr = info.header;
+
+    if (sp->used + total > heap->size)
+    {
+        return NULL;
+    }
+
+    sp->curr = info.curr;
+    sp->blk_ct += 1;
+    if (heap->flags & 0x10000)
+    {
+        return NULL;
+    }
+
+    hdr->addr = info.block;
+    hdr->size = size;
+    hdr->align = true_align;
+    sp->used += total;
+    sp->wasted += info.waste;
+
+    memset((void*)hdr->addr, 0, size);
+    heap->lastblk = hdr;
+    return (void*)hdr->addr;
+}
+#pragma auto_inline reset
+
+#if 0
+// Not particularly close. Not 100% confident that I understand what's going on,
+// in particular the bit that goes:
+// (heap->lastblk->size + size) - heap->lastblk->size;
+// It really seems like the assembly code is adding and then immediately
+// subtracting again, and I don't see why it would want to do that.
+#undef xMemGrowAlloc
+void* xMemGrowAlloc(U32 heapID, U32 size)
+{
+    size = (size + 3) & 0xFFFFFFFC;
+    xMemHeap_tag* heap = &gxHeap[heapID];
+    xHeapState_tag* sp = &heap->state[heap->state_idx];
+    // pad size to multiple of 4 bytes
+    xMemBlock_tag* hdr = heap->lastblk;
+    U32 anotherVar = (heap->lastblk->size + size) - heap->lastblk->size;
+    if (sp->used + anotherVar > heap->size)
+    {
+        return 0;
+    }
+    else
+    {
+        void* memptr;
+        if (heap->flags & 0x100)
         {
-            for (i = 0; i < gLastLightKit->lightCount; i++)
-            {
-                RpWorldRemoveLight(world, gLastLightKit->lightList[i].platLight);
-            }
-        }
-        gLastLightKit = lkit;
-        if (lkit != NULL)
-        {
-            iModelHack_DisablePrelight = 1;
-            for (i = 0; i < lkit->lightCount; i++)
-            {
-                RpWorldAddLight(world, lkit->lightList[i].platLight);
-            }
+            memptr = (void*)(hdr->addr - size);
+            hdr->addr = (U32)memptr;
+            sp->curr -= anotherVar;
         }
         else
         {
-            iModelHack_DisablePrelight = 0;
+            sp->curr += anotherVar;
+            memptr = (void*)(hdr->addr + heap->lastblk->size);
         }
+        sp->used += anotherVar;
+        hdr->size += size;
+        memset(memptr, 0, size);
+        return memptr;
     }
 }
+#endif
 
-xLightKit* xLightKit_Prepare(void* data)
+#if 0
+// Not particularly close. This function is a nightmare, it has so many
+// variables to untangle.
+void xMemGetBlockInfo(xMemHeap_tag* heap, U32 size, S32 align, xMemBlkInfo* info)
 {
-    xLightKit* lkit = (xLightKit*)data;
-    lkit->lightList = (xLightKitLight*)((int*)data + 4);
-    xLightKitLight* currlight = (xLightKitLight*)((int*)data + 4);
-
-    for (int i = 0; i < lkit->lightCount; currlight++, i++)
+    S32 hdr = 1;
+    xHeapState_tag* sp = &heap->state[heap->state_idx];
+    if (heap->flags & 0x100)
     {
-        if (currlight->platLight != NULL)
-        {
-            return lkit;
-        }
-
-        // If any of the colors is greater than 1.0, normalize back to 0-1
-        if (currlight->color.red > 1.0f || currlight->color.green > 1.0f ||
-            currlight->color.blue > 1.0f)
-        {
-            F32 s;
-            s = MAX3(currlight->color.red, currlight->color.green, currlight->color.blue);
-            s = MAX(s, 0.00001f);
-            s = 1.0f / s;
-            currlight->color.red *= s;
-            currlight->color.green *= s;
-            currlight->color.blue *= s;
-        }
-
-        switch (currlight->type)
-        {
-        case 1:
-            currlight->platLight = RpLightCreate(2);
-            break;
-        case 2:
-            currlight->platLight = RpLightCreate(1);
-            break;
-        case 3:
-            currlight->platLight = RpLightCreate(128);
-            break;
-        case 4:
-            currlight->platLight = RpLightCreate(130);
-            break;
-        default:
-            break;
-        }
-        RpLightSetColor(currlight->platLight, &currlight->color);
-        if (currlight->type >= 2)
-        {
-            RwFrame* frame = RwFrameCreate();
-            RwMatrix tmpmat;
-
-            memset(&tmpmat, 0, 64);
-            tmpmat.right.x = -currlight->matrix[0];
-            tmpmat.right.y = -currlight->matrix[1];
-            tmpmat.right.z = -currlight->matrix[2];
-            tmpmat.up.x = currlight->matrix[4];
-            tmpmat.up.y = currlight->matrix[5];
-            tmpmat.up.z = currlight->matrix[6];
-            tmpmat.at.x = -currlight->matrix[8];
-            tmpmat.at.y = -currlight->matrix[9];
-            tmpmat.at.z = -currlight->matrix[10];
-            tmpmat.pos.x = currlight->matrix[12];
-            tmpmat.pos.y = currlight->matrix[13];
-            tmpmat.pos.z = currlight->matrix[14];
-            RwV3dNormalize(&tmpmat.right, &tmpmat.right);
-            RwV3dNormalize(&tmpmat.up, &tmpmat.up);
-            RwV3dNormalize(&tmpmat.at, &tmpmat.at);
-            RwFrameTransform(frame, &tmpmat, rwCOMBINEREPLACE);
-            _rwObjectHasFrameSetFrame(currlight->platLight, frame);
-        }
-        if (currlight->type >= 3)
-        {
-            RpLightSetRadius(currlight->platLight, currlight->radius);
-        }
-        if (currlight->type >= 4)
-        {
-            RpLightSetConeAngle(currlight->platLight, currlight->angle);
-        }
+        hdr = -1;
     }
 
-    return (xLightKit*)data;
+    S32 remainder = 0xc & -(heap->flags & 0x10000);
+    S32 pre;
+    S32 post;
+    S32 block;
+    S32 r8;
+    if (heap->flags & 0x100)
+    {
+        block = -remainder;
+        pre = -(remainder + size + ((sp->curr - remainder - size) & (align - 1)));
+        post = pre + size;
+        r8 = -pre;
+    }
+    else
+    {
+        block = 0;
+        if (r8 = (align - 1) & (sp->curr + remainder))
+        {
+            r8 = align;
+        }
+        pre = (align + remainder) - r8;
+        post = pre + size;
+        r8 = post;
+    }
+
+    S32 total = (r8 + 3) & 0xFFFFFFFE;
+    if (heap->flags & 0x10000)
+    {
+        info->header = &heap->blk[sp->curr];
+    }
+    else
+    {
+        info->header = (xMemBlock_tag*)(sp->curr + block);
+    }
+    info->pre = sp->curr + pre;
+    info->block = sp->curr + pre;
+    info->post = sp->curr + post;
+    info->curr = sp->curr + hdr * total;
+    info->waste = total - (remainder + size);
+    info->total = total;
+}
+#endif
+
+void xMemInitHeap(xMemHeap* heap, U32 base, U32 size, U32 flags)
+{
+    U32 old_base = base;
+    S32 align = 1 << ((flags >> 9) & 0x1F);
+    if (flags & 0x100)
+    {
+        base = base & -align;
+        size -= (old_base - base);
+    }
+    else
+    {
+        base = (old_base + align - 1) & -align;
+        size -= (base - old_base);
+    }
+
+    heap->state_idx = 0;
+    heap->hard_base = base;
+    heap->size = size;
+    heap->flags = flags;
+    heap->lastblk = NULL;
+    xHeapState* sp = &heap->state[heap->state_idx];
+    sp->curr = base;
+    sp->blk_ct = 0;
+
+    if (flags & 0x10000)
+    {
+        heap->max_blks = (1 << ((flags >> 14) & 0x1));
+        heap->blk = (xMemBlock*)malloc(heap->max_blks * sizeof(xMemBlock_tag));
+        memset(heap->blk, 0, heap->max_blks * sizeof(xMemBlock_tag));
+    }
+    else
+    {
+        heap->max_blks = -1;
+        heap->blk = 0;
+    }
+    heap->opp_heap[0] = -1;
+    heap->opp_heap[1] = -1;
 }
 
-#include "xJSP.cpp"
+void iMemExit();
 
-//                                      xMisc / Miscellaneous
+void xMemExit()
+{
+    iMemExit();
+}
+
+void iMemInit();
+
+// The instructions putting 0/1/2 into registers happen in the wrong order.
+void xMemInit()
+{
+    iMemInit();
+    xMemInitHeap(&gxHeap[0], gMemInfo.DRAM.addr, gMemInfo.DRAM.size, 0x8826);
+    xMemInitHeap(&gxHeap[1], gMemInfo.DRAM.addr + gMemInfo.DRAM.size, gMemInfo.DRAM.size, 0x8925);
+    xMemInitHeap(&gxHeap[2], gMemInfo.DRAM.addr + gMemInfo.DRAM.size, gMemInfo.DRAM.size, 0x892A);
+    gxHeap[0].opp_heap[0] = 1;
+    gxHeap[0].opp_heap[1] = 2;
+    gxHeap[1].opp_heap[0] = 0;
+    gxHeap[1].opp_heap[1] = 2;
+    gxHeap[2].opp_heap[0] = 0;
+    gxHeap[2].opp_heap[1] = 1;
+    gActiveHeap = 0;
+}
+
+void xMemDebug_SoakLog(const char*)
+{
+}
+
+#include "xMemoryManager.cpp"
+#include "xMemoryManagerFixed.cpp"
+#include "xMemoryManagerGeneral.cpp"
+
+//                                               xModel
+
+static xModelPool* sxModelPoolList;
+static RwCamera* subcamera;
+S32 xModelBucketEnabled;
+
+static RwCamera* CameraCreate(int a, int b, int c);
+void CameraDestroy(RwCamera* cam);
+
+void xModelAnimCollStart(xModelInstance& model)
+{
+    model.Flags = (model.Flags & ~0x1000) | 0x800;
+    if (model.anim_coll.verts == NULL)
+    {
+        U32 size = iModelVertCount(model.Data);
+        if (size != 0)
+        {
+            model.anim_coll.verts = (xVec3*)xMEMALLOC(size * sizeof(xVec3), 0);
+        }
+    }
+}
+
+void xModel_SceneExit(RpWorld* world)
+{
+    RpWorldRemoveCamera(world, subcamera);
+}
+
+void xModel_SceneEnter(RpWorld* world)
+{
+    RpWorldAddCamera(world, subcamera);
+}
+
+void xModelRender(xModelInstance* model)
+{
+    while (model != NULL)
+    {
+        if (xModelBucketEnabled)
+        {
+            xModelBucket_Add(model);
+        }
+        else
+        {
+            xModelRenderSingle(model);
+        }
+        model = model->Next;
+    }
+}
+
+void xModelEvalSingle(xModelInstance* model);
+
+void xModelEval(xModelInstance* model)
+{
+    while (model != NULL)
+    {
+        xModelEvalSingle(model);
+        model = model->Next;
+    }
+}
+
+void xModelUpdate(xModelInstance* modelInst, F32 timeDelta)
+{
+    for (; modelInst != NULL; modelInst = modelInst->Next)
+    {
+        if (modelInst->Anim != NULL)
+        {
+            if ((modelInst->Flags & 4) != 0)
+            {
+                if ((modelInst->Flags & 0x100) != 0)
+                {
+                    xAnimPlayChooseTransition(modelInst->Anim);
+                }
+                xAnimPlayUpdate(modelInst->Anim, timeDelta);
+            }
+        }
+    }
+}
+
+void xModelInstanceAttach(xModelInstance* inst, xModelInstance* parent)
+{
+    xModelInstance* curr = parent;
+    while (curr->Next != NULL)
+    {
+        curr = curr->Next;
+    }
+    curr->Next = inst;
+    inst->Parent = parent;
+    if ((inst->Flags & 0x2000) != 0)
+    {
+        inst->Mat = parent->Mat;
+    }
+}
+
+static xModelInstance* FindChild(xModelInstance* model)
+{
+    xModelInstance* child = model->Next;
+    while (child != NULL)
+    {
+        if (child->Parent == model)
+        {
+            return child;
+        }
+        child = child->Next;
+    }
+    return NULL;
+}
+
+void xModelInstanceFree(xModelInstance* model)
+{
+    xModelInstance* prev;
+    xModelInstance* curr;
+
+    while (prev = FindChild(model), prev != NULL)
+    {
+        xModelInstanceFree(prev);
+    }
+    prev = model->Parent;
+    if (prev != NULL)
+    {
+        for (curr = prev->Next; (curr != NULL) && (curr != model); curr = curr->Next)
+        {
+            prev = curr;
+        }
+        prev->Next = curr->Next;
+    }
+    if (model->Anim != NULL)
+    {
+        xAnimPoolFree(model->Anim);
+        model->Anim = NULL;
+    }
+    if (model->Pool != NULL)
+    {
+        model->Next = model->Pool->List;
+        model->Pool->List = model;
+    }
+}
+
+// Equivalent (regalloc)
+void xModelInit()
+{
+    iModelInit();
+    sxModelPoolList = NULL;
+    if (subcamera == NULL)
+    {
+        subcamera = CameraCreate(0, 0, 1);
+    }
+    xModelPipeNumTables = 0;
+}
+
+//                                           xModelBucket
+
+#include "xMorph.cpp"
+#include "xMovePoint.cpp"
+#include "xordarray.cpp"
