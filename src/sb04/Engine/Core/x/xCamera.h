@@ -2,6 +2,7 @@
 #define XCAMERA_H
 
 #include "iCamera.h"
+#include "xCam.h"
 
 #include "xBase.h"
 #include "xMath3.h"
@@ -29,23 +30,6 @@ typedef enum _tagTransType
     eTransType_Interp4Rev,
     eTransType_Total
 } eTransType;
-
-enum xCamCoordType
-{
-    XCAM_COORD_CART,
-    XCAM_COORD_CYLINDER,
-    XCAM_COORD_SPHERE,
-    XCAM_COORD_MAX,
-    XCAM_COORD_INVALID = 0xffffffff,
-};
-
-enum xCamOrientType
-{
-    XCAM_ORIENT_QUAT,
-    XCAM_ORIENT_EULER,
-    XCAM_ORIENT_MAX,
-    XCAM_ORIENT_INVALID = 0xffffffff,
-};
 
 typedef struct _tagxCamFollowAsset
 {
@@ -233,17 +217,7 @@ struct xBinaryCamera
     void render_debug();
 };
 
-struct xCamConfigCommon
-{
-    U8 priority;
-    U8 pad1;
-    U8 pad2;
-    U8 pad3;
-    F32 blend_time;
-};
-
 struct xCamBlend;
-struct xCam;
 
 struct xCamGroup
 {
@@ -260,45 +234,6 @@ struct xCamGroup
     S32 child_flags;
     S32 child_flags_mask;
     xCamBlend* blend_cam[4];
-};
-
-struct xCam
-{
-    struct _class_0
-    {
-        union
-        {
-            //xVec3 cart;
-            //xCamCoordCylinder cylinder;
-            //xCamCoordSphere sphere;
-        };
-    };
-
-    struct _class_1
-    {
-        union
-        {
-            //xQuat quat;
-            //xCamOrientEuler euler;
-        };
-    };
-
-    xMat4x3 mat;
-    F32 fov;
-    S32 flags;
-    U32 owner;
-    xCamGroup* group;
-    analog_data analog;
-    F32 motion_factor;
-    xCamCoordType coord_type;
-    xCamOrientType orient_type;
-    _class_0 coord;
-    _class_1 orient;
-    U8 _padding[0x2c]; // until the anonymous union structs above are done
-    xCamConfigCommon cfg_common;
-    S32 group_index;
-    S32 group_flags;
-    xCamBlend* blender;
 };
 
 struct xCamBlend : xCam

@@ -60,7 +60,6 @@ struct xModelInstance
     xBox combinedAnimBound;
     U32 modelID;
     U32 shadowID;
-    RpAtomic* shadowmapAtomic;
     _class_6 anim_coll;
 };
 
@@ -150,6 +149,7 @@ void xModel_SceneExit(RpWorld* world);
 xSphere* xModelGetLocalSBound(xModelInstance* model);
 void xModelGetBoneMat(xMat4x3& mat, const xModelInstance& model, size_t index);
 void xModelInstanceUpgradeBrotherShared(xModelInstance* inst, U32 flags);
+S32 xModelBoxCull(xBox* box);
 S32 xModelCullSingle(xModelInstance* minst);
 
 inline void xModelSetFrame(xModelInstance* modelInst, const xMat4x3* frame)

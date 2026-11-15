@@ -5,6 +5,14 @@
 #include "xDynAsset.h"
 #include "xScene.h"
 
+struct zFlyKey
+{
+    S32 frame;
+    F32 matrix[12];
+    F32 aperture[2];
+    F32 focal;
+};
+
 struct CameraFly_asset : xDynAsset
 {
     U32 flyID;

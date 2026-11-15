@@ -160,6 +160,14 @@ do {                                                                            
     }                                                                                             \
 } while (0)
 
+#define xVec3DistMacro(a, b, outlen)                                                              \
+do {                                                                                              \
+    F32 dx__ = (a)->x - (b)->x;                                                                   \
+    F32 dy__ = (a)->y - (b)->y;                                                                   \
+    F32 dz__ = (a)->z - (b)->z;                                                                   \
+    *(outlen) = xsqrt(dx__ * dx__ + dy__ * dy__ + dz__ * dz__);                                   \
+} while (0)
+
 F32 xVec3Normalize(xVec3* o, const xVec3* v);
 F32 xVec3NormalizeFast(xVec3* o, const xVec3* v);
 void xVec3Copy(xVec3* o, const xVec3* v);

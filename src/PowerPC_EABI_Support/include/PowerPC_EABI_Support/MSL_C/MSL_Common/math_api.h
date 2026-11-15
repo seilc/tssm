@@ -36,6 +36,16 @@ MATH_INLINE float expf(float __x)
     return exp((double)__x);
 }
 
+MATH_INLINE float atan2f(float __y, float __x)
+{
+    return atan2((double)__y, (double)__x);
+}
+
+MATH_INLINE float floorf(float __x)
+{
+    return floor((double)__x);
+}
+
 // The 3 inlines below were originally MATH_INLINE
 // Changed to correct issues. Change back if needed
 

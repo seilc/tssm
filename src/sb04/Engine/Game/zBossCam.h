@@ -3,21 +3,6 @@
 
 struct xCamBlend;
 
-struct xCamCoordSphere
-{
-    xVec3 origin;
-    F32 dist;
-    xQuat dir;
-};
-
-struct xCamCoordCylinder
-{
-    xVec3 origin;
-    F32 dist;
-    F32 height;
-    F32 theta;
-};
-
 struct _class_11
 {
     union
@@ -26,13 +11,6 @@ struct _class_11
         xCamCoordCylinder cylinder;
         xCamCoordSphere sphere;
     };
-};
-
-struct xCamOrientEuler
-{
-    F32 yaw;
-    F32 pitch;
-    F32 roll;
 };
 
 struct _class_16
@@ -93,4 +71,8 @@ struct zBossCam_Binary : xCam
     xVec3* s2;
     F32 s2_radius;
     xVec2 stick_offset;
+
+    void create();
+    void start();
+    void update(xScene& scene, F32 dt);
 };

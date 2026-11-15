@@ -3439,7 +3439,7 @@ S32 iCSLoadStep(xCutscene* csn)
 
         while (csn->DataLoading < (S32)csn->Info->NumData)
         {
-            if (csn->Data[csn->DataLoading].DataType == XCUTSCENEDATA_TYPE_6)
+            if (csn->Data[csn->DataLoading].DataType == 6)
             {
                 foundModel = NULL;
             }
@@ -3467,7 +3467,7 @@ S32 iCSLoadStep(xCutscene* csn)
 
                 if (csn->GotData)
                 {
-                    if (csn->Data[csn->DataLoading].DataType == XCUTSCENEDATA_TYPE_6)
+                    if (csn->Data[csn->DataLoading].DataType == 6)
                     {
                         csn->Data[csn->DataLoading].DataPtr =
                             RwMalloc(csn->Data[csn->DataLoading].ChunkSize, rwMEMHINTDUR_NADURATION);
@@ -3519,18 +3519,18 @@ S32 iCSLoadStep(xCutscene* csn)
                 {
                     // Stereo
 
-                    csn->SndHandle[0] = xSndPlay(csn->SndAssetID[0], 0.9f, -99999.0f, 255, 0x200, 0,
+                    csn->SndHandle[0] = (iSndHandle)xSndPlay(csn->SndAssetID[0], 0.9f, -99999.0f, 255, 0x200, 0,
                                                  SND_CAT_CUTSCENE, 0.0f);
-                    csn->SndHandle[1] = xSndPlay(csn->SndAssetID[1], 0.9f, -99999.0f, 255, 0x200, 0,
+                    csn->SndHandle[1] = (iSndHandle)xSndPlay(csn->SndAssetID[1], 0.9f, -99999.0f, 255, 0x200, 0,
                                                  SND_CAT_CUTSCENE, 0.0f);
                 }
                 else
                 {
                     // Mono
 
-                    csn->SndHandle[0] = xSndPlay(csn->SndAssetID[0], 0.9f, -99999.0f, 255, 0x200, 0,
+                    csn->SndHandle[0] = (iSndHandle)xSndPlay(csn->SndAssetID[0], 0.9f, -99999.0f, 255, 0x200, 0,
                                                  SND_CAT_CUTSCENE, 0.0f);
-                    csn->SndHandle[1] = 0;
+                    csn->SndHandle[1] = (iSndHandle)0;
                 }
             }
 
@@ -3657,7 +3657,7 @@ void* iCSSoundGetData(xSndVoiceInfo* vp, U32* size)
 
     for (dataIndex = 0; dataIndex < numData; dataIndex++)
     {
-        if (data->DataType == XCUTSCENEDATA_TYPE_SOUND)
+        if (data->DataType == 5)
         {
             if (!retdata)
             {
@@ -3708,7 +3708,7 @@ void iCSSoundSetup(xCutscene* csn)
 
     for (dataIndex = 0; dataIndex < numData; dataIndex++)
     {
-        if (data->DataType == XCUTSCENEDATA_TYPE_SOUND)
+        if (data->DataType == 5)
         {
             if (csn->SndNumChannel >= 2)
             {

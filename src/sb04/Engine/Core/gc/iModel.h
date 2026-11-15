@@ -23,7 +23,10 @@ U32 iModelVertCount(RpAtomic* model);
 void iModelMaterialMul(RpAtomic* model, F32 rm, F32 gm, F32 bm);
 RpAtomic* iModelFileNew(void* buffer, U32 size);
 void iModelRender(RpAtomic* model, RwMatrix* mat);
+xSphere* iModelWorldBoundSphere(RpAtomic* model, RwMatrix* mat, xSphere* sphere);
+void iModelSetWorldBoundFromBox(RpAtomic* model, xBox* box);
 void iModelUnload(RpAtomic* userdata);
 void iModelAnimMatrices(RpAtomic* model, xQuat* quat, xVec3* tran, RwMatrix* mat);
+void iModelAnimBoundWorld(xBox* box, xBox* combinedBox, RpAtomic* model, RwMatrix* mat, RwMatrix* bonemat);
 
 #endif

@@ -2,6 +2,7 @@
 #define ZCAMERA_H
 
 #include "zCamSB.h"
+#include "zCameraFly.h"
 
 enum WallJumpViewState
 {
@@ -21,14 +22,6 @@ enum camera_owner_enum
     CO_ZIPLINE = 0x20,
     CO_TURRET = 0x40,
     CO_REWARDANIM = 0x80
-};
-
-struct zFlyKey
-{
-    S32 frame;
-    F32 matrix[12];
-    F32 aperture[2];
-    F32 focal;
 };
 
 struct zCamTweakLook

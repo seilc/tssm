@@ -21,28 +21,7 @@
 #include "xVec3Inlines.h"
 #include "xMath.h"
 #include "xMathInlines.h"
-
-typedef struct tagiRenderArrays
-{
-    U16 m_index[960];
-    RwIm3DVertex m_vertex[480];
-    F32 m_vertexTZ[480];
-} iRenderArrays;
-
-typedef struct tagiRenderInput
-{
-    U16* m_index;
-    RwIm3DVertex* m_vertex;
-    F32* m_vertexTZ;
-    U32 m_mode;
-    S32 m_vertexType;
-    S32 m_vertexTypeSize;
-    S32 m_indexCount;
-    S32 m_vertexCount;
-    xMat4x3 m_camViewMatrix;
-    xVec4 m_camViewR;
-    xVec4 m_camViewU;
-} iRenderInput;
+#include "xRenderBuffer.h"
 
 iRenderArrays gRenderArr;
 iRenderInput gRenderBuffer;

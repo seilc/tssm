@@ -7,9 +7,11 @@
 
 struct xEnt;
 
+void xSndMgrPauseSounds(S16 eSoundCategory, bool bPaused, bool bPauseFutureSoundsOfThisType);
 xSndGroupHandle xSndMgrGetSoundGroup(U32 uSoundGroupNameHash);
 iSndHandle xSndMgrPlay(xSndGroupHandle hSoundToPlay, U32 uFlags, const xVec3* pPos_WS, const xVec3* pVel, xEnt* pParentEnt, F32* pfOverrideVolume, F32* pfOverridePitch);
 void xSndMgrStop(iSndHandle& hInHandle);
+void xSndMgrStartStereo(iSndHandle hSnd00, iSndHandle hSnd01);
 
 template <S32 unknown>
 class sound_queue

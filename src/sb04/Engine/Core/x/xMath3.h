@@ -91,13 +91,18 @@ inline void xMat4x3Copy(xMat4x3* o, const xMat4x3* m)
 {
     *o = *m;
 }
+
+inline void xMat4x3Identity(xMat4x3* m)
+{
+    xMat4x3Copy(m, &g_I3);
+}
+
 void xMat4x3Mul(xMat4x3* o, const xMat4x3* a, const xMat4x3* b);
 void xMat3x3Euler(xMat3x3* m, F32 yaw, F32 pitch, F32 roll);
 void xMat4x3Toworld(xVec3* o, const xMat4x3* m, const xVec3* v);
 void xMat3x3RotC(xMat3x3* m, F32 _x, F32 _y, F32 _z, F32 t);
 void xMat3x3RotY(xMat3x3* m, F32 t);
 void xMat3x3MulRotC(xMat3x3* o, xMat3x3* m, F32 _x, F32 _y, F32 _z, F32 t);
-void xMat4x3Identity(xMat4x3* m);
 void xMat3x3Normalize(xMat3x3* o, const xMat3x3* m);
 void xMat4x3Tolocal(xVec3* o, const xMat4x3* m, const xVec3* v);
 void xMat3x3Tolocal(xVec3* o, const xMat3x3* m, const xVec3* v);

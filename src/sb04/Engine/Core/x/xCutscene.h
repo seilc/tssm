@@ -2,6 +2,21 @@
 #define XCUTSCENE_H
 
 #include "xFile.h"
+#include "iSnd.h"
+
+#include <rwcore.h>
+#include <rpworld.h>
+
+struct xModelPipe;
+struct xEnt;
+
+struct xCutsceneAudioTrack
+{
+    U32 uLeftSoundId;
+    U32 uRightSoundId;
+    char szLeftSound[28];
+    char szRightSound[28];
+};
 
 struct xCutsceneInfo
 {
@@ -17,8 +32,7 @@ struct xCutsceneInfo
     U32 VisSize;
     U32 BreakCount;
     U32 pad;
-    char SoundLeft[16];
-    char SoundRight[16];
+    xCutsceneAudioTrack AudioTracks[32];
 };
 
 struct xCutsceneData
@@ -32,9 +46,6 @@ struct xCutsceneData
         void* DataPtr;
     };
 };
-
-#define XCUTSCENEDATA_TYPE_SOUND 5
-#define XCUTSCENEDATA_TYPE_6 6
 
 struct xCutsceneBreak
 {
@@ -50,8 +61,16 @@ struct xCutsceneTime
     U32 ChunkIndex;
 };
 
+struct xCutsceneModelHack
+{
+    xModelPipe* pipe;
+};
+
 struct XCSNNosey
 {
+    virtual void CanRenderNow() {}
+    virtual void UpdatedAnimated(RpAtomic*, RwMatrix*, U32, U32, U32&) {}
+
     void* userdata;
     S32 flg_nosey;
 };
@@ -87,22 +106,23 @@ struct xCutscene
     U32 SndNumChannel;
     U32 SndChannelReq[2];
     U32 SndAssetID[2];
-    U32 SndHandle[2];
+    iSndHandle SndHandle[2];
+    U32 SubTitlesID;
     XCSNNosey* cb_nosey;
-    void NoseySet(XCSNNosey* nosey);
+    xCutsceneModelHack* ModelHack;
+    bool started;
 };
 
-struct xEnt;
-
-extern U32 gFrameCount;
-
 void xCutscene_Init(void* toc);
-xCutscene* xCutscene_CurrentCutscene();
-void xCutscene_Render(xCutscene* csn, xEnt**, S32*, F32*);
-U32 iCSFileOpen(xCutscene* csn);
-xCutscene* xCutscene_Create(U32 id);
+void xCutscene_InitBegin(); // UNUSED
+void xCutscene_InitTOC(void* toc); // UNUSED
+void xCutscene_InitEnd(); // UNUSED
+xCutscene* xCutscene_Create(U32 csnID, U32 subtitlesID);
 S32 xCutscene_Destroy(xCutscene* csn);
 S32 xCutscene_LoadStart(xCutscene* csn);
 S32 xCutscene_Update(xCutscene* csn, F32 dt);
+void xCutscene_SetSpeed(xCutscene* csn, F32 speed);
+void xCutscene_Render(xCutscene* csn, xEnt** alphaent, S32* alphacnt, F32* alphadist);
+xCutscene* xCutscene_CurrentCutscene();
 
 #endif

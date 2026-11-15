@@ -3,6 +3,8 @@
 
 #include "xMath3.h"
 
+#define IANIM_MAX_BONES 64
+
 extern U8* g_iAnim_workBuffer;
 
 void iAnimInit();

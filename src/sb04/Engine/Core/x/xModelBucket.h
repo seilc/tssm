@@ -1,15 +1,23 @@
 #ifndef XMODELBUCKET_H
 #define XMODELBUCKET_H
 
-#include "xModel.h"
+#include "xModelPipe.h"
+
+#include <rpworld.h>
+
+struct xModelInstance;
 
 struct xModelBucket
 {
     RpAtomic* Data;
     RpAtomic* OriginalData;
-    xModelInstance* List;
+    union
+    {
+        xModelInstance* List;
+        xModelBucket** BackRef;
+    };
     S32 ClipFlags;
-    U32 PipeFlags;
+    xModelPipe Pipe;
 };
 
 struct xModelAlphaBucket

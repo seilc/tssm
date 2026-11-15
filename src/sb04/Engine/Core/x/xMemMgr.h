@@ -123,6 +123,12 @@ struct xMemPool
     U32 Total;
 };
 
+// Not in DWARF data
+enum xMemStaticType
+{
+    eMemStaticType_0,
+};
+
 extern U32 gActiveHeap;
 extern U32 scratch_mem_used;
 
@@ -154,6 +160,11 @@ void xMemPoolFree(xMemPool* pool, void* data);
 inline void* xMemPushTemp(U32 amt)
 {
     return iMemPushTemp(amt);
+}
+
+inline void* operator new(size_t size, xMemStaticType, U32)
+{
+    return xMEMALLOC(size, 0);
 }
 
 #endif
