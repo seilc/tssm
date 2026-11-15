@@ -1,6 +1,8 @@
 #include "xCommon.h"
 #include "zConditional.h"
 
+#include "zVar.h"
+
 S32 zConditionalEventCB(xBase*, xBase*, U32, const F32*, xBase*);
 
 void zConditionalLoad(zConditional* ent, xSerial* s)

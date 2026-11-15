@@ -1,6 +1,11 @@
 #include "xCommon.h"
 #include "zCutsceneMgr.h"
 
+#include "iCutscene.h"
+#include "iSystem.h"
+#include "iTRC.h"
+#include "zNPCFXCinematic.h"
+
 static S32 gCutsceneSkipOK;
 static S32 donpcfx;
 static U8 ents_hidden;

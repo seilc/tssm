@@ -397,7 +397,7 @@ config.libs = [
             Object(Matching, "sb04/Engine/Core/x/xModelBlur.cpp", extra_cflags=["-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/x/xCamera.cpp"),
             Object(NonMatching, "sb04/Engine/Game/zWadNME.cpp", extra_cflags=["-sym on"]),
-            Object(NonMatching, "sb04/Engine/Game/zWad1.cpp", extra_cflags=["-sym on"]),
+            Object(NonMatching, "sb04/Engine/Game/zWad1.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Game/zWad2.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Game/zWad3.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Game/zWadEnt.cpp", extra_cflags=["-sym on"]),
