@@ -1,346 +1,339 @@
 #include "xCommon.h"
 #include "xWad5.h"
 
-#include "xVec3.cpp"
-#include "xVolume.cpp"
+//                  xScrFXLensFlare / xCamera / xScrFx
 
-//                                  xUtil
-
-static volatile S32 g_xutilinit; // volatile so xUtilShutdown matches
-static S32 g_crc_needinit = 1;
-static U32 g_crc32_table[256] = {};
-
-S32 xUtil_yesno(F32 wt_yes)
+struct cameraFXShake
 {
-    if (0.0f == wt_yes)
-    {
-        return 0;
-    }
+    F32 magnitude;
+    xVec3 dir;
+    F32 cycleTime;
+    F32 cycleMax;
+    F32 dampen;
+    F32 dampenRate;
+    F32 rotate_magnitude;
+    F32 radius;
+    xVec3* epicenterP;
+    xVec3 epicenter;
+    xVec3* player;
+};
 
-    if (1.0f == wt_yes)
-    {
-        return 1;
-    }
+struct cameraFXZoom
+{
+    F32 holdTime;
+    F32 vel;
+    F32 accel;
+    F32 distance;
+    U32 mode;
+    F32 velCur;
+    F32 distanceCur;
+    F32 holdTimeCur;
+};
 
-    return (xurand() <= wt_yes);
+#define CAMERAFX_ZOOM_MODE_0 0
+#define CAMERAFX_ZOOM_MODE_1 1
+#define CAMERAFX_ZOOM_MODE_2 2
+#define CAMERAFX_ZOOM_MODE_3 3
+
+struct cameraFX
+{
+    S32 type;
+    S32 flags;
+    F32 elapsedTime;
+    F32 maxTime;
+    union
+    {
+        cameraFXShake shake;
+        cameraFXZoom zoom;
+    };
+};
+
+#define CAMERAFX_TYPE_SHAKE 2
+
+struct cameraFXTableEntry
+{
+    S32 type;
+    void (*func)(cameraFX*, F32, xMat4x3*, xMat4x3*);
+    void (*funcKill)(cameraFX*);
+};
+
+extern F32 _764;
+extern F32 _765;
+extern F32 _766;
+extern F32 _785;
+extern F32 _786;
+extern F32 _787;
+extern F32 _788;
+extern F32 _789;
+extern F32 _790;
+extern F32 _830;
+extern F32 _831;
+extern F32 _873;
+extern F32 _874;
+extern F32 _880;
+extern F32 _888;
+extern F32 _895;
+extern F32 _1234;
+extern F32 _1235;
+extern F32 _1236;
+extern F32 _1237;
+extern F32 _1238;
+extern F32 _1239;
+extern F32 _1240;
+extern F32 _1241;
+extern F32 _1242;
+extern F32 _1283;
+extern F64 _1286;
+extern F32 _1404;
+extern F32 _1405;
+extern F32 _1534;
+extern F32 _1584;
+extern F32 _1585;
+extern F32 _1586;
+extern F32 _1757;
+extern F32 _1758;
+extern F32 _1766;
+extern F32 _1772;
+
+extern S32 sCamCollis;
+extern volatile S32 xcam_collis_owner_disable;
+extern S32 xcam_do_collis;
+extern F32 xcam_collis_radius;
+extern F32 xcam_collis_stiffness;
+extern RpAtomic* sInvisWallHack;
+extern xMat4x3 sCameraFXMatOld;
+extern cameraFX sCameraFX[10];
+extern cameraFXTableEntry sCameraFXTable[3];
+
+static void xCameraFXInit();
+void add_camera_tweaks();
+
+void xCameraFXEnd(xCamera* cam)
+{
+    xMat4x3Copy(&cam->mat, &sCameraFXMatOld);
+    iCameraUpdatePos(cam->lo_cam, &sCameraFXMatOld);
 }
 
-U32 xUtil_crc_update(U32 crc_accum, char* data, S32 datasize)
+void xCameraFXUpdate(xCamera* cam, F32 dt)
 {
-    S32 i, j;
+    S32 i;
+    cameraFX* f;
+    cameraFXTableEntry* t;
 
-    if (g_crc_needinit)
+    for (i = 0; i < 10; i++)
     {
-        xUtil_crc_init();
-    }
+        f = &sCameraFX[i];
 
-    for (i = 0; i < datasize; i++)
-    {
-        j = ((crc_accum >> 24) ^ *data++) & 0xff;
-        crc_accum = (crc_accum << 8) ^ g_crc32_table[j];
-    }
-
-    return crc_accum;
-}
-
-U32 xUtil_crc_init()
-{
-    S32 i, j;
-    U32 crc_accum;
-
-    if (g_crc_needinit)
-    {
-        for (i = 0; i < 256; i++)
+        if (f->flags & 0x1)
         {
-            crc_accum = (U32)i << 24;
+            f->elapsedTime += dt;
 
-            for (j = 0; j < 8; j++)
+            // non-matching: _765 is loaded too early
+
+            if ((f->maxTime > _765 && f->elapsedTime > f->maxTime) || f->flags & 0x2)
             {
-                if (crc_accum & (1 << 31))
+                f->flags = 0;
+
+                t = &sCameraFXTable[f->type];
+
+                if (t->funcKill)
                 {
-                    crc_accum = (crc_accum << 1) ^ 0x04C11DB7;
-                }
-                else
-                {
-                    crc_accum = (crc_accum << 1);
+                    t->funcKill(f);
                 }
             }
-
-            g_crc32_table[i] = crc_accum;
-        }
-
-        g_crc_needinit = 0;
-    }
-
-    return 0xFFFFFFFF;
-}
-
-char* xUtil_idtag2string(U32 srctag, S32 bufidx)
-{
-    U32 tag = srctag;
-    char* strptr;
-    char* uc = (char*)&tag;
-    S32 l;
-    char t;
-    static char buf[6][10] = {};
-
-    if (bufidx < 0 || bufidx >= 7)
-    {
-        strptr = buf[0];
-    }
-    else
-    {
-        strptr = buf[bufidx];
-    }
-
-    // convert tag to big endian
-
-    l = 1;
-
-    if ((S32)((char*)&l)[3] != 0)
-    {
-        t = uc[0];
-        uc[0] = uc[3];
-        uc[3] = t;
-
-        t = uc[1];
-        uc[1] = uc[2];
-        uc[2] = t;
-    }
-
-    switch (bufidx)
-    {
-    case 4:
-    case 5:
-        strptr[0] = isprint(uc[0]) ? uc[0] : '?';
-        strptr[1] = isprint(uc[1]) ? uc[1] : '?';
-        strptr[2] = isprint(uc[2]) ? uc[2] : '?';
-        strptr[3] = isprint(uc[3]) ? uc[3] : '?';
-        break;
-    case 6:
-    default:
-        strptr[0] = isprint(uc[3]) ? uc[3] : '?';
-        strptr[1] = isprint(uc[2]) ? uc[2] : '?';
-        strptr[2] = isprint(uc[1]) ? uc[1] : '?';
-        strptr[3] = isprint(uc[0]) ? uc[0] : '?';
-        break;
-    }
-
-    strptr[4] = '\0';
-
-    if (bufidx == 6)
-    {
-        strptr[4] = '/';
-        strptr[5] = isprint(uc[0]) ? uc[0] : '?';
-        strptr[6] = isprint(uc[1]) ? uc[1] : '?';
-        strptr[7] = isprint(uc[2]) ? uc[2] : '?';
-        strptr[8] = isprint(uc[3]) ? uc[3] : '?';
-        strptr[9] = '\0';
-    }
-
-    return strptr;
-}
-
-S32 xUtilShutdown()
-{
-    return --g_xutilinit;
-}
-
-S32 xUtilStartup()
-{
-    if (!g_xutilinit++)
-    {
-        // From xUtil_crc_init:
-
-        S32 i, j;
-        U32 crc_accum;
-
-        if (g_crc_needinit)
-        {
-            for (i = 0; i < 256; i++)
+            else
             {
-                crc_accum = (U32)i << 24;
+                t = &sCameraFXTable[f->type];
 
-                for (j = 0; j < 8; j++)
+                if (t->func)
                 {
-                    if (crc_accum & (1 << 31))
-                    {
-                        crc_accum = (crc_accum << 1) ^ 0x04C11DB7;
-                    }
-                    else
-                    {
-                        crc_accum = (crc_accum << 1);
-                    }
+                    t->func(f, dt, &sCameraFXMatOld, &cam->mat);
                 }
-
-                g_crc32_table[i] = crc_accum;
             }
-
-            g_crc_needinit = 0;
         }
     }
 
-    return g_xutilinit;
+    iCameraUpdatePos(cam->lo_cam, &cam->mat);
 }
 
-//                                  xUpdateCull
-
-void xUpdateCull_Reset(xUpdateCullMgr* m)
+void xCameraFXShakeUpdate(cameraFX* f, F32 dt, const xMat4x3*, xMat4x3* m)
 {
-    for (U32 i = m->entActive; i < m->entCount; i++)
+    F32 x, y, scale, noise;
+    xVec3 var_4C, e;
+
+    f->shake.cycleTime += dt;
+
+    while (f->shake.cycleTime > f->shake.cycleMax)
     {
-        xUpdateCull_MakeActive(m, m->mgr[i]);
+        f->shake.dir.x = -f->shake.dir.x;
+        f->shake.dir.y = -f->shake.dir.y;
+        f->shake.cycleTime -= f->shake.cycleMax;
     }
-}
 
-void xUpdateCull_SetCB(xUpdateCullMgr* m, void* entity, xUpdateCullEntCallback cb, void* cbdata)
-{
-    for (U32 i = 0; i < m->mgrCount; i++)
+    scale = f->shake.dampenRate * (f->maxTime - f->elapsedTime);
+    noise = _1404 * (xurand() - _766);
+
+    if (f->shake.radius > _765 && f->shake.player)
     {
-        if (*(void**)(&m->ent[m->mgrList[i].index]) == entity)
+        xVec3Sub(&var_4C, f->shake.player, &f->shake.epicenter);
+
+        F32 f1 = var_4C.length();
+
+        if (f1 > f->shake.radius)
         {
-            m->mgrList[i].cb = cb;
-            m->mgrList[i].cbdata = cbdata;
-        }
-    }
-}
-
-U32 xUpdateCull_AlwaysTrueCB(void* ent, void* cbdata)
-{
-    return 1;
-}
-
-#include "xTRC.cpp"
-#include "xTransient.cpp"
-
-//                                  xTimer
-
-void xTimerLoad(xTimer* ent, xSerial* s)
-{
-    xBaseLoad(ent, s);
-
-    s->Read(&ent->state);
-    s->Read(&ent->secondsLeft);
-}
-
-void xTimerSave(xTimer* ent, xSerial* s)
-{
-    xBaseSave(ent, s);
-
-    s->Write(ent->state);
-    s->Write(ent->secondsLeft);
-}
-
-void xTimerInit(void* b, void* tasset)
-{
-    xTimerInit((xBase*)b, (xTimerAsset*)tasset);
-}
-
-#include "xSurface.cpp"
-
-//                                      xStr
-
-S32 icompare(const substr& s1, const substr& s2)
-{
-    U32 len = MIN(s1.size, s2.size);
-    S32 result = imemcmp(s1.text, s2.text, len);
-    switch (result)
-    {
-    case 0:
-        if (s1.size == s2.size)
-        {
-            result = 0;
+            scale = _765;
         }
         else
         {
-            result = 1;
-            if (s1.size < s2.size)
-            {
-                result = -1;
-            }
+            scale *= icos(f1 / f->shake.radius * _786 * _766);
         }
+    }
+
+    x = (f->shake.magnitude + noise) * f->shake.dir.x * scale / f->shake.cycleMax *
+        f->shake.cycleTime * isin(f->shake.cycleTime / f->shake.cycleMax * _786);
+
+    noise = _1404 * (xurand() - _766);
+
+    y = (f->shake.magnitude + noise) * f->shake.dir.y * scale / f->shake.cycleMax *
+        f->shake.cycleTime * isin(f->shake.cycleTime / f->shake.cycleMax * _786);
+
+    xMat4x3MoveLocalRight(m, x);
+    xMat4x3MoveLocalUp(m, y);
+
+    xMat3x3GetEuler(m, &e);
+
+    e.z +=
+        f->shake.cycleTime / f->shake.cycleMax * _1405 * _1404 * scale * f->shake.rotate_magnitude;
+
+    xMat3x3Euler(m, &e);
+}
+
+cameraFX* xCameraFXAlloc()
+{
+    S32 i;
+    cameraFX* f;
+
+    for (i = 0; i < sizeof(sCameraFX) / sizeof(cameraFX); i++)
+    {
+        f = &sCameraFX[i];
+
+        if (f->flags == 0)
+        {
+            // non-matching: _765 is only loaded once
+
+            f->flags = 0x1;
+            f->elapsedTime = _765;
+            f->maxTime = _765;
+
+            return f;
+        }
+    }
+
+    return NULL;
+}
+
+void xCameraFXShake(F32 maxTime, F32 magnitude, F32 cycleMax, F32 rotate_magnitude, F32 radius,
+                    xVec3* epicenter, xVec3* player)
+{
+    cameraFX* f = xCameraFXAlloc();
+
+    if (f)
+    {
+        f->type = CAMERAFX_TYPE_SHAKE;
+        f->maxTime = maxTime;
+        f->shake.magnitude = magnitude;
+        f->shake.dir.x = _788;
+        f->shake.dir.y = _788;
+        f->shake.cycleMax = cycleMax;
+        f->shake.cycleTime = _765;
+        f->shake.dampen = _765;
+        f->shake.dampenRate = _788 / maxTime;
+        f->shake.rotate_magnitude = rotate_magnitude;
+        f->shake.radius = radius;
+        f->shake.epicenterP = epicenter;
+
+        if (f->shake.epicenterP)
+        {
+            f->shake.epicenter = *f->shake.epicenterP;
+        }
+
+        f->shake.player = player;
+    }
+}
+
+void xCameraFXShakeEnd(cameraFX* fx, F32 fadeOutTime)
+{
+    fx->maxTime = fadeOutTime;
+    fx->elapsedTime = 0.0f;
+    fx->shake.dampenRate = (1.0f / fadeOutTime);
+}
+
+void xCameraFXZoomUpdate(cameraFX* f, F32 dt, const xMat4x3*, xMat4x3* m)
+{
+    switch (f->zoom.mode)
+    {
+    case CAMERAFX_ZOOM_MODE_0:
+    {
+        f->zoom.velCur += f->zoom.accel * dt;
+        f->zoom.distanceCur += f->zoom.velCur * dt;
+
+        if (f->zoom.distanceCur >= f->zoom.distance)
+        {
+            f->zoom.distanceCur = f->zoom.distance;
+            f->zoom.mode = CAMERAFX_ZOOM_MODE_2;
+            f->zoom.holdTimeCur = _765;
+        }
+
+        xMat4x3MoveLocalAt(m, f->zoom.distanceCur);
+
         break;
     }
-    return result;
-}
-
-S32 imemcmp(const void* d1, const void* d2, size_t size)
-{
-    char* s1 = (char*)d1;
-    char* s2 = (char*)d2;
-    U32 i = 0;
-    while (i < size)
+    case CAMERAFX_ZOOM_MODE_2:
     {
-        S32 v1 = *s1 | ((*s1 >> 1) & 0x20);
-        S32 v2 = *s2 | ((*s2 >> 1) & 0x20);
-        if (v1 != v2)
+        f->zoom.holdTimeCur += dt;
+
+        if (f->zoom.holdTimeCur > f->zoom.holdTime)
         {
-            return v1 - v2;
+            f->zoom.mode = CAMERAFX_ZOOM_MODE_1;
+            f->zoom.distanceCur = f->zoom.distance;
+            f->zoom.velCur = f->zoom.vel;
         }
-        s1++;
-        s2++;
-        i++;
+
+        xMat4x3MoveLocalAt(m, f->zoom.distance);
+
+        break;
     }
-    return 0;
-}
-
-char* xStrupr(char* string)
-{
-    char* p = string;
-
-    while (*p != '\0')
+    case CAMERAFX_ZOOM_MODE_1:
     {
-        *p = (*p >= 'a' && *p <= 'z' ? *p - 32 : *p);
+        f->zoom.velCur += f->zoom.accel * dt;
+        f->zoom.distanceCur -= f->zoom.velCur * dt;
 
-        p++;
+        if (f->zoom.distanceCur <= 0.0f)
+        {
+            f->zoom.distanceCur = 0.0f;
+            f->zoom.mode = CAMERAFX_ZOOM_MODE_3;
+            f->flags |= 0x2;
+        }
+
+        xMat4x3MoveLocalAt(m, f->zoom.distanceCur);
+
+        break;
     }
-
-    return string;
-}
-
-U32 xStrHashCat(U32 prefix, const char* str)
-{
-    U32 hash;
-    U32 i;
-
-    while (i = *str, i != NULL)
+    case CAMERAFX_ZOOM_MODE_3:
     {
-        str++;
-        hash = (i - (i & (U8)i >> 1 & 0x20) & 0xff) + hash * 0x83;
+        break;
     }
-
-    return hash;
+    }
 }
 
-U32 xStrHash(const char* str, size_t size)
+void xCameraFXBegin(xCamera* cam)
 {
-    U32 hash = 0;
-    U32 i = 0;
-    U32 c;
-
-    while (i < size && (c = *str, c != NULL))
-    {
-        i++;
-        str++;
-        hash = (c - (c & (U8)c >> 1 & 0x20) & 0xff) + hash * 0x83;
-    }
-
-    return hash;
+    xMat4x3Identity(&sCameraFXMatOld);
+    xMat4x3Copy(&sCameraFXMatOld, &cam->mat);
 }
 
-U32 xStrHash(const char* str)
-{
-    U32 hash = 0;
-    U32 i;
-
-    while (i = *str, i != NULL)
-    {
-        hash = (i - (i & (U8)i >> 1 & 0x20) & 0xff) + hash * 0x83;
-        str++;
-    }
-
-    return hash;
-}
+#include "xserializer.cpp"
+#include "xSkyDome.cpp"
 
 //                              xST
 
@@ -735,336 +728,343 @@ S32 xSTStartup(PKRAssetType* handlers)
     return g_straninit;
 }
 
-#include "xSkyDome.cpp"
-#include "xserializer.cpp"
+//                                      xStr
 
-//                  xScrFXLensFlare / xCamera / xScrFx
-
-struct cameraFXShake
+S32 icompare(const substr& s1, const substr& s2)
 {
-    F32 magnitude;
-    xVec3 dir;
-    F32 cycleTime;
-    F32 cycleMax;
-    F32 dampen;
-    F32 dampenRate;
-    F32 rotate_magnitude;
-    F32 radius;
-    xVec3* epicenterP;
-    xVec3 epicenter;
-    xVec3* player;
-};
-
-struct cameraFXZoom
-{
-    F32 holdTime;
-    F32 vel;
-    F32 accel;
-    F32 distance;
-    U32 mode;
-    F32 velCur;
-    F32 distanceCur;
-    F32 holdTimeCur;
-};
-
-#define CAMERAFX_ZOOM_MODE_0 0
-#define CAMERAFX_ZOOM_MODE_1 1
-#define CAMERAFX_ZOOM_MODE_2 2
-#define CAMERAFX_ZOOM_MODE_3 3
-
-struct cameraFX
-{
-    S32 type;
-    S32 flags;
-    F32 elapsedTime;
-    F32 maxTime;
-    union
+    U32 len = MIN(s1.size, s2.size);
+    S32 result = imemcmp(s1.text, s2.text, len);
+    switch (result)
     {
-        cameraFXShake shake;
-        cameraFXZoom zoom;
-    };
-};
-
-#define CAMERAFX_TYPE_SHAKE 2
-
-struct cameraFXTableEntry
-{
-    S32 type;
-    void (*func)(cameraFX*, F32, xMat4x3*, xMat4x3*);
-    void (*funcKill)(cameraFX*);
-};
-
-extern F32 _764;
-extern F32 _765;
-extern F32 _766;
-extern F32 _785;
-extern F32 _786;
-extern F32 _787;
-extern F32 _788;
-extern F32 _789;
-extern F32 _790;
-extern F32 _830;
-extern F32 _831;
-extern F32 _873;
-extern F32 _874;
-extern F32 _880;
-extern F32 _888;
-extern F32 _895;
-extern F32 _1234;
-extern F32 _1235;
-extern F32 _1236;
-extern F32 _1237;
-extern F32 _1238;
-extern F32 _1239;
-extern F32 _1240;
-extern F32 _1241;
-extern F32 _1242;
-extern F32 _1283;
-extern F64 _1286;
-extern F32 _1404;
-extern F32 _1405;
-extern F32 _1534;
-extern F32 _1584;
-extern F32 _1585;
-extern F32 _1586;
-extern F32 _1757;
-extern F32 _1758;
-extern F32 _1766;
-extern F32 _1772;
-
-extern S32 sCamCollis;
-extern volatile S32 xcam_collis_owner_disable;
-extern S32 xcam_do_collis;
-extern F32 xcam_collis_radius;
-extern F32 xcam_collis_stiffness;
-extern RpAtomic* sInvisWallHack;
-extern xMat4x3 sCameraFXMatOld;
-extern cameraFX sCameraFX[10];
-extern cameraFXTableEntry sCameraFXTable[3];
-
-static void xCameraFXInit();
-void add_camera_tweaks();
-
-void xCameraFXEnd(xCamera* cam)
-{
-    xMat4x3Copy(&cam->mat, &sCameraFXMatOld);
-    iCameraUpdatePos(cam->lo_cam, &sCameraFXMatOld);
-}
-
-void xCameraFXUpdate(xCamera* cam, F32 dt)
-{
-    S32 i;
-    cameraFX* f;
-    cameraFXTableEntry* t;
-
-    for (i = 0; i < 10; i++)
-    {
-        f = &sCameraFX[i];
-
-        if (f->flags & 0x1)
+    case 0:
+        if (s1.size == s2.size)
         {
-            f->elapsedTime += dt;
-
-            // non-matching: _765 is loaded too early
-
-            if ((f->maxTime > _765 && f->elapsedTime > f->maxTime) || f->flags & 0x2)
-            {
-                f->flags = 0;
-
-                t = &sCameraFXTable[f->type];
-
-                if (t->funcKill)
-                {
-                    t->funcKill(f);
-                }
-            }
-            else
-            {
-                t = &sCameraFXTable[f->type];
-
-                if (t->func)
-                {
-                    t->func(f, dt, &sCameraFXMatOld, &cam->mat);
-                }
-            }
-        }
-    }
-
-    iCameraUpdatePos(cam->lo_cam, &cam->mat);
-}
-
-void xCameraFXShakeUpdate(cameraFX* f, F32 dt, const xMat4x3*, xMat4x3* m)
-{
-    F32 x, y, scale, noise;
-    xVec3 var_4C, e;
-
-    f->shake.cycleTime += dt;
-
-    while (f->shake.cycleTime > f->shake.cycleMax)
-    {
-        f->shake.dir.x = -f->shake.dir.x;
-        f->shake.dir.y = -f->shake.dir.y;
-        f->shake.cycleTime -= f->shake.cycleMax;
-    }
-
-    scale = f->shake.dampenRate * (f->maxTime - f->elapsedTime);
-    noise = _1404 * (xurand() - _766);
-
-    if (f->shake.radius > _765 && f->shake.player)
-    {
-        xVec3Sub(&var_4C, f->shake.player, &f->shake.epicenter);
-
-        F32 f1 = var_4C.length();
-
-        if (f1 > f->shake.radius)
-        {
-            scale = _765;
+            result = 0;
         }
         else
         {
-            scale *= icos(f1 / f->shake.radius * _786 * _766);
+            result = 1;
+            if (s1.size < s2.size)
+            {
+                result = -1;
+            }
         }
-    }
-
-    x = (f->shake.magnitude + noise) * f->shake.dir.x * scale / f->shake.cycleMax *
-        f->shake.cycleTime * isin(f->shake.cycleTime / f->shake.cycleMax * _786);
-
-    noise = _1404 * (xurand() - _766);
-
-    y = (f->shake.magnitude + noise) * f->shake.dir.y * scale / f->shake.cycleMax *
-        f->shake.cycleTime * isin(f->shake.cycleTime / f->shake.cycleMax * _786);
-
-    xMat4x3MoveLocalRight(m, x);
-    xMat4x3MoveLocalUp(m, y);
-
-    xMat3x3GetEuler(m, &e);
-
-    e.z +=
-        f->shake.cycleTime / f->shake.cycleMax * _1405 * _1404 * scale * f->shake.rotate_magnitude;
-
-    xMat3x3Euler(m, &e);
-}
-
-cameraFX* xCameraFXAlloc()
-{
-    S32 i;
-    cameraFX* f;
-
-    for (i = 0; i < sizeof(sCameraFX) / sizeof(cameraFX); i++)
-    {
-        f = &sCameraFX[i];
-
-        if (f->flags == 0)
-        {
-            // non-matching: _765 is only loaded once
-
-            f->flags = 0x1;
-            f->elapsedTime = _765;
-            f->maxTime = _765;
-
-            return f;
-        }
-    }
-
-    return NULL;
-}
-
-void xCameraFXShake(F32 maxTime, F32 magnitude, F32 cycleMax, F32 rotate_magnitude, F32 radius,
-                    xVec3* epicenter, xVec3* player)
-{
-    cameraFX* f = xCameraFXAlloc();
-
-    if (f)
-    {
-        f->type = CAMERAFX_TYPE_SHAKE;
-        f->maxTime = maxTime;
-        f->shake.magnitude = magnitude;
-        f->shake.dir.x = _788;
-        f->shake.dir.y = _788;
-        f->shake.cycleMax = cycleMax;
-        f->shake.cycleTime = _765;
-        f->shake.dampen = _765;
-        f->shake.dampenRate = _788 / maxTime;
-        f->shake.rotate_magnitude = rotate_magnitude;
-        f->shake.radius = radius;
-        f->shake.epicenterP = epicenter;
-
-        if (f->shake.epicenterP)
-        {
-            f->shake.epicenter = *f->shake.epicenterP;
-        }
-
-        f->shake.player = player;
-    }
-}
-
-void xCameraFXShakeEnd(cameraFX* fx, F32 fadeOutTime)
-{
-    fx->maxTime = fadeOutTime;
-    fx->elapsedTime = 0.0f;
-    fx->shake.dampenRate = (1.0f / fadeOutTime);
-}
-
-void xCameraFXZoomUpdate(cameraFX* f, F32 dt, const xMat4x3*, xMat4x3* m)
-{
-    switch (f->zoom.mode)
-    {
-    case CAMERAFX_ZOOM_MODE_0:
-    {
-        f->zoom.velCur += f->zoom.accel * dt;
-        f->zoom.distanceCur += f->zoom.velCur * dt;
-
-        if (f->zoom.distanceCur >= f->zoom.distance)
-        {
-            f->zoom.distanceCur = f->zoom.distance;
-            f->zoom.mode = CAMERAFX_ZOOM_MODE_2;
-            f->zoom.holdTimeCur = _765;
-        }
-
-        xMat4x3MoveLocalAt(m, f->zoom.distanceCur);
-
         break;
     }
-    case CAMERAFX_ZOOM_MODE_2:
-    {
-        f->zoom.holdTimeCur += dt;
-
-        if (f->zoom.holdTimeCur > f->zoom.holdTime)
-        {
-            f->zoom.mode = CAMERAFX_ZOOM_MODE_1;
-            f->zoom.distanceCur = f->zoom.distance;
-            f->zoom.velCur = f->zoom.vel;
-        }
-
-        xMat4x3MoveLocalAt(m, f->zoom.distance);
-
-        break;
-    }
-    case CAMERAFX_ZOOM_MODE_1:
-    {
-        f->zoom.velCur += f->zoom.accel * dt;
-        f->zoom.distanceCur -= f->zoom.velCur * dt;
-
-        if (f->zoom.distanceCur <= 0.0f)
-        {
-            f->zoom.distanceCur = 0.0f;
-            f->zoom.mode = CAMERAFX_ZOOM_MODE_3;
-            f->flags |= 0x2;
-        }
-
-        xMat4x3MoveLocalAt(m, f->zoom.distanceCur);
-
-        break;
-    }
-    case CAMERAFX_ZOOM_MODE_3:
-    {
-        break;
-    }
-    }
+    return result;
 }
 
-void xCameraFXBegin(xCamera* cam)
+S32 imemcmp(const void* d1, const void* d2, size_t size)
 {
-    xMat4x3Identity(&sCameraFXMatOld);
-    xMat4x3Copy(&sCameraFXMatOld, &cam->mat);
+    char* s1 = (char*)d1;
+    char* s2 = (char*)d2;
+    U32 i = 0;
+    while (i < size)
+    {
+        S32 v1 = *s1 | ((*s1 >> 1) & 0x20);
+        S32 v2 = *s2 | ((*s2 >> 1) & 0x20);
+        if (v1 != v2)
+        {
+            return v1 - v2;
+        }
+        s1++;
+        s2++;
+        i++;
+    }
+    return 0;
 }
+
+char* xStrupr(char* string)
+{
+    char* p = string;
+
+    while (*p != '\0')
+    {
+        *p = (*p >= 'a' && *p <= 'z' ? *p - 32 : *p);
+
+        p++;
+    }
+
+    return string;
+}
+
+U32 xStrHashCat(U32 prefix, const char* str)
+{
+    U32 hash;
+    U32 i;
+
+    while (i = *str, i != NULL)
+    {
+        str++;
+        hash = (i - (i & (U8)i >> 1 & 0x20) & 0xff) + hash * 0x83;
+    }
+
+    return hash;
+}
+
+U32 xStrHash(const char* str, size_t size)
+{
+    U32 hash = 0;
+    U32 i = 0;
+    U32 c;
+
+    while (i < size && (c = *str, c != NULL))
+    {
+        i++;
+        str++;
+        hash = (c - (c & (U8)c >> 1 & 0x20) & 0xff) + hash * 0x83;
+    }
+
+    return hash;
+}
+
+U32 xStrHash(const char* str)
+{
+    U32 hash = 0;
+    U32 i;
+
+    while (i = *str, i != NULL)
+    {
+        hash = (i - (i & (U8)i >> 1 & 0x20) & 0xff) + hash * 0x83;
+        str++;
+    }
+
+    return hash;
+}
+
+#include "xSurface.cpp"
+
+//                                  xTimer
+
+void xTimerLoad(xTimer* ent, xSerial* s)
+{
+    xBaseLoad(ent, s);
+
+    s->Read(&ent->state);
+    s->Read(&ent->secondsLeft);
+}
+
+void xTimerSave(xTimer* ent, xSerial* s)
+{
+    xBaseSave(ent, s);
+
+    s->Write(ent->state);
+    s->Write(ent->secondsLeft);
+}
+
+void xTimerInit(void* b, void* tasset)
+{
+    xTimerInit((xBase*)b, (xTimerAsset*)tasset);
+}
+
+#include "xTransient.cpp"
+#include "xTRC.cpp"
+
+//                                  xUpdateCull
+
+void xUpdateCull_Reset(xUpdateCullMgr* m)
+{
+    for (U32 i = m->entActive; i < m->entCount; i++)
+    {
+        xUpdateCull_MakeActive(m, m->mgr[i]);
+    }
+}
+
+void xUpdateCull_SetCB(xUpdateCullMgr* m, void* entity, xUpdateCullEntCallback cb, void* cbdata)
+{
+    for (U32 i = 0; i < m->mgrCount; i++)
+    {
+        if (*(void**)(&m->ent[m->mgrList[i].index]) == entity)
+        {
+            m->mgrList[i].cb = cb;
+            m->mgrList[i].cbdata = cbdata;
+        }
+    }
+}
+
+U32 xUpdateCull_AlwaysTrueCB(void* ent, void* cbdata)
+{
+    return 1;
+}
+
+//                                  xUtil
+
+static volatile S32 g_xutilinit; // volatile so xUtilShutdown matches
+static S32 g_crc_needinit = 1;
+static U32 g_crc32_table[256] = {};
+
+S32 xUtil_yesno(F32 wt_yes)
+{
+    if (0.0f == wt_yes)
+    {
+        return 0;
+    }
+
+    if (1.0f == wt_yes)
+    {
+        return 1;
+    }
+
+    return (xurand() <= wt_yes);
+}
+
+U32 xUtil_crc_update(U32 crc_accum, char* data, S32 datasize)
+{
+    S32 i, j;
+
+    if (g_crc_needinit)
+    {
+        xUtil_crc_init();
+    }
+
+    for (i = 0; i < datasize; i++)
+    {
+        j = ((crc_accum >> 24) ^ *data++) & 0xff;
+        crc_accum = (crc_accum << 8) ^ g_crc32_table[j];
+    }
+
+    return crc_accum;
+}
+
+U32 xUtil_crc_init()
+{
+    S32 i, j;
+    U32 crc_accum;
+
+    if (g_crc_needinit)
+    {
+        for (i = 0; i < 256; i++)
+        {
+            crc_accum = (U32)i << 24;
+
+            for (j = 0; j < 8; j++)
+            {
+                if (crc_accum & (1 << 31))
+                {
+                    crc_accum = (crc_accum << 1) ^ 0x04C11DB7;
+                }
+                else
+                {
+                    crc_accum = (crc_accum << 1);
+                }
+            }
+
+            g_crc32_table[i] = crc_accum;
+        }
+
+        g_crc_needinit = 0;
+    }
+
+    return 0xFFFFFFFF;
+}
+
+char* xUtil_idtag2string(U32 srctag, S32 bufidx)
+{
+    U32 tag = srctag;
+    char* strptr;
+    char* uc = (char*)&tag;
+    S32 l;
+    char t;
+    static char buf[6][10] = {};
+
+    if (bufidx < 0 || bufidx >= 7)
+    {
+        strptr = buf[0];
+    }
+    else
+    {
+        strptr = buf[bufidx];
+    }
+
+    // convert tag to big endian
+
+    l = 1;
+
+    if ((S32)((char*)&l)[3] != 0)
+    {
+        t = uc[0];
+        uc[0] = uc[3];
+        uc[3] = t;
+
+        t = uc[1];
+        uc[1] = uc[2];
+        uc[2] = t;
+    }
+
+    switch (bufidx)
+    {
+    case 4:
+    case 5:
+        strptr[0] = isprint(uc[0]) ? uc[0] : '?';
+        strptr[1] = isprint(uc[1]) ? uc[1] : '?';
+        strptr[2] = isprint(uc[2]) ? uc[2] : '?';
+        strptr[3] = isprint(uc[3]) ? uc[3] : '?';
+        break;
+    case 6:
+    default:
+        strptr[0] = isprint(uc[3]) ? uc[3] : '?';
+        strptr[1] = isprint(uc[2]) ? uc[2] : '?';
+        strptr[2] = isprint(uc[1]) ? uc[1] : '?';
+        strptr[3] = isprint(uc[0]) ? uc[0] : '?';
+        break;
+    }
+
+    strptr[4] = '\0';
+
+    if (bufidx == 6)
+    {
+        strptr[4] = '/';
+        strptr[5] = isprint(uc[0]) ? uc[0] : '?';
+        strptr[6] = isprint(uc[1]) ? uc[1] : '?';
+        strptr[7] = isprint(uc[2]) ? uc[2] : '?';
+        strptr[8] = isprint(uc[3]) ? uc[3] : '?';
+        strptr[9] = '\0';
+    }
+
+    return strptr;
+}
+
+S32 xUtilShutdown()
+{
+    return --g_xutilinit;
+}
+
+S32 xUtilStartup()
+{
+    if (!g_xutilinit++)
+    {
+        // From xUtil_crc_init:
+
+        S32 i, j;
+        U32 crc_accum;
+
+        if (g_crc_needinit)
+        {
+            for (i = 0; i < 256; i++)
+            {
+                crc_accum = (U32)i << 24;
+
+                for (j = 0; j < 8; j++)
+                {
+                    if (crc_accum & (1 << 31))
+                    {
+                        crc_accum = (crc_accum << 1) ^ 0x04C11DB7;
+                    }
+                    else
+                    {
+                        crc_accum = (crc_accum << 1);
+                    }
+                }
+
+                g_crc32_table[i] = crc_accum;
+            }
+
+            g_crc_needinit = 0;
+        }
+    }
+
+    return g_xutilinit;
+}
+
+#include "xVolume.cpp"
+#include "xVec3.cpp"
