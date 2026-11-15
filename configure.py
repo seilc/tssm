@@ -402,7 +402,7 @@ config.libs = [
             Object(NonMatching, "sb04/Engine/Game/zWad3.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Game/zWadEnt.cpp", extra_cflags=["-sym on"]),
             Object(NonMatching, "sb04/Engine/Game/zWadHud.cpp", extra_cflags=["-sym on"]),
-            Object(NonMatching, "sb04/Engine/Game/zWadUI.cpp", extra_cflags=["-sym on"]),
+            Object(NonMatching, "sb04/Engine/Game/zWadUI.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Game/zMain.cpp"),
             Object(NonMatching, "sb04/Engine/Game/zTalkBox.cpp", extra_cflags=["-inline off"]),
             Object(NonMatching, "sb04/Engine/Game/zTaskBox.cpp", extra_cflags=["-inline off"]),
