@@ -1,8 +1,6 @@
 #include "xCommon.h"
 #include "iWad.h"
 
-static iTime sStartupTime;
-static F32 sGameTime;
 extern U32 add;
 extern U32 size;
 extern OSHeapHandle the_heap;
@@ -12,48 +10,7 @@ static st_ISGSESSION g_isgdata_MAIN = { 0 };
 
 //                                                                          iTime
 
-void iFuncProfileFuncs(int, int, float)
-{
-}
-
-void iFuncProfileDump()
-{
-}
-
-void iProfileClear(U32 sceneID)
-{
-}
-
-void iTimeSetGame(F32 time)
-{
-    sGameTime = time;
-}
-
-void iTimeGameAdvance(F32 elapsed)
-{
-    sGameTime += elapsed;
-}
-
-F32 iTimeGetGame()
-{
-    return sGameTime;
-}
-
-F32 iTimeDiffSec(iTime time, iTime t1)
-{
-    time = t1 - time;
-    return (F32)time / (GET_BUS_FREQUENCY() / 4);
-}
-
-F32 iTimeDiffSec(iTime time)
-{
-    return (F32)time / (GET_BUS_FREQUENCY() / 4);
-}
-
-iTime iTimeGet()
-{
-    return OSGetTime() - sStartupTime;
-}
+#include "iTime.cpp"
 
 // WIP.
 char* iGetCurrFormattedTime(char* input)
