@@ -1,6 +1,7 @@
 #ifndef XSTRANSVC_H
 #define XSTRANSVC_H
 
+#include "xRegionSupport.h"
 #include "xpkrsvc.h"
 
 struct st_STRAN_SCENE
@@ -37,5 +38,6 @@ const char* xST_xAssetID_HIPFullPath(U32 aid);
 S32 PKRShutdown();
 const char* xST_xAssetID_HIPFullPath(U32 aid, U32* sceneID);
 S32 xSTShutdown();
+xRegion xSTGetLocalizationEnum();
 
 #endif

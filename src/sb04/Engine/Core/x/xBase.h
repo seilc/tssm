@@ -32,8 +32,16 @@ void xBaseLoad(xBase* ent, xSerial* s);
 void xBaseReset(xBase* xb, xBaseAsset* asset);
 U32 xBaseIsValid(xBase* xb);
 void xBaseValidate(xBase* xb);
-void xBaseDisable(xBase* xb);
-void xBaseEnable(xBase* xb);
+
+inline void xBaseEnable(xBase* xb)
+{
+    xb->baseFlags |= k_XBASE_IS_ENABLED;
+}
+
+inline void xBaseDisable(xBase* xb)
+{
+    xb->baseFlags &= (U16)~k_XBASE_IS_ENABLED;
+}
 
 inline bool xBaseIsEnabled(const xBase* xb)
 {

@@ -1,78 +1,17 @@
 #ifndef ZUI_H
 #define ZUI_H
 
-#include "xGroup.h"
+#include "xBase.h"
+#include "xColor.h"
 #include "xIni.h"
 #include "xMgr.h"
-#include "zConditional.h"
 #include "zEnt.h"
 #include "zTextbox.h"
-#include "zWadUI.h"
 #include "zUIAsset.h"
+#include "zUICustom.h"
+#include "zUIMotion.h"
 
-struct zUIMotionAsset : xBaseAsset
-{
-    U8 cmdCount;
-    U8 in;
-    U8 pad[2];
-    U32 cmdSize;
-    F32 totalTime;
-    F32 loopTime;
-};
-
-class zUI;
-
-struct zUIMotionFrame
-{
-    F32 offsetX;
-    F32 offsetY;
-    F32 scaleX;
-    F32 scaleY;
-    F32 centerScaleX;
-    F32 centerScaleY;
-    F32 textScaleX;
-    F32 textScaleY;
-    F32 rotation;
-    F32 offsetU;
-    F32 offsetV;
-    xColor color;
-    U8 brightness;
-};
-
-struct zUICustom
-{
-    zUI* ui;
-
-    void* __nw(U32 size);
-    void PostApplyMotionFrame(zUIMotionFrame*);
-    void PreApplyMotionFrame(zUIMotionFrame*);
-    void PostInitMotion();
-    void PreInitMotion();
-    void Exit();
-    void PostRender();
-    U8 PreAutoMenu();
-    U8 PreRender();
-    void PostUpdate(float);
-    void PreUpdate(float);
-    U8 HandleEvent(xBase*, unsigned int, const float*, xBase*, unsigned int);
-    void ResetMotion();
-    void Reset();
-    void Setup();
-    void Init();
-    U8 IsSystem();
-    U8 IsSignalAllowed();
-};
-
-struct zUICustomConditionallyDisabled : zUICustom
-{
-    S32 padding; // aligns 2 functions
-    zConditional* m_pCondition;
-    U8 m_bCondition;
-
-    U8 PreRender();
-    U8 PreAutoMenu();
-    void PreUpdate();
-};
+struct zUIMotionAsset;
 
 class zUI : public xBase
 {
@@ -103,6 +42,8 @@ public:
     bool hdrPass;
     bool locked;
 
+    static U8 bAllowInput;
+
     zUIAsset* GetAsset() const { return (zUIAsset*)asset; }
 
     virtual U32 GetSortKey() const = 0;
@@ -125,30 +66,78 @@ public:
     virtual void Visible();
     virtual void Invisible();
 
+    void Init()
+    {
+        DoInit();
+        if (custom) {
+            custom->Init();
+        }
+    }
+
+    void Reset()
+    {
+        DoReset();
+        if (custom) {
+            custom->Reset();
+        }
+    }
+
+    void ResetMotion()
+    {
+        DoResetMotion();
+        if (custom) {
+            custom->ResetMotion();
+        }
+    }
+
+    void HandleEvent(xBase* from, U32 toEvent, const F32* toParam, xBase* toParamWidget, U32 toParamWidgetID)
+    {
+        if (custom && !custom->HandleEvent(from, toEvent, toParam, toParamWidget, toParamWidgetID)) {
+            return;
+        }
+        DoHandleEvent(from, toEvent, toParam, toParamWidget, toParamWidgetID);
+    }
+
     void AutoMenu(U32 zUIAsset::*item, U32 event);
     void ApplyMotion();
-    F32 CalcAcceleratedDistance(F32 totalDistance, F32 startTime, F32 endTime, F32 accelTime,
-                                F32 decelTime);
+    F32 CalcAcceleratedDistance(F32 totalDistance, F32 startTime, F32 endTime, F32 accelTime, F32 decelTime);
+    void StopMotion();
     void RunMotion(zUIMotionAsset* asset, bool loop, bool reset);
-    void Signal(U32 event);
+    void Signal(xBase* from, U32 event);
+
+    void Signal(U32 event)
+    {
+        Signal(this, event);
+    }
+
+    void InitMotion()
+    {
+        if (custom) {
+            custom->PreInitMotion();
+        }
+        DoInitMotion();
+        if (custom) {
+            custom->PostInitMotion();
+        }
+    }
+
+    void ApplyMotionFrame(const zUIMotionFrame* frame)
+    {
+        if (custom) {
+            zUIMotionFrame newFrame = *frame;
+            custom->PreApplyMotionFrame(&newFrame);
+            DoApplyMotionFrame(&newFrame);
+            custom->PostApplyMotionFrame(&newFrame);
+        } else {
+            DoApplyMotionFrame(frame);
+        }
+    }
 
 private:
     zUIMotionAsset* motion;
     F32 motionTime;
     bool motionFiredEvent;
     bool motionLoop;
-};
-
-struct zUICustomImageSlideshow : zUICustom
-{
-    U32 m_CurrentImage;
-    U32 m_NumImages;
-    xGroup* m_TextureGroup;
-
-    void UpdateTexture();
-    void SetTextureList(xGroup* textureList);
-    U8 HandleEvent(U32 toEvent);
-    void Reset();
 };
 
 struct zUITextAsset : zUIAsset
@@ -247,6 +236,7 @@ _zUI* sSorted[768];
 zUIMgr gUIMgr;
 
 void zUI_Init(zUI* text, zUIAsset* asset);
+void* zUIAllocStaticMemory(U32 size);
 void zUI_Init();
 void zUI_Init(void* ent, void* asset);
 void zUI_Init(_zUI* ent, xEntAsset* asset);

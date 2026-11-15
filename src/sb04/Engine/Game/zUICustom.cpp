@@ -1,6 +1,7 @@
 #include "xCommon.h"
 #include "zUI.h"
 #include "zUICustom.h"
+#include "xGroup.h"
 
 unsigned char zUICustomConditionallyDisabled::PreRender()
 {
