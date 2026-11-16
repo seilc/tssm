@@ -20,8 +20,8 @@ Europe, `GGVX78`; Germany, `GGVD78`), built on Heavy Iron's EvilEngine. Much of 
 and [The Incredibles](https://github.com/seilc/incredibles), which this project ports matched code from.
 
 Based on the community decompilation [bfbbdecomp/tssm](https://github.com/bfbbdecomp/tssm) at
-[`50ea0176`](https://github.com/bfbbdecomp/tssm/commit/50ea0176), whose history this repository keeps; thanks to
-its contributors. Upstream changes after that commit are not merged.
+[`50ea0176`](https://github.com/bfbbdecomp/tssm/commit/50ea0176), whose history this repository keeps. Upstream
+changes after that commit are not merged.
 
 This repository does **not** contain any game assets or assembly whatsoever. An existing copy of the game is required.
 
@@ -116,3 +116,17 @@ Download the latest release from [encounter/objdiff](https://github.com/encounte
 Select an object from the left sidebar to begin diffing. Changes to the project will rebuild automatically: changes to source files, headers, `configure.py`, `splits.txt` or `symbols.txt`.
 
 ![](assets/objdiff.png)
+
+Credits
+=======
+
+**[bfbbdecomp/tssm](https://github.com/bfbbdecomp/tssm)** -
+The community decompilation this repository is forked from (at `50ea0176`), and
+[its contributors](https://github.com/bfbbdecomp/tssm/graphs/contributors).
+
+**[aidp2/tssm-decomp-fork](https://github.com/aidp2/tssm-decomp-fork)** -
+An LLM-assisted decompilation by [@aidp2](https://github.com/aidp2), released under CC0: the starting draft for
+`zUI.cpp`, `zUICustom.cpp`, `zUIMgr.cpp` and `zUIText.cpp`, a reference for TSSM's differences in other units
+converted on November 15 and 16, 2026, and evidence for the Wads' include order.
+
+Code ported from the Ratatouille, Rise of the Underminer and Incredibles decomps is credited in those repositories.
