@@ -3,6 +3,7 @@
 #include "xWad2.h"
 
 #include "xDebug.cpp"
+#include "xDebugTweak.cpp"
 
 //                                          xEnt
 

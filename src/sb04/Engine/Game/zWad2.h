@@ -2,7 +2,7 @@
 #define ZWAD2_H
 
 #include "xCounter.h"
-#include "xDebug.h"
+#include "xDebugTweak.h"
 #include "xPartition.h"
 #include "xWad5.h"
 

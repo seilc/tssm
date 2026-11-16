@@ -2,7 +2,7 @@
 
 #define ZENTCRUISEBUBBLE_H
 
-#include "xDebug.h"
+#include "xDebugTweak.h"
 
 #include "zNPCHazard.h"
 #include "zShrapnel.h"
