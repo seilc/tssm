@@ -45,6 +45,7 @@ public:
     static U8 bAllowInput;
 
     zUIAsset* GetAsset() const { return (zUIAsset*)asset; }
+    zUIMotionAsset* GetMotion() const { return motion; }
 
     virtual U32 GetSortKey() const = 0;
     virtual bool Blends() const;
@@ -74,6 +75,14 @@ public:
         }
     }
 
+    void Setup()
+    {
+        DoSetup();
+        if (custom) {
+            custom->Setup();
+        }
+    }
+
     void Reset()
     {
         DoReset();
@@ -96,6 +105,36 @@ public:
             return;
         }
         DoHandleEvent(from, toEvent, toParam, toParamWidget, toParamWidgetID);
+    }
+
+    void Render() const
+    {
+        if (custom && !custom->PreRender()) {
+            return;
+        }
+        DoRender();
+        if (custom) {
+            custom->PostRender();
+        }
+    }
+
+    void Update(F32 dt, U32 buttonsPressed)
+    {
+        if (custom) {
+            custom->PreUpdate(dt);
+        }
+        DoUpdate(dt, buttonsPressed);
+        if (custom) {
+            custom->PostUpdate(dt);
+        }
+    }
+
+    void Exit()
+    {
+        if (custom) {
+            custom->Exit();
+        }
+        DoExit();
     }
 
     void AutoMenu(U32 zUIAsset::*item, U32 event);
@@ -183,6 +222,8 @@ struct zUIText : zUI
     bool IsUIText();
     U32 GetSortKey();
 };
+
+void zUITextInitSystem();
 
 struct zUIUserString : zUIText
 {

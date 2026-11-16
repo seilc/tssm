@@ -1,6 +1,7 @@
 #ifndef ZHASHES_H
 #define ZHASHES_H
 
+#define HASH___PAUSE_STATE_PAUSE_MGR            0x97CBE19F // xStrHash("__PAUSE_STATE_PAUSE MGR")
 #define HASH_ConditionallyDisabled              0xF41C41E3 // xStrHash("ConditionallyDisabled")
 #define HASH_DialogPlayer                       0x88AC5E79 // xStrHash("DialogPlayer")
 #define HASH_ExtrasIcon                         0x5CC577E4 // xStrHash("ExtrasIcon")
@@ -13,6 +14,7 @@
 #define HASH_simple_shadow_table                0x98A3F56C // xStrHash("simple shadow table")
 #define HASH_SlideshowImage                     0x69D9260D // xStrHash("SlideshowImage")
 #define HASH_sound_info                         0x7AB6743A // xStrHash("sound_info")
+#define HASH_UPGRADE_TUTORIAL_CONTROLLER        0x1DAA8BAE // xStrHash("UPGRADE TUTORIAL CONTROLLER")
 #define HASH_UpgradeTutorialControl             0x268F0AB7 // xStrHash("UpgradeTutorialControl")
 
 #endif
