@@ -7,7 +7,7 @@ struct xAnimTable;
 struct xModelInstance;
 struct xSoundFX;
 struct ztalkbox;
-struct zUIText;
+class zUIText;
 
 class zUICustomDialogPlayer : public zUICustom
 {

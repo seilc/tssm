@@ -179,65 +179,6 @@ private:
     bool motionLoop;
 };
 
-struct zUITextAsset : zUIAsset
-{
-    U32 textID;
-    U8 font;
-    U8 fontSizeW;
-    U8 fontSizeH;
-    U8 fontSpacingX;
-    U8 fontSpacingY;
-    U8 textBoxInsetTop;
-    U8 textBoxInsetLeft;
-    U8 textBoxInsetRight;
-    U8 textBoxInsetBottom;
-    U8 justifyX;
-    U8 justifyY;
-    U8 textFlags;
-    xColor shadowColor;
-    F32 shadowOffsetX;
-    F32 shadowOffsetY;
-    F32 textScaleX;
-    F32 textScaleY;
-};
-
-struct zUIUserStringAsset : zUITextAsset
-{
-    U8 hardMaxChars;
-    U8 softMaxChars;
-};
-
-struct zUIText : zUI
-{
-    xColor shadowColor;
-    char* text;
-
-    void DoApplyMotionFrame(zUIMotionFrame* frame);
-    void DoHandleEvent(xBase* from, U32 toEvent, F32* toParam, xBase* toParamWidget,
-                       U32 toParamWidgetID);
-    void DoRender();
-    void setup_textbox(xtextbox& tb, zUITextAsset* asset);
-    void DoReset();
-    void DoInit();
-    bool IsUIText();
-    U32 GetSortKey();
-};
-
-void zUITextInitSystem();
-
-struct zUIUserString : zUIText
-{
-    char* textBuffer;
-    S32 length;
-    S32 maxLength;
-
-    U32 GetSortKey() const;
-    void DoHandleEvent(xBase* from, U32 toEvent, F32* toParam, xBase* toParamWidget,
-                       U32 toParamWidgetID);
-    void DoReset();
-    void DoInit();
-};
-
 struct _zUI : zEnt
 {
     zUIAsset* sasset;

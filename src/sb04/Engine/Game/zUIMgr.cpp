@@ -14,6 +14,8 @@
 #include "zUIController.h"
 #include "zUIImage.h"
 #include "zUIModel.h"
+#include "zUIText.h"
+#include "zUIUserString.h"
 
 #include <rwcore.h>
 

@@ -7,7 +7,7 @@
 #include "xHudText.h"
 #include "xHudUnitMeter.h"
 #include "xLightKit.h"
-#include "zUI.h"
+#include "zUIText.h"
 
 namespace zhud
 {

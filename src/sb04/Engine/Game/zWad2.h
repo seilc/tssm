@@ -17,6 +17,7 @@
 #include "zMusic.h"
 #include "zNMECommon.h"
 #include "zUI.h"
+#include "zUIText.h"
 
 // Dwarf data says that most of these are only used here in zWad2.cpp
 
