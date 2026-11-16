@@ -31,6 +31,7 @@ DEFAULT_VERSION = 0
 VERSIONS = [
     "GGVE78",  # 0
     "GGVX78",  # 1
+    "GGVD78",  # 2
 ]
 
 parser = argparse.ArgumentParser()
@@ -290,7 +291,8 @@ cflags_tssm = [
     "-i src/sb04/Engine/Core/x",
     "-i src/sb04/Engine/Game",
     "-DGAMECUBE",
-    "-DPAL=1" if config.version == "GGVX78" else "-DPAL=0",
+    "-DPAL=1" if config.version in ("GGVX78", "GGVD78") else "-DPAL=0",
+    "-DGERMAN=1" if config.version == "GGVD78" else "-DGERMAN=0",
     "-prefix prefix.mch",
 ]
 

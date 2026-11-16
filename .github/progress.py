@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 GAME = "TSSM"
-VERSIONS = ["GGVE78", "GGVX78"]
+VERSIONS = ["GGVE78", "GGVX78", "GGVD78"]
 USERNAME = "Chris"
 CATEGORY = "game"
 ABBREVS = {"DEBUG": "D", "RELEASE": "R", "MASTERDEBUG": "MD", "MASTER": "M"}

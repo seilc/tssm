@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [GGVE78, GGVX78]
+        version: [GGVE78, GGVX78, GGVD78]
 
     steps:
       - name: Checkout
