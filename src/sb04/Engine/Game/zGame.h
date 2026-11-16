@@ -7,6 +7,7 @@
 
 //extern eSNDCurrentPlayer gPendingPlayer;
 extern F32 sTimeElapsed;
+extern F32 gRealTimeElapsed;
 extern U32 gLevelChanged;
 extern U32 startPressed;
 //extern U8 sHackSmoothedUpdate;

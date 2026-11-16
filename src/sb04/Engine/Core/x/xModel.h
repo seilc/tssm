@@ -6,6 +6,7 @@
 
 #include "iModel.h"
 #include "xAnim.h"
+#include "xDebug.h"
 #include "xLightKit.h"
 #include "xSurface.h"
 #include "xMath3.h"
@@ -137,6 +138,7 @@ extern xModelPipeLookup* xModelLookupList;
 extern S32 xModelInstStaticAlloc;
 
 U32 xModelGetPipeFlags(RpAtomic* model);
+xModelPipe xModelGetPipe(RpAtomic* model);
 void xModelInit();
 void xModelPoolInit(U32 count, U32 numMatrices);
 S32 xModelSphereCull(xSphere* sphere);
@@ -155,7 +157,6 @@ xMat4x3* xModelGetFrame(xModelInstance* modelInst);
 void xModelEval(xModelInstance* modelInst);
 void xModel_SceneEnter(RpWorld* world);
 void xModel_SceneExit(RpWorld* world);
-xSphere* xModelGetLocalSBound(xModelInstance* model);
 void xModelGetBoneMat(xMat4x3& mat, const xModelInstance& model, size_t index);
 void xModelInstanceUpgradeBrotherShared(xModelInstance* inst, U32 flags);
 S32 xModelBoxCull(xBox* box);
@@ -164,6 +165,13 @@ S32 xModelCullSingle(xModelInstance* minst);
 inline void xModelSetFrame(xModelInstance* modelInst, const xMat4x3* frame)
 {
     xMat4x3Copy((xMat4x3*)modelInst->Mat, frame);
+}
+
+inline xSphere* xModelGetLocalSBound(xModelInstance* model)
+{
+    xASSERT(model);
+    xASSERT(model->Data);
+    return (xSphere*)RpAtomicGetBoundingSphere(model->Data);
 }
 
 inline void xModelSetMaterialAlpha(xModelInstance* modelInst, U8 alpha)

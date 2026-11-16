@@ -7,6 +7,8 @@
 
 typedef OSTime iTime;
 
+#define iTimeFromSec(sec) ((iTime)OSSecondsToTicks(sec))
+
 void iTimeInit();
 void iTimeExit();
 iTime iTimeGet();

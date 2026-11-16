@@ -11,6 +11,7 @@
 #define xASSERT(cond) do { if (0) { (void)(cond); } } while (0)
 #define xASSERT_MSG(cond, msg) xASSERT(cond)
 #define xASSERT_FMT(cond, ...) xASSERT(cond)
+#define xASSERT_LE(a, b) xASSERT((a) <= (b))
 
 void xprintf(const char* fmt, ...);
 void xDebugInit();

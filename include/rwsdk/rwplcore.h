@@ -807,7 +807,10 @@ struct rwGameCube2DVertex
     RwReal x;
     RwReal y;
     RwReal z;
-    RwRGBA emissiveColor;
+    RwUInt8 r;
+    RwUInt8 g;
+    RwUInt8 b;
+    RwUInt8 a;
     RwReal u;
     RwReal v;
 };
@@ -847,33 +850,15 @@ typedef RxVertexIndex RwImVertexIndex;
 #define RwIm2DVertexGetU(vert) ((vert)->u)
 #define RwIm2DVertexGetV(vert) ((vert)->v)
 
-/* Modify the luminance stuff */
-#define RwIm2DVertexSetRealRGBA(vert, r, g, b, a)                                                  \
-    MACRO_START                                                                                    \
-    {                                                                                              \
-        (vert)->emissiveColor.red = (RwUInt8)r;                                                    \
-        (vert)->emissiveColor.green = (RwUInt8)g;                                                  \
-        (vert)->emissiveColor.blue = (RwUInt8)b;                                                   \
-        (vert)->emissiveColor.alpha = (RwUInt8)a;                                                  \
-    }                                                                                              \
+#define RwIm2DVertexSetIntRGBA(vert, red, green, blue, alpha)  \
+    MACRO_START                                                \
+    {                                                          \
+        ((vert)->r = (red));                                   \
+        ((vert)->g = (green));                                 \
+        ((vert)->b = (blue));                                  \
+        ((vert)->a = (alpha));                                 \
+    }                                                          \
     MACRO_STOP
-
-#define RwIm2DVertexSetIntRGBA(vert, r, g, b, a)                                                   \
-    MACRO_START                                                                                    \
-    {                                                                                              \
-        (vert)->emissiveColor.red = r;                                                             \
-        (vert)->emissiveColor.green = g;                                                           \
-        (vert)->emissiveColor.blue = b;                                                            \
-        (vert)->emissiveColor.alpha = a;                                                           \
-    }                                                                                              \
-    MACRO_STOP
-
-#define RwIm2DVertexGetRed(vert) ((vert)->emissiveColor.red)
-#define RwIm2DVertexGetGreen(vert) ((vert)->emissiveColor.green)
-#define RwIm2DVertexGetBlue(vert) ((vert)->emissiveColor.blue)
-#define RwIm2DVertexGetAlpha(vert) ((vert)->emissiveColor.alpha)
-
-#define RwIm2DVertexCopyRGBA(dst, src) ((dst)->emissiveColor = (src)->emissiveColor)
 
 #if (!defined(RwV3dAssignMacro))
 #define RwV3dAssignMacro(_target, _source) (*(_target) = *(_source))
