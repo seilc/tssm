@@ -14,8 +14,8 @@ See https://decomp.dev/api for an API overview.
 [Discord Badge]: https://img.shields.io/discord/829152115322257436?color=%237289DA&logo=discord&logoColor=%23FFFFFF
 [discord]: https://discord.gg/dVbGFdYU6A
 
-A work-in-progress matching decompilation of *The SpongeBob SquarePants Movie* for the GameCube (USA, `GGVE78`),
-built on Heavy Iron's EvilEngine. Much of the engine is shared with the
+A work-in-progress matching decompilation of *The SpongeBob SquarePants Movie* for the GameCube (USA, `GGVE78`;
+Europe, `GGVX78`), built on Heavy Iron's EvilEngine. Much of the engine is shared with the
 [Ratatouille prototype decomp](https://github.com/seilc/rat), [Rise of the Underminer](https://github.com/seilc/rotu)
 and [The Incredibles](https://github.com/seilc/incredibles), which this project ports matched code from.
 
@@ -33,6 +33,7 @@ from bfbbdecomp/tssm was written by its contributors.
 Supported versions:
 
 - `GGVE78` - The SpongeBob SquarePants Movie (USA), retail Rev 1 `main.dol`
+- `GGVX78` - The SpongeBob SquarePants Movie (Europe, French/Dutch), retail `main.dol`
 
 Dependencies
 ============
@@ -85,7 +86,7 @@ Building
   git clone https://github.com/my/repo.git
   ```
 
-- Copy your game's disc image to `orig/GGVE78`.
+- Copy your game's disc image to `orig/GGVE78` (`orig/GGVX78` for the European French/Dutch disc).
   - Supported formats: ISO (GCM), RVZ, WIA, WBFS, CISO, NFS, GCZ, TGC
   - After the initial build, the disc image can be deleted to save space.
 

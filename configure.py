@@ -30,6 +30,7 @@ from tools.project import (
 DEFAULT_VERSION = 0
 VERSIONS = [
     "GGVE78",  # 0
+    "GGVX78",  # 1
 ]
 
 parser = argparse.ArgumentParser()
@@ -289,6 +290,7 @@ cflags_tssm = [
     "-i src/sb04/Engine/Core/x",
     "-i src/sb04/Engine/Game",
     "-DGAMECUBE",
+    "-DPAL=1" if config.version == "GGVX78" else "-DPAL=0",
     "-prefix prefix.mch",
 ]
 
@@ -424,7 +426,7 @@ config.libs = [
             Object(NonMatching, "sb04/Engine/Game/zParticleCustom.cpp"),
             Object(NonMatching, "sb04/Engine/Core/gc/iWad.cpp", extra_cflags=["-sym on", "-inline deferred"]),
             Object(NonMatching, "sb04/Engine/Core/gc/iTRC.cpp"),
-            Object(Matching, "sb04/Engine/Core/gc/iException.cpp"),
+            Object(MatchingFor("GGVE78"), "sb04/Engine/Core/gc/iException.cpp"),
             Object(NonMatching, "sb04/Engine/Core/gc/iScrFX.cpp"),
             Object(NonMatching, "sb04/Engine/Core/gc/iARAMTmp.cpp"),
 
@@ -613,7 +615,7 @@ config.libs = [
             Object(Matching, "dolphin/src/gx/GXInit.c"),
             Object(Matching, "dolphin/src/gx/GXFifo.c"),
             Object(Matching, "dolphin/src/gx/GXAttr.c"),
-            Object(Matching, "dolphin/src/gx/GXMisc.c"),
+            Object(MatchingFor("GGVE78"), "dolphin/src/gx/GXMisc.c"),
             Object(Matching, "dolphin/src/gx/GXGeometry.c"),
             Object(Matching, "dolphin/src/gx/GXFrameBuf.c"),
             Object(Matching, "dolphin/src/gx/GXLight.c"),
@@ -664,6 +666,7 @@ config.libs = [
             Object(Matching, "dolphin/src/os/OSContext.c"),
             Object(Matching, "dolphin/src/os/OSError.c"),
             Object(Matching, "dolphin/src/os/OSExec.c"),
+            Object(NonMatching, "dolphin/src/os/OSFatal.c"),
             Object(NonMatching, "dolphin/src/os/OSFont.c"),
             Object(Matching, "dolphin/src/os/OSInterrupt.c"),
             Object(Matching, "dolphin/src/os/OSLink.c"),
