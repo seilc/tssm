@@ -168,9 +168,9 @@ enum en_ncinfx
 struct NCINEntry
 {
     en_ncinfx typ_ncinfx;
-    void (*cb_fxupd)(zCutsceneMgr*, NCINEntry*, U32);
-    void (*cb_fxanim)(zCutsceneMgr*, NCINEntry*, RpAtomic*, RwMatrix*, U32, U32);
-    void (*cb_fxrend)(zCutsceneMgr*, NCINEntry*);
+    void (*cb_fxupd)(const zCutsceneMgr*, NCINEntry*, S32);
+    void (*cb_fxanim)(const zCutsceneMgr*, NCINEntry*, RpAtomic*, RwMatrix*, U32, U32);
+    void (*cb_fxrend)(const zCutsceneMgr*, NCINEntry*);
     F32 tym_beg;
     F32 tym_end;
     xVec3 pos_A[2];
