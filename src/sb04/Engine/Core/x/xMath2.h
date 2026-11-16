@@ -49,7 +49,7 @@ struct xVec2
     {
         return assign(xy,xy);
     }
-    xVec2& assign(F32 x, F32 y);
+    xVec2& assign(F32 x, F32 y) { this->x = x; this->y = y; return *this; }
     F32 length() const;
     F32 normal() const;
     xVec2& normalize();
@@ -61,6 +61,13 @@ struct xVec2
     xVec2& operator+=(const xVec2&);
     xVec2& operator*=(F32);
 };
+
+typedef struct _xMat3x2
+{
+    xVec2 right;
+    xVec2 up;
+    xVec2 pos;
+} xMat3x2;
 
 F32 xVec2Dist(F32 x1, F32 y1, F32 x2, F32 y2);
 F32 xVec2Dot(const xVec2* a, const xVec2* b);

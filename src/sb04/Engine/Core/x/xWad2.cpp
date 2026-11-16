@@ -4,6 +4,7 @@
 
 #include "xDebug.cpp"
 #include "xDebugTweak.cpp"
+#include "xDecal.cpp"
 
 //                                          xEnt
 

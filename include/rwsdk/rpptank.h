@@ -286,6 +286,16 @@ extern RwInt32 _rpPTankGlobalsOffset; /* Offset in RwEngine */
 #define RPATOMICPTANKPLUGINDATA(atomic)                \
     (*RWPLUGINOFFSET(RpPTankAtomicExtPrv *, (atomic), _rpPTankAtomicDataOffset))
 
+#define RpPTankAtomicSetActiveParticlesCountMacro(atm_,cnt_)                \
+    MACRO_START                                                             \
+    {                                                                       \
+        RPATOMICPTANKPLUGINDATA(atm_)->instFlags |= rpPTANKIFLAGACTNUMCHG;  \
+        RPATOMICPTANKPLUGINDATA(atm_)->actPCount = cnt_;                    \
+    }                                                                       \
+    MACRO_STOP
+
+#define RpPTankAtomicSetActiveParticlesCount(atm_,cnt_) RpPTankAtomicSetActiveParticlesCountMacro(atm_,cnt_)
+
 #define GLOBALPTANKPLUGINDATA()                \
     (*RWPLUGINOFFSET(void *, RwEngineInstance, _rpPTankGlobalsOffset))
 

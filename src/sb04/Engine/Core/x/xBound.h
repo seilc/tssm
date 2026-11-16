@@ -32,14 +32,22 @@ struct xBound
 
 void xBoundGetBox(xBox& box, const xBound& bound);
 void xBoundDraw(const xBound* bound);
-void xQuickCullForBound(xQCData* qc, const xBound* bound);
 void xBoundUpdate(xBound* b);
 void xBoundHitsBound(const xBound* a, const xBound* b, xCollis* c);
 void xRayHitsBound(const xRay3* r, const xBound* b, xCollis* c);
 void xSphereHitsBound(const xSphere* o, const xBound* b, xCollis* c);
+bool xOBBHitsBound(const xBox& box, const xMat4x3& mat, const xBound& b);
 void xVecHitsBound(const xVec3* v, const xBound* b, xCollis* c);
 
 inline xVec3* xBoundCenter(const xBound* b) { return (xVec3*)&b->sph.center; }
 inline xVec3* xBoundCenter(xBound* b) { return &b->sph.center; }
+
+inline void xBoundFromSphere(xBound& bound, const xVec3& c, F32 r)
+{
+    bound.type = k_XBOUNDTYPE_SPHERE;
+    bound.sph.center = c;
+    bound.sph.r = r;
+    xQuickCullForBound(&bound.qcd, &bound);
+}
 
 #endif

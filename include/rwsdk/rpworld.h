@@ -58,6 +58,31 @@ typedef RpMaterial* (*RpMaterialCallBack)(RpMaterial* material, void* data);
 
 #define RpMaterialGetTexture(_material) RpMaterialGetTextureMacro(_material)
 
+#define RpGeometryGetTrianglesMacro(_geometry) ((_geometry)->triangles)
+#define RpGeometryGetMaterialMacro(_geometry, _num) (((_geometry)->matList.materials)[(_num)])
+#define RpGeometryGetMorphTargetMacro(_geometry, _index) (&((_geometry)->morphTarget[(_index)]))
+#define RpGeometryGetNumTrianglesMacro(_geometry) ((_geometry)->numTriangles)
+#define RpGeometryGetNumVerticesMacro(_geometry) ((_geometry)->numVertices)
+#define RpGeometryGetVertexTexCoordsMacro(_geometry, _uvIndex) ((_geometry)->texCoords[(_uvIndex) - 1])
+#define RpMorphTargetGetVerticesMacro(_mt) ((_mt)->verts)
+
+#define RpMorphTargetSetBoundingSphereMacro(_mt, _sphere) \
+    (RwSphereAssign(&((_mt)->boundingSphere), (_sphere)), (_mt))
+
+#define RpGeometryGetMaterial(_geometry, _num) RpGeometryGetMaterialMacro(_geometry, _num)
+#define RpGeometryGetMorphTarget(_geometry, _index) RpGeometryGetMorphTargetMacro(_geometry, _index)
+#define RpGeometryGetNumTriangles(_geometry) RpGeometryGetNumTrianglesMacro(_geometry)
+#define RpGeometryGetNumVertices(_geometry) RpGeometryGetNumVerticesMacro(_geometry)
+#define RpGeometryGetTriangles(_geometry) RpGeometryGetTrianglesMacro(_geometry)
+
+#define RpGeometryGetVertexTexCoords(_geometry, _uvIndex) \
+    RpGeometryGetVertexTexCoordsMacro(_geometry, _uvIndex)
+
+#define RpMorphTargetGetVertices(_mt) RpMorphTargetGetVerticesMacro(_mt)
+
+#define RpMorphTargetSetBoundingSphere(_geometry, _sphere) \
+    RpMorphTargetSetBoundingSphereMacro(_geometry, _sphere)
+
 struct RpMaterialList
 {
     RpMaterial** materials;
@@ -155,6 +180,24 @@ enum RpGeometryLockMode
     rpGEOMETRYLOCKMODEFORCEENUMSIZEINT = RWFORCEENUMSIZEINT,
 };
 typedef enum RpGeometryLockMode RpGeometryLockMode;
+
+enum RpGeometryFlag
+{
+    rpGEOMETRYTRISTRIP = 0x1,
+    rpGEOMETRYPOSITIONS = 0x2,
+    rpGEOMETRYTEXTURED = 0x4,
+    rpGEOMETRYPRELIT = 0x8,
+    rpGEOMETRYNORMALS = 0x10,
+    rpGEOMETRYLIGHT = 0x20,
+    rpGEOMETRYMODULATEMATERIALCOLOR = 0x40,
+    rpGEOMETRYTEXTURED2 = 0x80,
+    rpGEOMETRYNATIVE = 0x1000000,
+    rpGEOMETRYNATIVEINSTANCE = 0x2000000,
+    rpGEOMETRYFLAGSMASK = 0xFF,
+    rpGEOMETRYNATIVEFLAGSMASK = 0xF000000,
+    rpGEOMETRYFLAGFORCEENUMSIZEINT = RWFORCEENUMSIZEINT,
+};
+typedef enum RpGeometryFlag RpGeometryFlag;
 
 enum RpInterpolatorFlag
 {

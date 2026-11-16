@@ -897,6 +897,8 @@ typedef RxVertexIndex RwImVertexIndex;
     }                                                                                              \
     MACRO_STOP
 
+#define RwV3dSub(o, a, b) RwV3dSubMacro(o, a, b)
+
 #define RwV3dScaleMacro(o, a, s)                                                                   \
     MACRO_START                                                                                    \
     {                                                                                              \

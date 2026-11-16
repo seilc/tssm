@@ -99,17 +99,16 @@ inline void xMat4x3Identity(xMat4x3* m)
 
 void xMat4x3Mul(xMat4x3* o, const xMat4x3* a, const xMat4x3* b);
 void xMat3x3Euler(xMat3x3* m, F32 yaw, F32 pitch, F32 roll);
-void xMat4x3Toworld(xVec3* o, const xMat4x3* m, const xVec3* v);
 void xMat3x3RotC(xMat3x3* m, F32 _x, F32 _y, F32 _z, F32 t);
 void xMat3x3RotY(xMat3x3* m, F32 t);
 void xMat3x3MulRotC(xMat3x3* o, xMat3x3* m, F32 _x, F32 _y, F32 _z, F32 t);
 void xMat3x3Normalize(xMat3x3* o, const xMat3x3* m);
 void xMat4x3Tolocal(xVec3* o, const xMat4x3* m, const xVec3* v);
 void xMat3x3Tolocal(xVec3* o, const xMat3x3* m, const xVec3* v);
+void xMat3x3Transpose(xMat3x3* o, const xMat3x3* m);
 void xMat4x3MoveLocalRight(xMat4x3* m, F32 mag);
 void xMat4x3MoveLocalAt(xMat4x3* m, F32 mag);
 void xMat4x3MoveLocalUp(xMat4x3* m, F32 mag);
-void xMat4x3OrthoInv(xMat4x3* o, const xMat4x3* m);
 void xMat3x3GetEuler(const xMat3x3* m, xVec3* a);
 void xMat3x3Euler(xMat3x3* m, const xVec3* ypr);
 void xQuatToMat(const xQuat* q, xMat3x3* m);
@@ -161,6 +160,26 @@ static inline void xMat3x3RMulVec(xVec3* o, const xMat3x3* m, const xVec3* v)
     o->x = x;
     o->y = y;
     o->z = z;
+}
+
+inline void xMat4x3OrthoInv(xMat4x3* o, const xMat4x3* m)
+{
+    xVec3 tinv;
+    xMat3x3Transpose(o, m);
+    xMat3x3RMulVec(&tinv, o, &m->pos);
+    xVec3Inv(&o->pos, &tinv);
+}
+
+inline void xMat4x3Toworld(xVec3* o, const xMat4x3* m, const xVec3* v)
+{
+    xMat3x3RMulVec(o, m, v);
+    o->x = o->x + m->pos.x, o->y = o->y + m->pos.y, o->z = o->z + m->pos.z;
+}
+
+inline void xMat4x3ToLocal(xVec3* o, const xMat4x3* m, const xVec3* v)
+{
+    o->x = v->x - m->pos.x, o->y = v->y - m->pos.y, o->z = v->z - m->pos.z;
+    xMat3x3Tolocal(o, m, o);
 }
 
 inline void xMat3x3Rot(xMat3x3* m, const xVec3* a, F32 t)

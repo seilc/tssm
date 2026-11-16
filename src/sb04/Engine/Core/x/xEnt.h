@@ -302,6 +302,11 @@ inline xVec3* xEntGetCenter(const xEnt* ent)
     return (xVec3*)xBoundCenter(&ent->bound);
 }
 
+inline bool xEntMoves(const xEnt& ent)
+{
+    return ent.pflags & k_XENT_IS_MOVING || ent.collType & (k_XENT_COLLTYPE_DYN | k_XENT_COLLTYPE_NPC | k_XENT_COLLTYPE_PC);
+}
+
 inline U32 xEntIsVisible(const xEnt* ent)
 {
     return (ent->flags & (k_XENT_IS_VISIBLE | 0x4 | 0x80)) == k_XENT_IS_VISIBLE;

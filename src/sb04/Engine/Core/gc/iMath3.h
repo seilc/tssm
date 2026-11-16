@@ -15,6 +15,7 @@ union xiMat4x3Union
 
 void iMath3Init();
 void iSphereIsectVec(const xSphere* s, const xVec3* v, xIsect* isx);
+void iSphereInitBoundOBB(xSphere* s, const xBox* b, const xMat4x3* m);
 void iSphereIsectRay(const xSphere* s, const xRay3* r, xIsect* isx);
 void iSphereIsectSphere(const xSphere* s, const xSphere* p, xIsect* isx);
 void iSphereInitBoundVec(xSphere* s, const xVec3* v);

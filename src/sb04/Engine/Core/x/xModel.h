@@ -139,6 +139,7 @@ extern S32 xModelInstStaticAlloc;
 U32 xModelGetPipeFlags(RpAtomic* model);
 void xModelInit();
 void xModelPoolInit(U32 count, U32 numMatrices);
+S32 xModelSphereCull(xSphere* sphere);
 void xModelAnimCollStart(xModelInstance& m);
 void xModelSetFrame(xModelInstance* modelInst, const xMat4x3* frame);
 xModelInstance* xModelInstanceAlloc(RpAtomic* data, void* object, U16 flags, U8 boneIndex,

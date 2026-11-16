@@ -2,6 +2,7 @@
 #define XFXHIGHDYNAMICRANGE_H
 
 #include "types.h"
+#include "iDraw.h"
 
 #include <rwcore.h>
 #include <rpworld.h>
@@ -35,5 +36,13 @@ void xFXHighDynamicRangeGetConfiguration(xFXHighDynamicRangeConfiguration& confi
 void xFXHighDynamicRangeSetGlowClamp(S32 glow_min, bool dest_test);
 void xFXHighDynamicRangeResetGlowClamp();
 void xFXHighDynamicRangeSetBackgroundDefault(S32 glow, S32 darken, bool apply);
+
+inline void xFXHighDynamicRangeBrighten(bool bright)
+{
+    if (HDR_brightening != bright) {
+        HDR_brightening = bright;
+        iDrawSetFBMSK(bright ? 0 : 0xFF000000, 0xFFFFFFFF, true);
+    }
+}
 
 #endif

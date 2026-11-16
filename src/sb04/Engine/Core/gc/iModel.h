@@ -11,6 +11,7 @@ struct xModelTag;
 void iModelInit();
 U32 iModelNumBones(RpAtomic* model);
 S32 iModelCull(RpAtomic* model, RwMatrix* mat);
+U32 iModelVertEval(RpAtomic* model, U32 index, U32 count, RwMatrix* mat, xVec3* vert, xVec3* dest);
 S32 iModelSphereCull(xSphere* sphere);
 RpAtomic* iModelFile_RWMultiAtomic(RpAtomic* model);
 void iModelSetMaterialTexture(RpAtomic* model, void* texture);

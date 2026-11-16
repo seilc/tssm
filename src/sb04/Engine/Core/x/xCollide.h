@@ -111,12 +111,29 @@ S32 xSweptSphereToModel(xSweptSphere* sws, RpAtomic* model, const RwMatrix* mat)
 S32 xSweptSphereToScene(xSweptSphere* sws, xScene* sc, xEnt* mover, U8 collType);
 void xSweptSpherePrepare(xSweptSphere* sws, xVec3* start, xVec3* end, F32 radius);
 void xSweptSphereGetResults(xSweptSphere* sws);
+// xCollis::flags
+#define k_HIT_IT ((U32)(1 << 0))
+
 U32 xSphereHitsOBB_nu(const xSphere* s, const xBox* b, const xMat4x3* m, xCollis* coll);
 U32 xSphereHitsSphere(const xSphere* a, const xSphere* b, xCollis* coll);
 U32 xSphereHitsBox(const xSphere* a, const xBox* b, xCollis* coll);
 U32 xBoxHitsSphere(const xBox* a, const xSphere* b, xCollis* coll);
 U32 xBoxHitsObb(const xBox* a, const xBox* b, const xMat4x3* mat, xCollis* coll);
-bool xSphereHitsOBB(const xSphere&, const xBox&, const xMat4x3&);
+bool xSphereHitsBox(const xVec3& c, F32 r, const xBox& b);
+U32 xSphereHitsEnv(const xSphere* b, const xEnv* env, xCollis* coll);
+
+inline bool xSphereHitsOBB(const xVec3& c, F32 r, const xBox& b, const xMat4x3& mat)
+{
+    xVec3 lc;
+    xMat4x3ToLocal(&lc, &mat, &c);
+    return xSphereHitsBox(lc, r, b);
+}
+
+inline bool xSphereHitsOBB(const xSphere& o, const xBox& b, const xMat4x3& mat)
+{
+    return xSphereHitsOBB(o.center, o.r, b, mat);
+}
+
 bool xSphereHitsSphere(const xVec3&, F32, const xVec3&, F32);
 bool xSphereHitsVCylinder(const xVec3& sc, F32 sr, const xVec3& cc, F32 cr, F32 ch);
 bool xSphereHitsVCircle(const xSphere& s, const xVec3& c, F32 r);

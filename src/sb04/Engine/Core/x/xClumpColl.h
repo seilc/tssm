@@ -46,6 +46,38 @@ struct nodeInfo
     U32 type;
     U32 index;
 };
+
+struct xClumpCollV3dGradient
+{
+    F32 dydx;
+    F32 dzdx;
+    F32 dxdy;
+    F32 dzdy;
+    F32 dxdz;
+    F32 dydz;
+};
+
+typedef S32 (*xClumpCollBSPLeafCB)(xClumpCollBSPTriangle* triangles, void* data);
+
+#define xClumpCollV3dGradientMacro(grad, vec)                                                     \
+MACRO_START                                                                                       \
+{                                                                                                 \
+    RwReal recip;                                                                                 \
+                                                                                                  \
+    recip = ((vec)->x != 0.0f) ? (1.0f / (vec)->x) : 0.0f;                                        \
+    (grad)->dydx = (vec)->y * recip;                                                              \
+    (grad)->dzdx = (vec)->z * recip;                                                              \
+                                                                                                  \
+    recip = ((vec)->y != 0.0f) ? (1.0f / (vec)->y) : 0.0f;                                        \
+    (grad)->dxdy = (vec)->x * recip;                                                              \
+    (grad)->dzdy = (vec)->z * recip;                                                              \
+                                                                                                  \
+    recip = ((vec)->z != 0.0f) ? (1.0f / (vec)->z) : 0.0f;                                        \
+    (grad)->dxdz = (vec)->x * recip;                                                              \
+    (grad)->dydz = (vec)->y * recip;                                                              \
+}                                                                                                 \
+MACRO_STOP
+
 struct RwMeshCache
 {
     U32 lengthOfMeshesArray;
@@ -62,5 +94,6 @@ struct TempAtomicList
 
 void xClumpColl_InstancePointers(xClumpCollBSPTree* tree, RpClump* clump);
 xClumpCollBSPTree* xClumpColl_StaticBufferInit(void* data, U32);
+xClumpCollBSPTree* xClumpColl_ForAllCapsuleLeafNodeIntersections(xClumpCollBSPTree* tree, RwLine* line, F32 radius, xClumpCollV3dGradient* grad, xClumpCollBSPLeafCB callBack, void* data);
 
 #endif

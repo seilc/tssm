@@ -56,7 +56,7 @@ struct xVec3
     xVec3 operator+(const xVec3&) const;
     xVec3 operator-(const xVec3&) const;
     xVec3 operator*(F32) const;
-    xVec3& operator+=(const xVec3&);
+    xVec3& operator+=(const xVec3& v) { x += v.x; y += v.y; z += v.z; return *this; }
     xVec3& operator+=(F32 f)
     {
         this->x += f;
@@ -65,7 +65,7 @@ struct xVec3
 
         return *this;
     }
-    xVec3& operator-=(const xVec3&);
+    xVec3& operator-=(const xVec3& v) { x -= v.x; y -= v.y; z -= v.z; return *this; }
     xVec3& operator-=(F32 f)
     {
         this->x -= f;
@@ -83,9 +83,10 @@ struct xVec3
     xVec3& up_normalize();
     xVec3 up_normal() const;
     xVec3& assign(F32 x, F32 y, F32 z) { this->x = x; this->y = y; this->z = z; return *this; }
-    F32 length() const;
-    F32 length2() const;
+    F32 length() const { return xsqrt(length2()); }
+    F32 length2() const { return x * x + y * y + z * z; }
     xVec3& invert();
+    xVec3& negate() { x = -x; y = -y; z = -z; return *this; }
     inline F32 dot(const xVec3& c) const; // UNUSED
     xVec3& normalize();
     xVec3& assign(F32 val);

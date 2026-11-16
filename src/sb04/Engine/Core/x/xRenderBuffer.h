@@ -4,5 +4,6 @@
 #include "iRender.h"
 
 extern iRenderArrays gRenderArr;
+extern iRenderInput gRenderBuffer;
 
 #endif

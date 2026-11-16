@@ -139,6 +139,8 @@ U32 xMemGetBlockInfo(xMemHeap_tag* heap, U32 size, S32 align, xMemBlkInfo* info)
 void* xMemGrowAlloc(U32 heapID, U32 size);
 void* xMemAlloc(U32 heapID, U32 size, S32 align);
 void xMemPopTemp(void* memory);
+void* xMemScratchPush(U32 size, U32 align);
+void xMemScratchPop(void* mem);
 S32 xMemPushBase(U32 heapID);
 S32 xMemPushBase();
 S32 xMemPopBase(U32 heapID, S32 depth);
@@ -163,6 +165,11 @@ inline void* xMemPushTemp(U32 amt)
 }
 
 inline void* operator new(size_t size, xMemStaticType, U32)
+{
+    return xMEMALLOC(size, 0);
+}
+
+inline void* operator new[](size_t size, xMemStaticType, U32)
 {
     return xMEMALLOC(size, 0);
 }
