@@ -786,10 +786,10 @@ static void _xCameraUpdate(xCamera* cam, F32 dt)
         F32 one_len = 1.0f / MAX(ray.max_t, 1e-5f);
         xVec3SMul(&ray.dir, &ray.dir, one_len);
 
-        ray.flags = 0x800;
-        if (!(ray.flags & 0x400))
+        ray.flags = XRAY3_USE_MAX;
+        if (!(ray.flags & XRAY3_USE_MIN))
         {
-            ray.flags |= 0x400;
+            ray.flags |= XRAY3_USE_MIN;
             ray.min_t = 0.0f;
         }
 
@@ -816,7 +816,7 @@ void SweptSphereHitsCameraEnt(xScene*, xRay3* ray, xQCData* qcd, xEnt* ent, void
 {
     xSweptSphere* sws = (xSweptSphere*)data;
 
-    if (ent->camcollModel && ent->chkby & 0x10 && xQuickCullIsects(qcd, &ent->bound.qcd))
+    if (ent->camcollModel && ent->chkby & k_XENT_COLLTYPE_PC && xQuickCullIsects(qcd, &ent->bound.qcd))
     {
         if (!xEntIsVisible(ent))
         {
@@ -825,7 +825,7 @@ void SweptSphereHitsCameraEnt(xScene*, xRay3* ray, xQCData* qcd, xEnt* ent, void
                 return;
             }
 
-            if (ent->collLev != 5)
+            if (ent->collLev != k_XENT_COLLLEV_MODEL)
             {
                 if (ent->bound.type == k_XBOUNDTYPE_BOX)
                 {

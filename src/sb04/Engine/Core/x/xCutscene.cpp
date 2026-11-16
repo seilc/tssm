@@ -93,7 +93,7 @@ xCutscene* xCutscene_Create(U32 csnID, U32 subtitlesID)
                 maxload = cnfo->MaxModel;
             }
 
-            csn->RawBuf = RwMalloc(maxload + 60, 0);
+            csn->RawBuf = RwMalloc(maxload + 60, rwMEMHINTDUR_NADURATION);
 
             csn->AlignBuf = csn->RawBuf;
             xASSERT(csn->RawBuf);

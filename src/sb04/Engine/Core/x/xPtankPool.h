@@ -86,7 +86,7 @@ struct ptank_pool__color_mat_uv2 : ptank_pool
 
     void next()
     {
-        if (used >= 80) {
+        if (used >= BLOCK_SIZE) {
             if (valid()) {
                 unlock_block();
             }
