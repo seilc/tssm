@@ -114,9 +114,9 @@ struct xCutscene
 };
 
 void xCutscene_Init(void* toc);
-void xCutscene_InitBegin(); // UNUSED
-void xCutscene_InitTOC(void* toc); // UNUSED
-void xCutscene_InitEnd(); // UNUSED
+void xCutscene_InitBegin();
+void xCutscene_InitTOC(void* toc);
+void xCutscene_InitEnd();
 xCutscene* xCutscene_Create(U32 csnID, U32 subtitlesID);
 S32 xCutscene_Destroy(xCutscene* csn);
 S32 xCutscene_LoadStart(xCutscene* csn);
