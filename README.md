@@ -1,9 +1,11 @@
 The SpongeBob SquarePants Movie (GameCube)  
-[![Build Status]][actions] <!--[![Code Progress]][progress] [![Data Progress]][progress]--> [![Discord Badge]][discord]
+[![Build Status]][actions] [![GGVE78 Progress]][treemap] <!--[![Code Progress]][progress] [![Data Progress]][progress]--> [![Discord Badge]][discord]
 =============
 
 [Build Status]: https://github.com/seilc/tssm/actions/workflows/build.yml/badge.svg
 [actions]: https://github.com/seilc/tssm/actions/workflows/build.yml
+[GGVE78 Progress]: https://img.shields.io/endpoint?url=https%3A%2F%2Fseilc.github.io%2Ftssm%2FGGVE78.json
+[treemap]: https://seilc.github.io/tssm/treemap.png
 <!--
 decomp.dev progress badges (hidden until the project is registered on decomp.dev)
 See https://decomp.dev/api for an API overview.
@@ -22,6 +24,8 @@ and [The Incredibles](https://github.com/seilc/incredibles), which this project 
 Based on the community decompilation [bfbbdecomp/tssm](https://github.com/bfbbdecomp/tssm) at
 [`50ea0176`](https://github.com/bfbbdecomp/tssm/commit/50ea0176), whose history this repository keeps. Upstream
 changes after that commit are not merged.
+
+![Progress treemap][treemap]
 
 This repository does **not** contain any game assets or assembly whatsoever. An existing copy of the game is required.
 
